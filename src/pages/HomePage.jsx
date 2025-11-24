@@ -1,12 +1,16 @@
-import { makeStyles } from "@mui/styles";
+import { Container } from "@mui/material";
+// import { makeStyles } from "@mui/styles";
+import VeiwTabs from "../components/ViewTabs";
 
-const useStyle = makeStyles({
-	button: {},
-});
+
 
 const HomePage = () => {
-	const classesName = useStyle();
-	return <div className={classesName}></div>;
+
+	return (
+		<Container >
+			<VeiwTabs />
+		</Container>
+	);
 };
 
 export default HomePage;

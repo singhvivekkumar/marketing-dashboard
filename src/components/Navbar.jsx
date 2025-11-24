@@ -3,20 +3,25 @@ import { AppBar, Button, IconButton, Toolbar, Typography } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 
 const useCustomStyles = makeStyles((theme) => ({
-	HeadingLg: {
+	toolbar: {
+		display: "flex",
+		justifyContent: "space-between"
+	},
+	headingLg: {
 		display: "none",
 		[theme.breakpoints.up("sm")]: {
-			display: "block",
+			display: "flex",
 		},
-		alignSelf: "center",
+		justifyContent: "center",
 	},
+	
 }));
 
 const Navbar = () => {
 	const customClass = useCustomStyles();
 	return (
 		<AppBar>
-			<Toolbar>
+			<Toolbar className={customClass.toolbar}>
 				<IconButton
 					size="large"
 					edge="start"
@@ -27,9 +32,8 @@ const Navbar = () => {
 				<Typography
 					variant="h6"
 					component="div"
-					className={customClass.HeadingLg}
-					sx={{ flexGrow: 1 }}
-					justifyItems="center">
+					className={customClass.headingLg}
+					sx={{ flexGrow: 1 }}>
 					BEL-Marketing
 				</Typography>
 				<Button color="inherit">Login</Button>
