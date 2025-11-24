@@ -1,9 +1,11 @@
+import Navbar from "./Navbar";
 
-
-function Header() {
+const Header = () => {
 	return (
-		<div>Header</div>
-	)
-}
+		<>
+			<Navbar />
+		</>
+	);
+};
 
 export default Header;

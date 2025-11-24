@@ -1,8 +1,8 @@
 import { Button, Container, Grid, Stack } from "@mui/material";
-import SideBar from "../components/SideBar";
+import SideBar from "./SideBar";
 import { Outlet } from "react-router-dom";
 
-const Home = () => {
+const Body = () => {
 	return (
 		<Container>
 			<SideBar/>
@@ -11,4 +11,4 @@ const Home = () => {
 	);
 }
 
-export default Home;
+export default Body;
