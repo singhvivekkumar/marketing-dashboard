@@ -10,12 +10,13 @@ const App = () => {
 	return (
 		<ThemeProvider theme={customTheme}>
 			<BrowserRouter>
-				<Header />
+				{/* <Header /> */}
 				<Routes>
 					<Route path="/" element={<HomePage />} />
 					<Route path="/crm" element={<CrmPage />} />
 				</Routes>
-				<Footer />
+				{/* <CrmPage/> */}
+				{/* <Footer /> */}
 			</BrowserRouter>
 		</ThemeProvider>
 	);
