@@ -19,7 +19,7 @@ import {
 
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 
-const LostLeadApp = () => {
+const LostDomesticLead = () => {
 	const [submitSuccess, setSubmitSuccess] = useState(false);
 	const [submittedData, setSubmittedData] = useState(null);
 
@@ -839,4 +839,4 @@ const LostLeadApp = () => {
 	);
 };
 
-export default LostLeadApp;
+export default LostDomesticLead;

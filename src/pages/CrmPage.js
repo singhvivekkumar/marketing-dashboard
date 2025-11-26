@@ -1,12 +1,14 @@
-import LostDomesticLeads from '../components/LostDomesticLeads';
 import { Typography } from '@mui/material';
-import LostLeadApp from '../hooks/LostLeadApp';
+import LostDomesticLead from '../components/LostDomesticLead';
+import ReceivedDomesticOrder from '../components/ReceiveDomesticOrder';
+
 
 const CrmPage = () => {
 	return (
 		<div>
 			<Typography>BEL Marketing Team</Typography>
-			<LostLeadApp/>
+			<LostDomesticLead/>
+			{/* <ReceivedDomesticOrder/> */}
 		</div>
 	)
 }
