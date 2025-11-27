@@ -1,7 +1,7 @@
 // routes/leadRoutes.js
 const express = require("express");
 const router = express.Router();
-const controller = require("../controllers/leadController");
+const controller = require("../controllers/leadController.js");
 
 router.post("/", controller.createLead);         // create
 router.get("/", controller.listLeads);           // list
