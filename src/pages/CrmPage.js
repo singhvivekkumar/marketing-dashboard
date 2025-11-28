@@ -27,7 +27,7 @@ const CrmPage = () => {
 				{/* <DomesticLeadForm/> */}
 				{/* <ExportLeadForm/> */}
 				{/* <CRMLeadForm/> */}
-				<NavigationTab />
+				{/* <NavigationTab /> */}
 				{/*===========To present the data============== */}
 				{/* <LostDomesticTable/> */}
 			</>
