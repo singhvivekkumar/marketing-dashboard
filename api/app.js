@@ -16,6 +16,6 @@ app.get("/health", (req, res) => res.json({ ok: true, data: {data: "You don't ha
 // default 404
 app.use((req, res) => res.status(404).json({ error: "Not found" }));
 
-app.listen(5000, () => console.log(`Server running on ${5000}`));
+app.listen(5000, () => console.log(`Server running on`));
 
-// module.exports = app;
+module.exports = app;

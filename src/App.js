@@ -11,6 +11,7 @@ const App = () => {
 		<ThemeProvider theme={customTheme}>
 			<BrowserRouter>
 				{/* <Header /> */}
+
 				<Routes>
 					<Route path="/" element={<HomePage />} />
 					<Route path="/crm" element={<CrmPage />} />

@@ -1,5 +1,7 @@
 # Tender Management System - Node.js Backend Setup Guide
 
+![Dashboard Screenshot](../../public/Gemini_Generated_Image_toazsotoazsotoaz.png)
+
 ## Project Structure
 
 ```
@@ -11,7 +13,7 @@ tender-backend/
 │   ├── domesticOrderController.js
 │   ├── budgetaryQuotationController.js
 │   ├── leadSubmittedController.js
-│   ├── domesticLeadsV2Controller.js
+│   ├── domesticLeadsController.js
 │   ├── exportLeadsController.js
 │   └── crmLeadsController.js
 ├── models/
@@ -19,7 +21,7 @@ tender-backend/
 │   ├── DomesticOrder.js
 │   ├── BudgetaryQuotation.js
 │   ├── LeadSubmitted.js
-│   ├── DomesticLeadV2.js
+│   ├── DomesticLead.js
 │   ├── ExportLead.js
 │   └── CRMLead.js
 ├── routes/
@@ -27,7 +29,7 @@ tender-backend/
 │   ├── domesticOrder.js
 │   ├── budgetaryQuotation.js
 │   ├── leadSubmitted.js
-│   ├── domesticLeadsV2.js
+│   ├── domesticLeads.js
 │   ├── exportLeads.js
 │   └── crmLeads.js
 ├── middleware/
@@ -108,12 +110,12 @@ CREATE DATABASE tender_management;
 - PUT `/api/lead-submitted/:id` - Update lead
 - DELETE `/api/lead-submitted/:id` - Delete lead
 
-### Domestic Leads V2
-- POST `/api/domestic-leads-v2` - Create new lead
-- GET `/api/domestic-leads-v2` - Get all leads
-- GET `/api/domestic-leads-v2/:id` - Get single lead
-- PUT `/api/domestic-leads-v2/:id` - Update lead
-- DELETE `/api/domestic-leads-v2/:id` - Delete lead
+### Domestic Leads
+- POST `/api/domestic-leads-` - Create new lead
+- GET `/api/domestic-leads-` - Get all leads
+- GET `/api/domestic-leads-/:id` - Get single lead
+- PUT `/api/domestic-leads-/:id` - Update lead
+- DELETE `/api/domestic-leads-/:id` - Delete lead
 
 ### Export Leads
 - POST `/api/export-leads` - Create new lead
@@ -225,6 +227,7 @@ psql tender_management < backup.sql
 ```
 
 ## Deployment
+
 
 ### Production Setup
 1. Set NODE_ENV=production
