@@ -8,6 +8,7 @@ import DomesticLeadForm from "../components/DomesticLeadForm";
 import ExportLeadForm from "../components/ExportLeadForm";
 import CRMLeadForm from "../components/CRMLeadForm";
 import NavigationTab from "../components/NavigationTab";
+import RakBudgetaryQuotationForm from "../components/rakshitha/BudgetaryQuotation";
 
 const CrmPage = () => {
 	return (
@@ -23,11 +24,12 @@ const CrmPage = () => {
 				{/* <LostDomesticLead/> */}
 				{/* <ReceivedDomesticOrder/> */}
 				{/* <BudgetaryQuotationForm/> */}
+				{/* <RakBudgetaryQuotationForm/> */}
 				{/* <LeadSubmittedForm/> */}
 				{/* <DomesticLeadForm/> */}
 				{/* <ExportLeadForm/> */}
 				{/* <CRMLeadForm/> */}
-				{/* <NavigationTab /> */}
+				<NavigationTab />
 				{/*===========To present the data============== */}
 				{/* <LostDomesticTable/> */}
 			</>

@@ -1,10 +1,10 @@
 // server.js - Main Express Server
 
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+require('dotenv').config();
 
 // Import routes
 const lostDomesticLeadsRoutes = require('./routes/lostDomesticLeads');
@@ -20,7 +20,7 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-// Middleware
+// Gobal Middleware
 app.use(helmet());
 app.use(cors());
 app.use(morgan('combined'));
@@ -41,7 +41,7 @@ app.use('/api/lost-domestic-leads', lostDomesticLeadsRoutes);
 app.use('/api/domestic-order', domesticOrderRoutes);
 app.use('/api/budgetary-quotation', budgetaryQuotationRoutes);
 app.use('/api/lead-submitted', leadSubmittedRoutes);
-app.use('/api/domestic-leads-v2', domesticLeadsV2Routes);
+app.use('/api/domestic-leads', domesticLeadsRoutes);
 app.use('/api/export-leads', exportLeadsRoutes);
 app.use('/api/crm-leads', crmLeadsRoutes);
 
@@ -56,7 +56,7 @@ app.get('/', (req, res) => {
       'Domestic Order': '/api/domestic-order',
       'Budgetary Quotation': '/api/budgetary-quotation',
       'Lead Submitted': '/api/lead-submitted',
-      'Domestic Leads V2': '/api/domestic-leads-v2',
+      'Domestic Leads': '/api/domestic-leads',
       'Export Leads': '/api/export-leads',
       'CRM Leads': '/api/crm-leads',
       'Health Check': '/health'
@@ -74,7 +74,7 @@ app.use((req, res) => {
   });
 });
 
-// Error handler (must be last)
+// Global Error handler (must be last)
 app.use(errorHandler);
 
 // Start server
