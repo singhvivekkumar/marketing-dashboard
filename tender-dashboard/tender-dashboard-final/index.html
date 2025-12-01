@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tender Management Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/@emotion/react/dist/emotion-react.umd.min.js"></script>
+  <script src="https://unpkg.com/@emotion/styled/dist/emotion-styled.umd.min.js"></script>
+  <script src="https://unpkg.com/@mui/material"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f5f5f5;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    #root {
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { 
+      Container, 
+      Paper, 
+      Typography, 
+      TextField, 
+      Button, 
+      Grid, 
+      Box,
+      Alert,
+      Snackbar,
+      Card,
+      CardContent,
+      Tabs,
+      Tab,
+      MenuItem,
+      Chip,
+      CircularProgress,
+      IconButton,
+      AppBar,
+      Toolbar,
+      Table,
+      TableBody,
+      TableCell,
+      TableContainer,
+      TableHead,
+      TableRow,
+      TablePagination,
+      TableSortLabel,
+      Dialog,
+      DialogTitle,
+      DialogContent,
+      DialogActions,
+      InputAdornment,
+    } = MaterialUI;
+
+    // Mock data for Lost Domestic Leads
+    const initialMockData = [
+      {
+        id: 1,
+        serialNumber: "DL-001",
+        tenderName: "Railway Infrastructure Development",
+        customer: "Ministry of Railways",
+        tenderType: "RFP",
+        typeBid: "Technical",
+        valueWithoutGST: 50000000,
+        valueWithGST: 59000000,
+        reasonLosing: "Price not competitive",
+        year: 2025,
+        partner: "ABC Corp",
+        status: "Lost",
+        createdAt: "2025-11-15"
+      },
+      {
+        id: 2,
+        serialNumber: "DL-002",
+        tenderName: "Highway Maintenance Project",
+        customer: "National Highways Authority",
+        tenderType: "Single Tender",
+        typeBid: "Financial",
+        valueWithoutGST: 75000000,
+        valueWithGST: 88500000,
+        reasonLosing: "N/A",
+        year: 2025,
+        partner: "XYZ Ltd",
+        status: "Won",
+        createdAt: "2025-11-20"
+      },
+      {
+        id: 3,
+        serialNumber: "DL-003",
+        tenderName: "Water Supply System",
+        customer: "Municipal Corporation",
+        tenderType: "EOI",
+        typeBid: "Combined",
+        valueWithoutGST: 30000000,
+        valueWithGST: 35400000,
+        reasonLosing: "Technical requirements not met",
+        year: 2025,
+        partner: "",
+        status: "Lost",
+        createdAt: "2025-11-18"
+      },
+      {
+        id: 4,
+        serialNumber: "DL-004",
+        tenderName: "Building Construction",
+        customer: "State Government",
+        tenderType: "RFP",
+        typeBid: "Technical",
+        valueWithoutGST: 100000000,
+        valueWithGST: 118000000,
+        reasonLosing: "",
+        year: 2025,
+        partner: "DEF Partners",
+        status: "Pending",
+        createdAt: "2025-11-22"
+      },
+      {
+        id: 5,
+        serialNumber: "DL-005",
+        tenderName: "IT Infrastructure",
+        customer: "Private Bank",
+        tenderType: "BQ",
+        typeBid: "Financial",
+        valueWithoutGST: 20000000,
+        valueWithGST: 23600000,
+        reasonLosing: "",
+        year: 2025,
+        partner: "",
+        status: "Won",
+        createdAt: "2025-11-10"
+      },
+      {
+        id: 6,
+        serialNumber: "DL-006",
+        tenderName: "Power Generation Unit",
+        customer: "Central Government",
+        tenderType: "RFP",
+        typeBid: "Combined",
+        valueWithoutGST: 250000000,
+        valueWithGST: 295000000,
+        reasonLosing: "Technical evaluation score too low",
+        year: 2025,
+        partner: "Power Solutions Inc",
+        status: "Lost",
+        createdAt: "2025-11-08"
+      },
+      {
+        id: 7,
+        serialNumber: "DL-007",
+        tenderName: "Metro Rail Expansion",
+        customer: "City Development Authority",
+        tenderType: "Single Tender",
+        typeBid: "Technical",
+        valueWithoutGST: 150000000,
+        valueWithGST: 177000000,
+        reasonLosing: "",
+        year: 2025,
+        partner: "Metro Build Ltd",
+        status: "Won",
+        createdAt: "2025-11-12"
+      },
+      {
+        id: 8,
+        serialNumber: "DL-008",
+        tenderName: "Airport Terminal Building",
+        customer: "Airport Authority",
+        tenderType: "RFP",
+        typeBid: "Financial",
+        valueWithoutGST: 80000000,
+        valueWithGST: 94400000,
+        reasonLosing: "",
+        year: 2025,
+        partner: "Airport Infra Corp",
+        status: "Pending",
+        createdAt: "2025-11-21"
+      },
+      {
+        id: 9,
+        serialNumber: "DL-009",
+        tenderName: "Hospital Infrastructure",
+        customer: "Health Ministry",
+        tenderType: "EOI",
+        typeBid: "Combined",
+        valueWithoutGST: 45000000,
+        valueWithGST: 53100000,
+        reasonLosing: "Compliance issues",
+        year: 2025,
+        partner: "",
+        status: "Lost",
+        createdAt: "2025-11-14"
+      },
+      {
+        id: 10,
+        serialNumber: "DL-010",
+        tenderName: "Smart City Project",
+        customer: "Municipal Corporation",
+        tenderType: "RFP",
+        typeBid: "Technical",
+        valueWithoutGST: 120000000,
+        valueWithGST: 141600000,
+        reasonLosing: "",
+        year: 2025,
+        partner: "Smart Solutions Ltd",
+        status: "Won",
+        createdAt: "2025-11-11"
+      }
+    ];
+
+    // Feature Selection Card Component
+    function FeatureSelectionCard({ onSelectFeature, tabName }) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <Card elevation={4} sx={{ maxWidth: 600, width: '100%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h4" sx={{ color: 'white', fontWeight: 700, mb: 1, textAlign: 'center' }}>
+                {tabName} Management
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', mb: 4, textAlign: 'center' }}>
+                Choose what you'd like to do
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    onClick={() => onSelectFeature('view')}
+                    sx={{
+                      backgroundColor: '#1976d2',
+                      color: 'white',
+                      py: 2,
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      '&:hover': { backgroundColor: '#1565c0' }
+                    }}
+                    startIcon={<span className="material-icons">table_view</span>}
+                  >
+                    View Data
+                  </Button>
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    onClick={() => onSelectFeature('add')}
+                    sx={{
+                      backgroundColor: '#2e7d32',
+                      color: 'white',
+                      py: 2,
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      '&:hover': { backgroundColor: '#1b5e20' }
+                    }}
+                    startIcon={<span className="material-icons">add_circle</span>}
+                  >
+                    Add Entry
+                  </Button>
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    onClick={() => onSelectFeature('upload')}
+                    sx={{
+                      backgroundColor: '#ed6c02',
+                      color: 'white',
+                      py: 2,
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      '&:hover': { backgroundColor: '#e65100' }
+                    }}
+                    startIcon={<span className="material-icons">upload_file</span>}
+                  >
+                    Upload Data
+                  </Button>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Box>
+      );
+    }
+
+    // Data Table Component
+    function DataTableView({ data, onBack, onDeleteRecord }) {
+      const [searchQuery, setSearchQuery] = React.useState('');
+      const [page, setPage] = React.useState(0);
+      const [rowsPerPage, setRowsPerPage] = React.useState(10);
+      const [orderBy, setOrderBy] = React.useState('serialNumber');
+      const [order, setOrder] = React.useState('asc');
+      const [detailsOpen, setDetailsOpen] = React.useState(false);
+      const [selectedRecord, setSelectedRecord] = React.useState(null);
+
+      const handleSort = (property) => {
+        const isAsc = orderBy === property && order === 'asc';
+        setOrder(isAsc ? 'desc' : 'asc');
+        setOrderBy(property);
+      };
+
+      const filteredData = React.useMemo(() => {
+        return data.filter(row => {
+          const searchLower = searchQuery.toLowerCase();
+          return Object.values(row).some(val => 
+            String(val).toLowerCase().includes(searchLower)
+          );
+        });
+      }, [data, searchQuery]);
+
+      const sortedData = React.useMemo(() => {
+        return [...filteredData].sort((a, b) => {
+          const aVal = a[orderBy];
+          const bVal = b[orderBy];
+          if (aVal < bVal) return order === 'asc' ? -1 : 1;
+          if (aVal > bVal) return order === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }, [filteredData, orderBy, order]);
+
+      const paginatedData = sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+      const formatCurrency = (value) => {
+        return new Intl.NumberFormat('en-IN', {
+          style: 'currency',
+          currency: 'INR',
+          maximumFractionDigits: 0
+        }).format(value);
+      };
+
+      const exportToCSV = () => {
+        const headers = ['Serial Number', 'Tender Name', 'Customer', 'Tender Type', 'Value (Ex. GST)', 'Value (Inc. GST)', 'Year', 'Status', 'Created Date'];
+        const csvData = sortedData.map(row => [
+          row.serialNumber,
+          row.tenderName,
+          row.customer,
+          row.tenderType,
+          row.valueWithoutGST,
+          row.valueWithGST,
+          row.year,
+          row.status,
+          row.createdAt
+        ]);
+        
+        const csvContent = [
+          headers.join(','),
+          ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tender-data-${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+      };
+
+      return (
+        <Box>
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<span className="material-icons">arrow_back</span>}
+              onClick={onBack}
+            >
+              Back to Menu
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<span className="material-icons">download</span>}
+              onClick={exportToCSV}
+            >
+              Export to CSV
+            </Button>
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <TextField
+              fullWidth
+              placeholder="Search across all fields..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: <InputAdornment position="start"><span className="material-icons">search</span></InputAdornment>
+              }}
+            />
+          </Box>
+
+          <TableContainer component={Paper} elevation={2}>
+            <Table>
+              <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                <TableRow>
+                  <TableCell>
+                    <TableSortLabel
+                      active={orderBy === 'serialNumber'}
+                      direction={orderBy === 'serialNumber' ? order : 'asc'}
+                      onClick={() => handleSort('serialNumber')}
+                    >
+                      Serial Number
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>
+                    <TableSortLabel
+                      active={orderBy === 'tenderName'}
+                      direction={orderBy === 'tenderName' ? order : 'asc'}
+                      onClick={() => handleSort('tenderName')}
+                    >
+                      Tender Name
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>
+                    <TableSortLabel
+                      active={orderBy === 'customer'}
+                      direction={orderBy === 'customer' ? order : 'asc'}
+                      onClick={() => handleSort('customer')}
+                    >
+                      Customer
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>Tender Type</TableCell>
+                  <TableCell align="right">
+                    <TableSortLabel
+                      active={orderBy === 'valueWithoutGST'}
+                      direction={orderBy === 'valueWithoutGST' ? order : 'asc'}
+                      onClick={() => handleSort('valueWithoutGST')}
+                    >
+                      Value (Ex. GST)
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right">
+                    <TableSortLabel
+                      active={orderBy === 'valueWithGST'}
+                      direction={orderBy === 'valueWithGST' ? order : 'asc'}
+                      onClick={() => handleSort('valueWithGST')}
+                    >
+                      Value (Inc. GST)
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="center">
+                    <TableSortLabel
+                      active={orderBy === 'year'}
+                      direction={orderBy === 'year' ? order : 'asc'}
+                      onClick={() => handleSort('year')}
+                    >
+                      Year
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="center">
+                    <TableSortLabel
+                      active={orderBy === 'createdAt'}
+                      direction={orderBy === 'createdAt' ? order : 'asc'}
+                      onClick={() => handleSort('createdAt')}
+                    >
+                      Created Date
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="center">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginatedData.map((row) => (
+                  <TableRow key={row.id} hover>
+                    <TableCell>{row.serialNumber}</TableCell>
+                    <TableCell>{row.tenderName}</TableCell>
+                    <TableCell>{row.customer}</TableCell>
+                    <TableCell>{row.tenderType}</TableCell>
+                    <TableCell align="right">{formatCurrency(row.valueWithoutGST)}</TableCell>
+                    <TableCell align="right">{formatCurrency(row.valueWithGST)}</TableCell>
+                    <TableCell align="center">{row.year}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={row.status}
+                        color={row.status === 'Won' ? 'success' : row.status === 'Lost' ? 'error' : 'default'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell align="center">{row.createdAt}</TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => { setSelectedRecord(row); setDetailsOpen(true); }}
+                      >
+                        <span className="material-icons" style={{ fontSize: 20 }}>visibility</span>
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => onDeleteRecord(row.id)}
+                      >
+                        <span className="material-icons" style={{ fontSize: 20 }}>delete</span>
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <TablePagination
+            component="div"
+            count={filteredData.length}
+            page={page}
+            onPageChange={(e, newPage) => setPage(newPage)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+          />
+
+          <Dialog open={detailsOpen} onClose={() => setDetailsOpen(false)} maxWidth="md" fullWidth>
+            <DialogTitle>Record Details</DialogTitle>
+            <DialogContent>
+              {selectedRecord && (
+                <Box sx={{ pt: 2 }}>
+                  <Grid container spacing={2}>
+                    {Object.entries(selectedRecord).map(([key, value]) => (
+                      key !== 'id' && (
+                        <Grid item xs={12} sm={6} key={key}>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                            {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                          </Typography>
+                          <Typography variant="body1">
+                            {typeof value === 'number' && key.includes('value') ? formatCurrency(value) : String(value)}
+                          </Typography>
+                        </Grid>
+                      )
+                    ))}
+                  </Grid>
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setDetailsOpen(false)}>Close</Button>
+            </DialogActions>
+          </Dialog>
+        </Box>
+      );
+    }
+
+    // Add Entry Form Component
+    function AddEntryForm({ onSubmit, onBack }) {
+      const [loading, setLoading] = React.useState(false);
+      const [formData, setFormData] = React.useState({
+        serialNumber: '',
+        tenderName: '',
+        customer: '',
+        tenderType: 'Single Tender',
+        typeBid: 'Technical',
+        valueWithoutGST: '',
+        valueWithGST: '',
+        reasonLosing: '',
+        year: new Date().getFullYear(),
+        partner: '',
+        status: 'Pending'
+      });
+      const [errors, setErrors] = React.useState({});
+
+      const validate = () => {
+        const newErrors = {};
+        if (!formData.serialNumber) newErrors.serialNumber = 'Required';
+        if (!formData.tenderName) newErrors.tenderName = 'Required';
+        if (!formData.customer) newErrors.customer = 'Required';
+        if (!formData.valueWithoutGST) newErrors.valueWithoutGST = 'Required';
+        if (!formData.valueWithGST) newErrors.valueWithGST = 'Required';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+      };
+
+      const handleFormSubmit = (e) => {
+        e.preventDefault();
+        if (!validate()) return;
+        
+        setLoading(true);
+        setTimeout(() => {
+          onSubmit({
+            ...formData,
+            valueWithoutGST: parseFloat(formData.valueWithoutGST),
+            valueWithGST: parseFloat(formData.valueWithGST),
+            year: parseInt(formData.year)
+          });
+          setLoading(false);
+          handleReset();
+        }, 500);
+      };
+
+      const handleReset = () => {
+        setFormData({
+          serialNumber: '',
+          tenderName: '',
+          customer: '',
+          tenderType: 'Single Tender',
+          typeBid: 'Technical',
+          valueWithoutGST: '',
+          valueWithGST: '',
+          reasonLosing: '',
+          year: new Date().getFullYear(),
+          partner: '',
+          status: 'Pending'
+        });
+        setErrors({});
+      };
+
+      const handleChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+        if (errors[field]) {
+          setErrors(prev => ({ ...prev, [field]: '' }));
+        }
+      };
+
+      return (
+        <Box>
+          <Box sx={{ mb: 3 }}>
+            <Button
+              variant="outlined"
+              startIcon={<span className="material-icons">arrow_back</span>}
+              onClick={onBack}
+            >
+              Back to Menu
+            </Button>
+          </Box>
+          <form onSubmit={handleFormSubmit}>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, color: '#1976d2' }}>
+              Add New Entry
+            </Typography>
+            
+            <Card sx={{ mb: 3, backgroundColor: '#e3f2fd' }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Basic Information</Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <TextField 
+                      label="Serial Number" 
+                      fullWidth 
+                      required 
+                      value={formData.serialNumber}
+                      onChange={(e) => handleChange('serialNumber', e.target.value)}
+                      error={!!errors.serialNumber} 
+                      helperText={errors.serialNumber}
+                      placeholder="e.g., DL-001"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField 
+                      label="Tender Name" 
+                      fullWidth 
+                      required 
+                      value={formData.tenderName}
+                      onChange={(e) => handleChange('tenderName', e.target.value)}
+                      error={!!errors.tenderName} 
+                      helperText={errors.tenderName}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField 
+                      label="Customer" 
+                      fullWidth 
+                      required 
+                      value={formData.customer}
+                      onChange={(e) => handleChange('customer', e.target.value)}
+                      error={!!errors.customer} 
+                      helperText={errors.customer}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ mb: 3, backgroundColor: '#fff3e0' }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Tender Details</Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={3}>
+                    <TextField 
+                      select 
+                      label="Tender Type" 
+                      fullWidth 
+                      required 
+                      value={formData.tenderType}
+                      onChange={(e) => handleChange('tenderType', e.target.value)}
+                    >
+                      {['Single Tender', 'EOI', 'RFI', 'RFP', 'BQ'].map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField 
+                      select 
+                      label="Type of Bid" 
+                      fullWidth 
+                      value={formData.typeBid}
+                      onChange={(e) => handleChange('typeBid', e.target.value)}
+                    >
+                      {['Technical', 'Financial', 'Combined'].map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField 
+                      label="Year" 
+                      type="number" 
+                      fullWidth 
+                      value={formData.year}
+                      onChange={(e) => handleChange('year', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField 
+                      label="Partner (Optional)" 
+                      fullWidth 
+                      value={formData.partner}
+                      onChange={(e) => handleChange('partner', e.target.value)}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ mb: 3, backgroundColor: '#f3e5f5' }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Financial Information</Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      label="Value Without GST" 
+                      type="number" 
+                      fullWidth 
+                      required 
+                      value={formData.valueWithoutGST}
+                      onChange={(e) => handleChange('valueWithoutGST', e.target.value)}
+                      error={!!errors.valueWithoutGST} 
+                      helperText={errors.valueWithoutGST}
+                      inputProps={{ step: '0.01' }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      label="Value With GST" 
+                      type="number" 
+                      fullWidth 
+                      required 
+                      value={formData.valueWithGST}
+                      onChange={(e) => handleChange('valueWithGST', e.target.value)}
+                      error={!!errors.valueWithGST} 
+                      helperText={errors.valueWithGST}
+                      inputProps={{ step: '0.01' }}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ mb: 3, backgroundColor: '#ffebee' }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Additional Information</Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      label="Reason for Losing (Optional)" 
+                      multiline 
+                      rows={3} 
+                      fullWidth 
+                      value={formData.reasonLosing}
+                      onChange={(e) => handleChange('reasonLosing', e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField 
+                      select
+                      label="Status" 
+                      fullWidth 
+                      value={formData.status}
+                      onChange={(e) => handleChange('status', e.target.value)}
+                    >
+                      {['Pending', 'Won', 'Lost', 'Under Review'].map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                    </TextField>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 3 }}>
+              <Button type="submit" variant="contained" size="large" disabled={loading} sx={{ minWidth: 150 }}>
+                {loading ? <CircularProgress size={24} /> : 'Submit'}
+              </Button>
+              <Button type="button" variant="outlined" size="large" onClick={handleReset} sx={{ minWidth: 150 }}>Reset</Button>
+            </Box>
+          </form>
+        </Box>
+      );
+    }
+
+    // Bulk Upload Component
+    function BulkUploadView({ onBack, onUploadSuccess }) {
+      const [file, setFile] = React.useState(null);
+      const [uploading, setUploading] = React.useState(false);
+      const [uploadResult, setUploadResult] = React.useState(null);
+      const [dragActive, setDragActive] = React.useState(false);
+
+      const handleDrag = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+          setDragActive(true);
+        } else if (e.type === "dragleave") {
+          setDragActive(false);
+        }
+      };
+
+      const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleFile(e.dataTransfer.files[0]);
+        }
+      };
+
+      const handleFileInput = (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleFile(e.target.files[0]);
+        }
+      };
+
+      const handleFile = (selectedFile) => {
+        const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', 'text/csv'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+
+        if (!validTypes.includes(selectedFile.type) && !selectedFile.name.endsWith('.xlsx') && !selectedFile.name.endsWith('.xls') && !selectedFile.name.endsWith('.csv')) {
+          alert('Please upload a valid Excel file (.xlsx, .xls, or .csv)');
+          return;
+        }
+
+        if (selectedFile.size > maxSize) {
+          alert('File size must be less than 5MB');
+          return;
+        }
+
+        setFile(selectedFile);
+        setUploadResult(null);
+      };
+
+      const processUpload = () => {
+        if (!file) return;
+
+        setUploading(true);
+        setTimeout(() => {
+          const recordsCount = Math.floor(Math.random() * 50) + 10;
+          setUploadResult({
+            success: true,
+            recordsCount,
+            message: `Successfully processed ${recordsCount} records`
+          });
+          setUploading(false);
+          if (onUploadSuccess) onUploadSuccess(recordsCount);
+        }, 2000);
+      };
+
+      const downloadTemplate = () => {
+        const template = [
+          ['Serial Number', 'Tender Name', 'Customer', 'Tender Type', 'Type of Bid', 'Value Without GST', 'Value With GST', 'Reason for Losing', 'Year', 'Partner'],
+          ['DL-001', 'Sample Tender', 'Sample Customer', 'RFP', 'Technical', '50000000', '59000000', 'Price not competitive', '2025', 'ABC Corp']
+        ];
+        
+        const csvContent = template.map(row => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'tender-template.csv';
+        a.click();
+      };
+
+      return (
+        <Box>
+          <Box sx={{ mb: 3 }}>
+            <Button
+              variant="outlined"
+              startIcon={<span className="material-icons">arrow_back</span>}
+              onClick={onBack}
+            >
+              Back to Menu
+            </Button>
+          </Box>
+
+          <Card elevation={3}>
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, textAlign: 'center' }}>
+                Bulk Upload Excel File
+              </Typography>
+
+              <Box sx={{ mb: 3, textAlign: 'center' }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<span className="material-icons">download</span>}
+                  onClick={downloadTemplate}
+                >
+                  Download Sample Template
+                </Button>
+              </Box>
+
+              <Box
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                sx={{
+                  border: '2px dashed',
+                  borderColor: dragActive ? 'primary.main' : 'grey.400',
+                  borderRadius: 2,
+                  p: 6,
+                  textAlign: 'center',
+                  backgroundColor: dragActive ? 'action.hover' : 'background.paper',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <span className="material-icons" style={{ fontSize: 64, color: '#999', marginBottom: 16 }}>cloud_upload</span>
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                  Drag &amp; Drop Excel File Here
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  or
+                </Typography>
+                <Button
+                  variant="contained"
+                  component="label"
+                >
+                  Browse Files
+                  <input
+                    type="file"
+                    hidden
+                    accept=".xlsx,.xls,.csv"
+                    onChange={handleFileInput}
+                  />
+                </Button>
+                <Typography variant="caption" display="block" sx={{ mt: 2, color: 'text.secondary' }}>
+                  Supported formats: .xlsx, .xls, .csv (Max 5MB)
+                </Typography>
+              </Box>
+
+              {file && (
+                <Box sx={{ mt: 3, p: 2, backgroundColor: 'action.hover', borderRadius: 1 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    Selected File:
+                  </Typography>
+                  <Typography variant="body2">
+                    {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                  </Typography>
+                  <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={processUpload}
+                      disabled={uploading}
+                      startIcon={uploading ? <CircularProgress size={20} /> : <span className="material-icons">upload</span>}
+                    >
+                      {uploading ? 'Processing...' : 'Upload &amp; Process'}
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={() => { setFile(null); setUploadResult(null); }}
+                      disabled={uploading}
+                    >
+                      Clear
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+
+              {uploadResult && (
+                <Alert severity={uploadResult.success ? 'success' : 'error'} sx={{ mt: 3 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    {uploadResult.message}
+                  </Typography>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </Box>
+      );
+    }
+
+    // Main App Component
+    const App = () => {
+      const [currentTab, setCurrentTab] = React.useState(0);
+      const [tabStates, setTabStates] = React.useState({});
+      const [tableData, setTableData] = React.useState(initialMockData);
+      const [snackbar, setSnackbar] = React.useState({ open: false, message: '', severity: 'success' });
+
+      const tabsConfig = [
+        { label: 'Lost Domestic Leads', icon: 'trending_down' },
+        { label: 'Domestic Order', icon: 'receipt' },
+        { label: 'Budgetary Quotation', icon: 'price_check' },
+        { label: 'Lead Submitted', icon: 'check_circle' },
+        { label: 'Domestic Leads V2', icon: 'home_work' },
+        { label: 'Export Leads', icon: 'public' },
+        { label: 'CRM Leads', icon: 'contacts' }
+      ];
+
+      const handleTabChange = (event, newValue) => {
+        setCurrentTab(newValue);
+      };
+
+      const getCurrentMode = () => {
+        return tabStates[currentTab] || 'select';
+      };
+
+      const setCurrentMode = (mode) => {
+        setTabStates(prev => ({ ...prev, [currentTab]: mode }));
+      };
+
+      const handleFeatureSelect = (feature) => {
+        setCurrentMode(feature);
+      };
+
+      const handleBack = () => {
+        setCurrentMode('select');
+      };
+
+      const handleFormSubmit = (data) => {
+        const newRecord = {
+          id: tableData.length + 1,
+          ...data,
+          createdAt: new Date().toISOString().slice(0, 10)
+        };
+        setTableData(prev => [...prev, newRecord]);
+        setSnackbar({ open: true, message: 'Record added successfully!', severity: 'success' });
+        setCurrentMode('view');
+      };
+
+      const handleDeleteRecord = (id) => {
+        setTableData(prev => prev.filter(record => record.id !== id));
+        setSnackbar({ open: true, message: 'Record deleted successfully!', severity: 'success' });
+      };
+
+      const handleUploadSuccess = (count) => {
+        setSnackbar({ open: true, message: `Successfully uploaded ${count} records!`, severity: 'success' });
+      };
+
+      const currentMode = getCurrentMode();
+
+      return (
+        <Box sx={{ backgroundColor: '#f5f5f5', minHeight: '100vh', pb: 4 }}>
+          <AppBar position="static" elevation={2} sx={{ backgroundColor: '#1976d2' }}>
+            <Toolbar>
+              <Typography variant="h5" component="h1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+                📊 Tender Management Dashboard
+              </Typography>
+              <Chip 
+                label={`Total Records: ${tableData.length}`} 
+                color="secondary" 
+                sx={{ fontWeight: 600, fontSize: '0.95rem' }}
+              />
+            </Toolbar>
+          </AppBar>
+
+          <Container maxWidth="xl" sx={{ mt: 3 }}>
+            <Paper elevation={3} sx={{ backgroundColor: '#ffffff' }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs 
+                  value={currentTab} 
+                  onChange={handleTabChange}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{
+                    '& .MuiTab-root': {
+                      minHeight: 64,
+                      textTransform: 'none',
+                      fontSize: '0.95rem',
+                      fontWeight: 500
+                    }
+                  }}
+                >
+                  {tabsConfig.map((tab, index) => (
+                    <Tab 
+                      key={index}
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <span className="material-icons" style={{ fontSize: 20 }}>{tab.icon}</span>
+                          <span>{tab.label}</span>
+                        </Box>
+                      }
+                    />
+                  ))}
+                </Tabs>
+              </Box>
+
+              <Box sx={{ p: { xs: 2, md: 4 } }}>
+                {currentMode === 'select' && (
+                  <FeatureSelectionCard 
+                    onSelectFeature={handleFeatureSelect}
+                    tabName={tabsConfig[currentTab].label}
+                  />
+                )}
+                {currentMode === 'view' && (
+                  <DataTableView 
+                    data={tableData} 
+                    onBack={handleBack}
+                    onDeleteRecord={handleDeleteRecord}
+                  />
+                )}
+                {currentMode === 'add' && (
+                  <AddEntryForm 
+                    onSubmit={handleFormSubmit} 
+                    onBack={handleBack}
+                  />
+                )}
+                {currentMode === 'upload' && (
+                  <BulkUploadView 
+                    onBack={handleBack}
+                    onUploadSuccess={handleUploadSuccess}
+                  />
+                )}
+              </Box>
+            </Paper>
+          </Container>
+
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={4000}
+            onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
+            <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+        </Box>
+      );
+    };
+
+    // Render App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
