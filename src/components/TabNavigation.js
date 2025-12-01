@@ -22,6 +22,11 @@ import {
 	AppBar,
 	Toolbar
 } from '@mui/material';
+import FeatureSelectionCard from "./common/FeatureSelectionCard";
+import BulkUpload from "./common/BulkUpload";
+import DataTableView from "./common/DataTableView";
+import { mockLostDomesticLeads } from "../utils/mockLostDomesticLeads";
+import CreateForm from "./common/CreateForm";
 
 
 // Tab Panel Component
@@ -35,11 +40,15 @@ function TabPanel({ children, value, index }) {
 
 // Main App Component
 const TabNavigation = () => {
-	const [currentTab, setCurrentTab] = React.useState(0);
+	// const [currentTab, setCurrentTab] = React.useState(0);
 	const [submitSuccess, setSubmitSuccess] = React.useState(false);
 	const [submittedData, setSubmittedData] = React.useState(null);
 	const [totalSubmissions, setTotalSubmissions] = React.useState(0);
 	const [loading, setLoading] = React.useState(false);
+	const [currentTab, setCurrentTab] = React.useState(0);
+  const [tabStates, setTabStates] = React.useState({});
+  const [tableData, setTableData] = React.useState(mockLostDomesticLeads);
+  const [snackbar, setSnackbar] = React.useState({ open: false, message: '', severity: 'success' });
 
 	// Form data state for all 7 forms
 	const [formData, setFormData] = React.useState({
@@ -52,35 +61,78 @@ const TabNavigation = () => {
 		lostDomesticLeads: null,
 	});
 
-	const handleTabChange = (event, newValue) => {
-		setCurrentTab(newValue);
-	};
+	// const handleTabChange = (event, newValue) => {
+	// 	setCurrentTab(newValue);
+	// };
 
-	const handleFormSubmit = (formType, data) => {
-		setLoading(true);
-		setTimeout(() => {
-			const timestamp = new Date().toISOString();
-			const formattedData = { ...data, submittedAt: timestamp };
+	// const handleFormSubmit = (formType, data) => {
+	// 	setLoading(true);
+	// 	setTimeout(() => {
+	// 		const timestamp = new Date().toISOString();
+	// 		const formattedData = { ...data, submittedAt: timestamp };
 			
-			setFormData(prev => ({ ...prev, [formType]: formattedData }));
-			setSubmittedData(formattedData);
-			setSubmitSuccess(true);
-			setTotalSubmissions(prev => prev + 1);
-			setLoading(false);
+	// 		setFormData(prev => ({ ...prev, [formType]: formattedData }));
+	// 		setSubmittedData(formattedData);
+	// 		setSubmitSuccess(true);
+	// 		setTotalSubmissions(prev => prev + 1);
+	// 		setLoading(false);
 			
-			console.log(`${formType} Data:`, JSON.stringify(formattedData, null, 2));
-		}, 500);
-	};
+	// 		console.log(`${formType} Data:`, JSON.stringify(formattedData, null, 2));
+	// 	}, 500);
+	// };
 
 	const tabsConfig = [
 		{ label: 'Budgetary Quotation', icon: '💵', formType: 'budgetaryQuotation' },
 		{ label: 'Lead Submitted', icon: '✅', formType: 'leadSubmitted' },
-		{ label: 'Domestic Leads V2', icon: '🏢', formType: 'domesticLeadsV2' },
+		{ label: 'Domestic Leads', icon: '🏢', formType: 'domesticLeads' },
 		{ label: 'Export Leads', icon: '🌍', formType: 'exportLeads' },
 		{ label: 'CRM Leads', icon: '📞', formType: 'crmLeads' },
-		{ label: 'Domestic Order', icon: '🧾', formType: 'domesticOrder' },
-		{ label: 'Lost Domestic Leads', icon: '📉', formType: 'lostDomesticLeads' },
+		{ label: 'Order Received', icon: '🧾', formType: 'orderReceived' },
+		{ label: 'Lost Leads', icon: '📉', formType: 'lostLeads' },
 	];
+
+  const handleTabChange = (event, newValue) => {
+    setCurrentTab(newValue);
+		setCurrentMode('select');
+  };
+
+  const getCurrentMode = () => {
+    return tabStates[currentTab] || 'select';
+  };
+
+  const setCurrentMode = (mode) => {
+    setTabStates(prev => ({ ...prev, [currentTab]: mode }));
+  };
+
+  const handleFeatureSelect = (feature) => {
+    setCurrentMode(feature);
+  };
+
+  const handleBack = () => {
+    setCurrentMode('select');
+  };
+
+  const handleFormSubmit = (data) => {
+    const newRecord = {
+      id: tableData.length + 1,
+      ...data,
+      createdAt: new Date().toISOString().slice(0, 10)
+    };
+    setTableData(prev => [...prev, newRecord]);
+    setSnackbar({ open: true, message: 'Record added successfully!', severity: 'success' });
+    setCurrentMode('view');
+  };
+ 
+  const handleDeleteRecord = (id) => {
+    setTableData(prev => prev.filter(record => record.id !== id));
+    setSnackbar({ open: true, message: 'Record deleted successfully!', severity: 'success' });
+  };
+
+  const handleUploadSuccess = (count) => {
+    setSnackbar({ open: true, message: `Successfully uploaded ${count} records!`, severity: 'success' });
+  };
+
+  const currentMode = getCurrentMode();
 
 	return (
 		<Box sx={{ backgroundColor: '#f5f5f5', minHeight: '100vh', pb: 4 }}>
@@ -100,7 +152,7 @@ const TabNavigation = () => {
 				</Toolbar>
 			</AppBar>
 
-			<Container maxWidth="xl" sx={{ mt: 3 }}>
+			<Container maxWidth="lg" sx={{ mt: 3 }}>
 				<Paper elevation={3} sx={{ backgroundColor: '#ffffff' }}>
 					{/* Tabs Navigation */}
 					<Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -133,7 +185,7 @@ const TabNavigation = () => {
 					</Box>
 
 					{/* Tab Panels */}
-					<Box sx={{ p: { xs: 2, md: 4 } }}>
+					{/* <Box sx={{ p: { xs: 2, md: 4 } }}>
 						<TabPanel value={currentTab} index={0}>
 							<BudgetaryQuotationForm onSubmit={(data) => handleFormSubmit('budgetaryQuotation', data)} loading={loading} />
 						</TabPanel>
@@ -155,7 +207,33 @@ const TabNavigation = () => {
 						<TabPanel value={currentTab} index={6}>
 							<LostDomesticLeadsForm onSubmit={(data) => handleFormSubmit('lostDomesticLeads', data)} loading={loading} />
 						</TabPanel>
-					</Box>
+					</Box> */}
+					<Box sx={{ p: { xs: 2, md: 4 } }}>
+            {currentMode === 'select' && (
+              <FeatureSelectionCard onSelectFeature={handleFeatureSelect} />
+            )}
+            {currentMode === 'view' && (
+              <DataTableView 
+                data={tableData} 
+                onBack={handleBack}
+                onDeleteRecord={handleDeleteRecord}
+              />
+            )}
+            {currentMode === 'add' && (
+              <CreateForm
+							  currentTab={currentTab}
+                onSubmit={handleFormSubmit}
+                onBack={handleBack}
+								loading={loading}
+              />
+            )}
+            {currentMode === 'upload' && (
+              <BulkUpload
+                onBack={handleBack}
+                onUploadSuccess={handleUploadSuccess}
+              />
+            )}
+          </Box>
 				</Paper>
 
 				{/* Success Snackbar */}

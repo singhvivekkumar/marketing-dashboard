@@ -21,7 +21,7 @@ import {
 
 import { useForm, Controller } from "react-hook-form";
 
-const ReceiveDomesticOrder = () => {
+const OrderReceiveForm = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -562,4 +562,4 @@ const ReceiveDomesticOrder = () => {
   );
 };
 
-export default ReceiveDomesticOrder;
+export default OrderReceiveForm;

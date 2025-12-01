@@ -1,14 +1,16 @@
 import { Container, Typography } from "@mui/material";
-import LostDomesticLead from "../components/LostDomesticLead";
-import ReceivedDomesticOrder from "../components/ReceiveDomesticOrder";
-import LostDomesticTable from "../components/LostDomesticTable";
-import BudgetaryQuotationForm from "../components/BudgetaryQuotationForm";
-import LeadSubmittedForm from "../components/LeadSubmittedForm";
-import DomesticLeadForm from "../components/DomesticLeadForm";
-import ExportLeadForm from "../components/ExportLeadForm";
-import CRMLeadForm from "../components/CRMLeadForm";
-import NavigationTab from "../components/NavigationTab";
-import RakBudgetaryQuotationForm from "../components/rakshitha/BudgetaryQuotation";
+// import LostDomesticLead from "../components/LostDomesticLead";
+// import ReceivedDomesticOrder from "../components/ReceiveDomesticOrder";
+// import LostDomesticTable from "../components/LostDomesticTable";
+// import BudgetaryQuotationForm from "../components/BudgetaryQuotationForm";
+// import LeadSubmittedForm from "../components/LeadSubmittedForm";
+// import DomesticLeadForm from "../components/DomesticLeadForm";
+// import ExportLeadForm from "../components/ExportLeadForm";
+// import CRMLeadForm from "../components/CRMLeadForm";
+// import NavigationTab from "../components/NavigationTab";
+// import RakBudgetaryQuotationForm from "../components/rakshitha/BudgetaryQuotation";
+import TabNavigation from "../components/TabNavigation";
+// import DataTable from "../../tender-dashboard/components/tables/DataTable";
 
 const CrmPage = () => {
 	return (
@@ -29,7 +31,9 @@ const CrmPage = () => {
 				{/* <DomesticLeadForm/> */}
 				{/* <ExportLeadForm/> */}
 				{/* <CRMLeadForm/> */}
-				<NavigationTab />
+				{/* <NavigationTab /> */}
+				{/* <DataTable/> */}
+				<TabNavigation/>
 				{/*===========To present the data============== */}
 				{/* <LostDomesticTable/> */}
 			</>
