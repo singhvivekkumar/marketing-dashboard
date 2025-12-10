@@ -1,27 +1,14 @@
 // Data Table Component
 import React from "react";
-import { useForm, Controller } from "react-hook-form";
 import { 
-  Container, 
   Paper, 
   Typography, 
   TextField, 
   Button, 
   Grid, 
   Box,
-  Divider,
-  Alert,
-  Snackbar,
-  Card,
-  CardContent,
-  Tabs,
-  Tab,
-  MenuItem,
   Chip,
-  CircularProgress,
   IconButton,
-  AppBar,
-  Toolbar,
   Table,
   TableBody,
   TableCell,
@@ -30,18 +17,11 @@ import {
   TableRow,
   TablePagination,
   TableSortLabel,
-  Modal,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Fade,
-  Backdrop,
-  Stack,
   InputAdornment,
-  Select,
-  FormControl,
-  InputLabel
 } from '@mui/material';
 
 function DataTableView({ data, onBack, onAddRecord, onDeleteRecord }) {
@@ -117,7 +97,9 @@ function DataTableView({ data, onBack, onAddRecord, onDeleteRecord }) {
 
   return (
     <Box>
+      {/* buttons for back to menu and download */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+        {/* back to menu */}
         <Button
           variant="outlined"
           startIcon={<span className="material-icons">arrow_back</span>}
@@ -125,6 +107,7 @@ function DataTableView({ data, onBack, onAddRecord, onDeleteRecord }) {
         >
           Back to Menu
         </Button>
+        {/* download CSV data */}
         <Button
           variant="contained"
           color="success"
@@ -135,6 +118,7 @@ function DataTableView({ data, onBack, onAddRecord, onDeleteRecord }) {
         </Button>
       </Box>
 
+    {/* search across all fields */}
       <Box sx={{ mb: 3 }}>
         <TextField
           fullWidth
@@ -147,6 +131,7 @@ function DataTableView({ data, onBack, onAddRecord, onDeleteRecord }) {
         />
       </Box>
 
+          {/* now the table has started with tablecontainer */}
       <TableContainer component={Paper} elevation={2}>
         <Table>
           <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
@@ -259,6 +244,7 @@ function DataTableView({ data, onBack, onAddRecord, onDeleteRecord }) {
         </Table>
       </TableContainer>
 
+
       <TablePagination
         component="div"
         count={filteredData.length}
@@ -269,6 +255,7 @@ function DataTableView({ data, onBack, onAddRecord, onDeleteRecord }) {
         rowsPerPageOptions={[5, 10, 25, 50]}
       />
 
+            {/* to show a row in details */}
       <Dialog open={detailsOpen} onClose={() => setDetailsOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>Record Details</DialogTitle>
         <DialogContent>
@@ -295,6 +282,8 @@ function DataTableView({ data, onBack, onAddRecord, onDeleteRecord }) {
           <Button onClick={() => setDetailsOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
+
+
     </Box>
   );
 }
