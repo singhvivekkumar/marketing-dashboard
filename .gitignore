@@ -4,7 +4,8 @@
 /node_modules
 /.pnp
 .pnp.js
-/old-src-components
+/src-15-12-2025
+/
 
 # testing
 /coverage

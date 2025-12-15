@@ -6,6 +6,7 @@ import CrmPage from "./pages/CrmPage";
 import { ThemeProvider } from "@mui/styles";
 import { customTheme } from "./utils/customTheme";
 import LeadSubmittedPage from "./table-example-10dec25/LeadSubmittedPage";
+import MarketingApp from "./marketingComponents/MarketingApp";
 
 const App = () => {
 	return (
@@ -17,6 +18,7 @@ const App = () => {
 					{/* <Route path="/" element={<HomePage />} /> */}
 					{/* <Route path="/" element={<CrmPage />} /> */}
 					<Route path="/" element={<LeadSubmittedPage />} />
+					<Route path="/marketing" element={<MarketingApp />} />
 				</Routes>
 				{/* <CrmPage/> */}
 				{/* <Footer /> */}

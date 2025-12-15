@@ -30,12 +30,12 @@ const LeadTable = ({ rows, onAdd }) => {
     <>
       {/* Top Bar */}
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-        <TextField
+        {/* <TextField
           label="Search"
           variant="outlined"
           size="small"
           onChange={(e) => setSearch(e.target.value)}
-        />
+        /> */}
 
         <div>
           <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
@@ -53,10 +53,6 @@ const LeadTable = ({ rows, onAdd }) => {
               </MenuItem>
             ))}
           </Menu>
-
-          <Button variant="contained" onClick={onAdd}>
-            Add Lead
-          </Button>
         </div>
       </div>
 
