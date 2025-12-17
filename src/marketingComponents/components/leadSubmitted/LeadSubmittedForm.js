@@ -30,6 +30,8 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
+  Checkbox,
+  Menu,
 } from "@mui/material";
 import * as XLSX from "xlsx";
 import {
@@ -41,11 +43,14 @@ import {
   DeleteRounded,
   CloseRounded,
   CheckRounded,
+  CheckCircleRounded,
 } from "@mui/icons-material";
-
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
 import * as FileSaver from "file-saver";
+import dummyData from "./dummyLeadSubmittedData.json";
+
 
 const STATUS_OPTIONS = [
   "Draft",
@@ -1111,14 +1116,13 @@ const lightTextFieldSx = {
   },
 };
 
-
 // ---------------------------------------------------------------------------
 // VIEW COMPONENT WITH SEARCH + FILTERS + SORT + EDIT / DELETE
 // ---------------------------------------------------------------------------
 
 function ViewLeadSubmittedData(props) {
   console.log("data for view the table : ", props)
-  const data = props.ViewData?.data || [];
+  const data = props.ViewData?.data || dummyData?.data || [];
   const [searchTerm, setSearchTerm] = useState("");
   const [tenderTypeFilter, setTenderTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -1135,6 +1139,46 @@ function ViewLeadSubmittedData(props) {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewRow, setViewRow] = useState(null);
 
+  // EDIT MODE STATE
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // SAVE CONFIRMATION DIALOG STATE
+  const [saveConfirmationOpen, setSaveConfirmationOpen] = useState(false);
+
+  // COLUMN SELECTION STATE
+  const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
+  const columnMenuOpen = Boolean(columnMenuAnchor);
+
+  const leadColumns = [
+    { id: "tenderName", label: "Tender Name" },
+    { id: "customerName", label: "Customer Name" },
+    { id: "customerAddress", label: "Customer Address" },
+    { id: "tenderDate", label: "Tender Date" },
+    { id: "bidOwner", label: "Bid Owner" },
+    { id: "rfpReceivedOn", label: "RFP Received On" },
+    { id: "valueEMDInCrore", label: "Value of EMD in CR" },
+    { id: "rfpDueDate", label: "RFP Due Date" },
+    { id: "dmktgInPrincipalApprovalRxdOn", label: "DmktgIn-principal approval Rxd On" },
+    { id: "sellingPriceApprovalInitiatedOn", label: "Selling price approval Initiated on" },
+    { id: "bidSubmittedOn", label: "Bid Submitted on" },
+    { id: "approvalSBUFinanceOn", label: "Approval from SBU Finance on" },
+    { id: "approvalGMOn", label: "Approval from GM" },
+    { id: "sentToFinanceGMDmktgApprovalRxdOn", label: "Sent to Finance GM on Dmktg approval rxd on" },
+    { id: "dmktgApprovalRxdOn", label: "Dmktg approval rxd on" },
+    { id: "tenderReferenceNo", label: "Tender reference No" },
+    { id: "tenderType", label: "Tender Type" },
+    { id: "website", label: "Website" },
+    { id: "presentStatus", label: "Present status" },
+    { id: "dateCreated", label: "Created Date" },
+  ];
+
+  const [visibleColumns, setVisibleColumns] = useState(
+    leadColumns.reduce((acc, col) => {
+      acc[col.id] = true;
+      return acc;
+    }, {})
+  );
+
   // ---------------- HANDLERS ----------------
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
@@ -1145,6 +1189,22 @@ function ViewLeadSubmittedData(props) {
   const handleStatusFilterChange = (e) => setStatusFilter(e.target.value);
 
   const handleSortByChange = (e) => setSortBy(e.target.value);
+
+  // COLUMN SELECTION HANDLERS
+  const handleColumnMenuOpen = (event) => {
+    setColumnMenuAnchor(event.currentTarget);
+  };
+
+  const handleColumnMenuClose = () => {
+    setColumnMenuAnchor(null);
+  };
+
+  const handleColumnToggle = (columnId) => {
+    setVisibleColumns((prev) => ({
+      ...prev,
+      [columnId]: !prev[columnId],
+    }));
+  };
 
   const toggleSortDirection = () =>
     setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -1202,15 +1262,60 @@ function ViewLeadSubmittedData(props) {
   const handleEditCancel = () => {
     setEditDialogOpen(false);
     setEditingRow(null);
+    setIsEditMode(false);
   };
 
-  // SAVE EDITED VALUES
+  // SWITCH TO EDIT MODE
+  const handleSwitchToEditMode = () => {
+    setIsEditMode(true);
+  };
+
+  // OPEN SAVE CONFIRMATION DIALOG
+  const handleSaveClick = () => {
+    setSaveConfirmationOpen(true);
+  };
+
+  // CANCEL SAVE CONFIRMATION
+  const handleSaveCancel = () => {
+    setSaveConfirmationOpen(false);
+  };
+
+  // SAVE EDITED VALUES - MOCK API CALL
   const handleEditSave = () => {
+    setSaveConfirmationOpen(false);
     console.log("Saving updated row:", editingRow);
 
-    // TODO: update in backend or props function
+    // MOCK API CALL
+    // In production, replace this with actual API call
+    const mockApiCall = async () => {
+      try {
+        // Simulate API delay
+        await new Promise((resolve) => setTimeout(resolve, 800));
 
-    setEditDialogOpen(false);
+        console.log("Mock API Response: Row updated successfully");
+        console.log("Updated data:", editingRow);
+
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/updateLeadSubmitted', {
+        //   method: 'PUT',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(editingRow),
+        // });
+        // const result = await response.json();
+
+        setEditDialogOpen(false);
+        setEditingRow(null);
+        setIsEditMode(false);
+
+        // Optional: Show success notification
+        alert("✅ Lead details updated successfully!");
+      } catch (error) {
+        console.error("Error saving data:", error);
+        alert("❌ Failed to save changes. Please try again.");
+      }
+    };
+
+    mockApiCall();
   };
   // DELETE ROW
   const handleDeleteClick = (id) => {
@@ -1402,6 +1507,58 @@ function ViewLeadSubmittedData(props) {
                 },
               }}
             />
+
+            
+            {/* Column Selection Menu */}
+            <Tooltip title="Select columns to view in table">
+              <IconButton
+                onClick={handleColumnMenuOpen}
+                sx={{
+                  border: "2px solid #1e40af",
+                  borderRadius: 1.5,
+                  backgroundColor: "rgba(30, 64, 175, 0.06)",
+                  color: "#1e40af",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: "rgba(30, 64, 175, 0.12)",
+                    transform: "scale(1.05)",
+                  },
+                }}
+              >
+                <ViewColumnIcon />
+              </IconButton>
+            </Tooltip>
+
+            <Menu
+              anchorEl={columnMenuAnchor}
+              open={columnMenuOpen}
+              onClose={handleColumnMenuClose}
+              PaperProps={{
+                sx: {
+                  minWidth: 280,
+                  maxHeight: 400,
+                },
+              }}
+            >
+              {leadColumns.map((col) => (
+                <MenuItem
+                  key={col.id}
+                  onClick={() => handleColumnToggle(col.id)}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <Checkbox
+                    checked={visibleColumns[col.id]}
+                    onChange={() => handleColumnToggle(col.id)}
+                    size="small"
+                  />
+                  <span>{col.label}</span>
+                </MenuItem>
+              ))}
+            </Menu>
           </Box>
 
           {/* FILTERS + SORT */}
@@ -1615,38 +1772,19 @@ function ViewLeadSubmittedData(props) {
           <Table stickyHeader aria-label="lead submitted table" size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={headerCellStyle}>Tender Name</TableCell>
-                <TableCell sx={headerCellStyle}>Customer Name</TableCell>
-                <TableCell sx={{ ...headerCellStyle, minWidth: 200 }}>
-                  Customer Address
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Tender Date
-                </TableCell>
-                <TableCell sx={headerCellStyle}>Bid Owner</TableCell>
-                <TableCell sx={headerCellStyle}>
-                  RFP Received On
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Value of EMD in CR
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  RFP Due Date
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  DmktgIn-principal approval Rxd On
-                </TableCell>
-                <TableCell sx={headerCellStyle}>Selling price approval Initiated on</TableCell>
-                <TableCell sx={headerCellStyle}>Bid Submitted on</TableCell>
-                <TableCell sx={headerCellStyle}>Approval from SBU Finance on</TableCell>
-                <TableCell sx={headerCellStyle}>Approval from GM</TableCell>
-                <TableCell sx={headerCellStyle}>Sent to Finance GM on Dmktg approval rxd on</TableCell>
-                <TableCell sx={headerCellStyle}>Dmktg approval rxd on</TableCell>
-                <TableCell sx={headerCellStyle}>Tender reference No</TableCell>
-                <TableCell sx={headerCellStyle}>Tender Type</TableCell>
-                <TableCell sx={headerCellStyle}>Website</TableCell>
-                <TableCell sx={headerCellStyle}>Present status</TableCell>
-                <TableCell sx={headerCellStyle}>Created Date</TableCell>
+                {leadColumns.map((col) =>
+                  visibleColumns[col.id] ? (
+                    <TableCell
+                      key={col.id}
+                      sx={{
+                        ...headerCellStyle,
+                        ...(col.id === "customerAddress" && { minWidth: 200 }),
+                      }}
+                    >
+                      {col.label}
+                    </TableCell>
+                  ) : null
+                )}
                 <TableCell sx={actionHeaderStyle}>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -1670,150 +1808,128 @@ function ViewLeadSubmittedData(props) {
                       },
                     }}
                   >
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: 14,
-                        maxWidth: 180,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.tenderName}
-                    </TableCell>
+                    {leadColumns.map((col) => {
+                      if (!visibleColumns[col.id]) return null;
 
-                    <TableCell
-                      sx={{
-                        fontSize: 14,
-                        maxWidth: 180,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.customerName}
-                    </TableCell>
+                      let cellContent = row[col.id];
 
-                    <TableCell
-                      align="left"
-                      sx={{
-                        fontSize: 13,
-                        maxWidth: 260,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.customerAddress}
-                    </TableCell>
+                      // Special rendering for specific columns
+                      if (col.id === "tenderName") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            component="th"
+                            scope="row"
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: 14,
+                              maxWidth: 180,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
 
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.tenderDate}
-                    </TableCell>
+                      if (col.id === "customerName") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            sx={{
+                              fontSize: 14,
+                              maxWidth: 180,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
 
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.bidOwner}
-                    </TableCell>
+                      if (col.id === "customerAddress") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            align="left"
+                            sx={{
+                              fontSize: 13,
+                              maxWidth: 260,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
 
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.rfpReceivedOn}
-                    </TableCell>
+                      if (col.id === "tenderReferenceNo") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            align="left"
+                            sx={{
+                              fontSize: 13,
+                              maxWidth: 180,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
 
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.valueEMDInCrore}
-                    </TableCell>
+                      if (col.id === "presentStatus") {
+                        return (
+                          <TableCell key={col.id} align="left" sx={{ fontSize: 13 }}>
+                            <Chip
+                              size="small"
+                              label={cellContent || "-"}
+                              sx={{
+                                borderRadius: 999,
+                                fontSize: 11,
+                                fontWeight: 700,
+                                backgroundColor:
+                                  cellContent === "Lost"
+                                    ? "rgba(248,113,113,0.18)"
+                                    : cellContent === "In Progress" ||
+                                      cellContent === "Under Review"
+                                    ? "rgba(234,179,8,0.18)"
+                                    : cellContent === "Won"
+                                    ? "rgba(52,211,153,0.18)"
+                                    : "rgba(148,163,184,0.25)",
+                                color:
+                                  cellContent === "Lost"
+                                    ? "#b91c1c"
+                                    : cellContent === "In Progress" ||
+                                      cellContent === "Under Review"
+                                    ? "#92400e"
+                                    : cellContent === "Won"
+                                    ? "#15803d"
+                                    : "#111827",
+                              }}
+                            />
+                          </TableCell>
+                        );
+                      }
 
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.rfpDueDate}
-                    </TableCell>
+                      // Default rendering for other columns
+                      return (
+                        <TableCell key={col.id} align="left" sx={{ fontSize: 13 }}>
+                          {cellContent}
+                        </TableCell>
+                      );
+                    })}
 
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.dmktgInPrincipalApprovalRxdOn}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.sellingPriceApprovalInitiatedOn}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.bidSubmittedOn}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.approvalSBUFinanceOn}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.approvalGMOn}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.sentToFinanceGMDmktgApprovalRxdOn}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.dmktgApprovalRxdOn}
-                    </TableCell>
-
-                    <TableCell
-                      align="left"
-                      sx={{
-                        fontSize: 13,
-                        maxWidth: 180,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.tenderReferenceNo}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.tenderType}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.website}
-                    </TableCell>
-
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      <Chip
-                        size="small"
-                        label={row.presentStatus || "-"}
-                        sx={{
-                          borderRadius: 999,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          backgroundColor:
-                            row.presentStatus === "Lost"
-                              ? "rgba(248,113,113,0.18)"
-                              : row.presentStatus === "In Progress" ||
-                                row.presentStatus === "Under Review"
-                              ? "rgba(234,179,8,0.18)"
-                              : row.presentStatus === "Won"
-                              ? "rgba(52,211,153,0.18)"
-                              : "rgba(148,163,184,0.25)",
-                          color:
-                            row.presentStatus === "Lost"
-                              ? "#b91c1c"
-                              : row.presentStatus === "In Progress" ||
-                                row.presentStatus === "Under Review"
-                              ? "#92400e"
-                              : row.presentStatus === "Won"
-                              ? "#15803d"
-                              : "#111827",
-                        }}
-                      />
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.dateCreated}
-                    </TableCell>
-
+                    {/* ACTIONS COLUMN */}
                     <TableCell align="center">
                       <Stack
                         direction="row"
@@ -1863,7 +1979,13 @@ function ViewLeadSubmittedData(props) {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={21} align="center" sx={{ py: 4 }}>
+                  <TableCell
+                    colSpan={
+                      leadColumns.filter((c) => visibleColumns[c.id]).length + 1
+                    }
+                    align="center"
+                    sx={{ py: 4 }}
+                  >
                     <Typography variant="body1" sx={{ color: "#6b7280" }}>
                       No leads found.
                     </Typography>
@@ -1871,145 +1993,1345 @@ function ViewLeadSubmittedData(props) {
                 </TableRow>
               )}
             </TableBody>
+                    
+            
           </Table>
         </TableContainer>
       </Box>
 
       
-     {/* EDIT DIALOG */}
+     {/* EDIT DIALOG - PROFESSIONAL BLUE THEME WITH TABLE LAYOUT */}
      <Dialog
         open={editDialogOpen}
         onClose={handleEditCancel}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 4,
+            borderRadius: 3,
             overflow: "hidden",
-            background:
-              "linear-gradient(135deg, #f8fbff 0%, #eef5ff 50%, #e3eeff 100%)",
+            background: "#ffffff",
             color: "#0f172a",
-            boxShadow: "0 25px 60px rgba(59,130,246,0.25)",
+            boxShadow: "0 20px 60px rgba(13, 71, 161, 0.25)",
+          },
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: "blur(8px)",
+            backgroundColor: "rgba(0, 0, 0, 0.45)",
           },
         }}
       >
-        {/* ---------------- TITLE ---------------- */}
+        {/* DIALOG TITLE - PROFESSIONAL BLUE HEADER */}
         <DialogTitle
           sx={{
             fontWeight: 800,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            px: 3,
-            py: 2,
-            color: "#0d47a1",
-            background: "linear-gradient(90deg,#e3f2fd,#f8fbff)",
+            px: 4,
+            py: 3,
+            color: "#ffffff",
+            background: "linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1e88e5 100%)",
+            borderBottom: "none",
           }}
         >
-          Edit Lead Submission
+          <Box>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 800,
+                color: "#ffffff",
+                fontSize: "1.3rem",
+              }}
+            >
+              {isEditMode ? "✏️ Edit Lead Details" : "📋 Lead Submission Details"}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                color: "rgba(255, 255, 255, 0.85)",
+                mt: 0.5,
+                display: "block",
+              }}
+            >
+              {isEditMode ? "Update the information below" : "Review all details in matrix format"}
+            </Typography>
+          </Box>
           <IconButton
             onClick={handleEditCancel}
             sx={{
-              color: "#1e40af",
-              "&:hover": { backgroundColor: "rgba(59,130,246,0.15)" },
+              color: "#ffffff",
+              "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.15)" },
             }}
           >
             <CloseRounded />
           </IconButton>
         </DialogTitle>
 
-        {/* ---------------- CONTENT ---------------- */}
+        {/* DIALOG CONTENT - TABLE FORMAT */}
         <DialogContent
-          dividers
           sx={{
-            background: "#f8fbff",
-            borderColor: "rgba(59,130,246,0.25)",
-            px: 3,
-            py: 2.5,
+            background: "#f5f8fc",
+            px: 0,
+            py: 0,
+            maxHeight: "65vh",
+            overflowY: "auto",
+            "&::-webkit-scrollbar": {
+              width: "8px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "#e8eef7",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#1565c0",
+              borderRadius: "4px",
+              "&:hover": {
+                background: "#0d47a1",
+              },
+            },
           }}
         >
-          <Grid container spacing={2}>
-            {[
-              ["Tender Name", "tenderName"],
-              ["Customer Name", "customerName"],
-              ["Customer Address", "customerAddress", true],
-              ["Bid Owner", "bidOwner"],
-              ["Tender Date", "tenderDate", false, "date"],
-              ["RFP Received On", "rfpReceivedOn", false, "date"],
-              ["RFP Due Date", "rfpDueDate", false, "date"],
-              ["EMD Value (Cr)", "valueEMDInCrore"],
-              ["Tender Reference No", "tenderReferenceNo"],
-              ["Website", "website"],
-            ].map(([label, field, multiline, type], idx) => (
-              <Grid item xs={12} md={multiline ? 12 : 6} key={idx}>
-                <TextField
-                  label={label}
-                  type={type || "text"}
-                  value={editingRow?.[field] || ""}
-                  onChange={(e) => handleEditFieldChange(field, e.target.value)}
-                  fullWidth
-                  size="small"
-                  multiline={!!multiline}
-                  minRows={multiline ? 2 : undefined}
-                  InputLabelProps={
-                    type === "date" ? { shrink: true } : undefined
-                  }
-                  sx={lightTextFieldSx}
-                />
-              </Grid>
-            ))}
-
-            {/* Tender Type */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                select
-                label="Tender Type"
-                value={editingRow?.tenderType || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("tenderType", e.target.value)
-                }
-                fullWidth
-                size="small"
-                sx={lightTextFieldSx}
+          {editingRow && (
+            <TableContainer sx={{ background: "#f5f8fc" }}>
+              <Table
+                sx={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  "& .MuiTableCell-root": {
+                    border: "none",
+                  },
+                }}
               >
-                {TENDER_TYPE_OPTIONS.map((opt) => (
-                  <MenuItem key={opt} value={opt}>
-                    {opt}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+                <TableBody>
+                  {/* TENDER INFORMATION SECTION */}
+                  <TableRow
+                    sx={{
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      colSpan={2}
+                      sx={{
+                        py: 2,
+                        px: 3,
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        borderBottom: "2px solid #1565c0",
+                      }}
+                    >
+                      📋 Tender Information
+                    </TableCell>
+                  </TableRow>
 
-            {/* Present Status */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                select
-                label="Present Status"
-                value={editingRow?.presentStatus || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("presentStatus", e.target.value)
-                }
-                fullWidth
-                size="small"
-                sx={lightTextFieldSx}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-          </Grid>
+                  {[
+                    ["Tender Name", "tenderName", "text"],
+                    ["Tender Reference No", "tenderReferenceNo", "text"],
+                    ["Tender Date", "tenderDate", "date"],
+                    ["Tender Type", "tenderType", "select", TENDER_TYPE_OPTIONS],
+                    ["Website", "website", "text"],
+                  ].map(([label, field, type, options], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
+                        },
+                      }}
+                    >
+                      <TableCell
+                        sx={{
+                          py: 2.5,
+                          px: 3,
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: "0.95rem",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: 2.5,
+                          px: 3,
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type === "date" ? "date" : type === "select" ? "select" : "text"}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          InputLabelProps={type === "date" ? { shrink: true } : undefined}
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                            },
+                          }}
+                          select={type === "select"}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: "0.95rem",
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& input": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        >
+                          {type === "select" && options?.map((opt) => (
+                            <MenuItem key={opt} value={opt}>
+                              {opt}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* CUSTOMER INFORMATION SECTION */}
+                  <TableRow
+                    sx={{
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      colSpan={2}
+                      sx={{
+                        py: 2,
+                        px: 3,
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        borderBottom: "2px solid #1565c0",
+                      }}
+                    >
+                      👤 Customer Information
+                    </TableCell>
+                  </TableRow>
+
+                  {[
+                    ["Customer Name", "customerName", "text"],
+                    ["Customer Address", "customerAddress", "text"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
+                        },
+                      }}
+                    >
+                      <TableCell
+                        sx={{
+                          py: 2.5,
+                          px: 3,
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: "0.95rem",
+                          borderBottom: "1px solid #e8eef7",
+                          verticalAlign: "top",
+                        }}
+                      >
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: 2.5,
+                          px: 3,
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          multiline={field === "customerAddress"}
+                          minRows={field === "customerAddress" ? 2 : 1}
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                            },
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: "0.95rem",
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& textarea": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* BID OWNER & EMD SECTION */}
+                  <TableRow
+                    sx={{
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      colSpan={2}
+                      sx={{
+                        py: 2,
+                        px: 3,
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        borderBottom: "2px solid #1565c0",
+                      }}
+                    >
+                      💼 Bid Owner & EMD
+                    </TableCell>
+                  </TableRow>
+
+                  {[
+                    ["Bid Owner", "bidOwner", "text"],
+                    ["Value of EMD (Crore)", "valueEMDInCrore", "number"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
+                        },
+                      }}
+                    >
+                      <TableCell
+                        sx={{
+                          py: 2.5,
+                          px: 3,
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: "0.95rem",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: 2.5,
+                          px: 3,
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                            },
+                            ...(type === "number" && {
+                              startAdornment: (
+                                <InputAdornment position="start">₹</InputAdornment>
+                              ),
+                            }),
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: "0.95rem",
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& input": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* RFP TIMELINE SECTION */}
+                  <TableRow
+                    sx={{
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      colSpan={2}
+                      sx={{
+                        py: 2,
+                        px: 3,
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        borderBottom: "2px solid #1565c0",
+                      }}
+                    >
+                      📅 RFP Timeline
+                    </TableCell>
+                  </TableRow>
+
+                  {[
+                    ["RFP Received On", "rfpReceivedOn", "date"],
+                    ["RFP Due Date", "rfpDueDate", "date"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
+                        },
+                      }}
+                    >
+                      <TableCell
+                        sx={{
+                          py: 2.5,
+                          px: 3,
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: "0.95rem",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: 2.5,
+                          px: 3,
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          InputLabelProps={type === "date" ? { shrink: true } : undefined}
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                            },
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: "0.95rem",
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& input": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* APPROVAL WORKFLOW SECTION */}
+                  <TableRow
+                    sx={{
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      colSpan={2}
+                      sx={{
+                        py: 2,
+                        px: 3,
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        borderBottom: "2px solid #1565c0",
+                      }}
+                    >
+                      ✅ Approval Workflow Dates
+                    </TableCell>
+                  </TableRow>
+
+                  {[
+                    ["Dmktg In-Principal Approval Rxd On", "dmktgInPrincipalApprovalRxdOn", "date"],
+                    ["Selling Price Approval Initiated On", "sellingPriceApprovalInitiatedOn", "date"],
+                    ["Bid Submitted On", "bidSubmittedOn", "date"],
+                    ["Approval from SBU Finance On", "approvalSBUFinanceOn", "date"],
+                    ["Approval from GM", "approvalGMOn", "date"],
+                    ["Sent to Finance GM on Dmktg Approval Rxd On", "sentToFinanceGMDmktgApprovalRxdOn", "date"],
+                    ["Dmktg Approval Rxd On", "dmktgApprovalRxdOn", "date"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
+                        },
+                      }}
+                    >
+                      <TableCell
+                        sx={{
+                          py: 2.5,
+                          px: 3,
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: "0.95rem",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: 2.5,
+                          px: 3,
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          InputLabelProps={type === "date" ? { shrink: true } : undefined}
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                            },
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: "0.95rem",
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& input": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* STATUS SECTION */}
+                  <TableRow
+                    sx={{
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      colSpan={2}
+                      sx={{
+                        py: 2,
+                        px: 3,
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        borderBottom: "2px solid #1565c0",
+                      }}
+                    >
+                      📊 Status & Tracking
+                    </TableCell>
+                  </TableRow>
+
+                  <TableRow
+                    sx={{
+                      background: "#ffffff",
+                      borderBottom: "1px solid #e8eef7",
+                      "&:hover": {
+                        background: isEditMode ? "#eff6ff" : "#ffffff",
+                        transition: "background 0.2s ease",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      sx={{
+                        py: 2.5,
+                        px: 3,
+                        fontWeight: 700,
+                        color: "#0d47a1",
+                        width: "35%",
+                        fontSize: "0.95rem",
+                        borderBottom: "1px solid #e8eef7",
+                      }}
+                    >
+                      Present Status
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        py: 2.5,
+                        px: 3,
+                        width: "65%",
+                        borderBottom: "1px solid #e8eef7",
+                      }}
+                    >
+                      <TextField
+                        select
+                        value={editingRow?.presentStatus || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange("presentStatus", e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        InputProps={{
+                          readOnly: !isEditMode,
+                          style: {
+                            fontWeight: 500,
+                          },
+                        }}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 2,
+                            backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                            color: "#0f172a",
+                            fontSize: "0.95rem",
+                            transition: "all 0.2s ease",
+                            "& fieldset": {
+                              borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: isEditMode ? "#1565c0" : "#ccc",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#0d47a1",
+                              boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                            },
+                          },
+                        }}
+                      >
+                        {STATUS_OPTIONS.map((s) => (
+                          <MenuItem key={s} value={s}>
+                            {s}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </DialogContent>
 
-        {/* ---------------- ACTIONS ---------------- */}
+        {/* DIALOG ACTIONS - CONDITIONAL BUTTONS */}
+        <DialogActions
+          sx={{
+            px: 4,
+            py: 2.5,
+            background: "#ffffff",
+            borderTop: "2px solid #e8eef7",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Button
+            onClick={handleEditCancel}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              px: 3,
+              fontWeight: 600,
+              color: "#1565c0",
+              "&:hover": {
+                backgroundColor: "rgba(21, 101, 192, 0.08)",
+              },
+            }}
+          >
+            Close
+          </Button>
+
+          {!isEditMode ? (
+            <Button
+              variant="contained"
+              onClick={handleSwitchToEditMode}
+              startIcon={<EditRounded />}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                px: 4,
+                fontWeight: 700,
+                background: "linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)",
+                boxShadow: "0 8px 20px rgba(13, 71, 161, 0.3)",
+                color: "#ffffff",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #0a3a81 0%, #0d47a1 100%)",
+                  boxShadow: "0 10px 25px rgba(13, 71, 161, 0.4)",
+                  transform: "translateY(-2px)",
+                },
+              }}
+            >
+              Edit Details
+            </Button>
+          ) : (
+            <>
+              <Button
+                onClick={handleEditCancel}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: "none",
+                  px: 3,
+                  fontWeight: 600,
+                  color: "#d97706",
+                  border: "1.5px solid #fcd34d",
+                  backgroundColor: "#fef3c7",
+                  "&:hover": {
+                    backgroundColor: "#fce7a8",
+                    borderColor: "#f59e0b",
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={handleSaveClick}
+                startIcon={<CheckRounded />}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: "none",
+                  px: 4,
+                  fontWeight: 700,
+                  background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                  boxShadow: "0 8px 20px rgba(5, 150, 105, 0.3)",
+                  color: "#ffffff",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #047857 0%, #059669 100%)",
+                    boxShadow: "0 10px 25px rgba(5, 150, 105, 0.4)",
+                    transform: "translateY(-2px)",
+                  },
+                }}
+              >
+                Save Changes
+              </Button>
+            </>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* SAVE CONFIRMATION DIALOG - PROFESSIONAL BLUE THEME */}
+      <Dialog
+        open={saveConfirmationOpen}
+        onClose={handleSaveCancel}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: "#ffffff",
+            boxShadow: "0 20px 50px rgba(13, 71, 161, 0.3)",
+          },
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: "blur(8px)",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            color: "#ffffff",
+            fontSize: "1.15rem",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            background: "linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)",
+            py: 3,
+          }}
+        >
+          ⚠️ Confirm Changes
+        </DialogTitle>
+
+        <DialogContent sx={{ py: 3 }}>
+          <Typography variant="body1" sx={{ color: "#374151", lineHeight: 1.6, fontWeight: 500 }}>
+            Are you sure you want to save these changes? Once saved, the updated information will be permanently stored in the system.
+          </Typography>
+          <Box
+            sx={{
+              mt: 3,
+              p: 2.5,
+              backgroundColor: "#eff6ff",
+              borderRadius: 2,
+              borderLeft: "4px solid #0d47a1",
+            }}
+          >
+            <Typography variant="caption" sx={{ color: "#0d47a1", fontWeight: 700, display: "flex", alignItems: "center", gap: 0.8 }}>
+              💡 <span>Review all changes before confirming</span>
+            </Typography>
+          </Box>
+        </DialogContent>
+
         <DialogActions
           sx={{
             px: 3,
-            py: 2,
+            py: 2.5,
+            gap: 1.5,
+            background: "#f9fafb",
+            borderTop: "1px solid #e8eef7",
+          }}
+        >
+          <Button
+            onClick={handleSaveCancel}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              px: 3,
+              fontWeight: 600,
+              color: "#6b7280",
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.05)",
+              },
+            }}
+          >
+            No, Keep Editing
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={handleEditSave}
+            startIcon={<CheckCircleRounded />}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              px: 4,
+              fontWeight: 700,
+              background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+              boxShadow: "0 8px 20px rgba(5, 150, 105, 0.3)",
+              color: "#ffffff",
+              "&:hover": {
+                background: "linear-gradient(135deg, #047857 0%, #059669 100%)",
+                boxShadow: "0 10px 25px rgba(5, 150, 105, 0.4)",
+              },
+            }}
+          >
+            Yes, Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+              {/* TENDER DETAILS SECTION */}
+              <Grid item xs={12}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 700,
+                    color: "#0d47a1",
+                    mb: 1.5,
+                    pb: 1,
+                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
+                  }}
+                >
+                  📋 Tender Information
+                </Typography>
+              </Grid>
+
+              {[
+                ["Tender Name", "tenderName", false, "text"],
+                ["Tender Reference No", "tenderReferenceNo", false, "text"],
+                ["Tender Type", "tenderType", false, "select", TENDER_TYPE_OPTIONS],
+                ["Tender Date", "tenderDate", false, "date"],
+                ["Website", "website", false, "text"],
+              ].map(([label, field, multiline, type, options], idx) => (
+                <Grid item xs={12} sm={type === "date" ? 6 : 12} key={idx}>
+                  <TextField
+                    label={label}
+                    type={type === "date" ? "date" : type === "select" ? "select" : "text"}
+                    value={editingRow?.[field] || ""}
+                    onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                    fullWidth
+                    size="small"
+                    InputLabelProps={
+                      type === "date" ? { shrink: true } : undefined
+                    }
+                    InputProps={{
+                      readOnly: !isEditMode,
+                    }}
+                    select={type === "select"}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2.5,
+                        backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
+                        color: "#0f172a",
+                        "& fieldset": {
+                          borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
+                          boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
+                        },
+                        "& input": {
+                          cursor: isEditMode ? "auto" : "default",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "#1e3a8a",
+                        fontWeight: 600,
+                      },
+                    }}
+                  >
+                    {type === "select" && options?.map((opt) => (
+                      <MenuItem key={opt} value={opt}>
+                        {opt}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+              ))}
+
+              {/* CUSTOMER DETAILS SECTION */}
+              <Grid item xs={12}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 700,
+                    color: "#0d47a1",
+                    mb: 1.5,
+                    mt: 1,
+                    pb: 1,
+                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
+                  }}
+                >
+                  👤 Customer Information
+                </Typography>
+              </Grid>
+
+              {[
+                ["Customer Name", "customerName", false, "text"],
+                ["Customer Address", "customerAddress", true, "text"],
+              ].map(([label, field, multiline, type], idx) => (
+                <Grid item xs={12} key={idx}>
+                  <TextField
+                    label={label}
+                    type={type}
+                    value={editingRow?.[field] || ""}
+                    onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                    fullWidth
+                    size="small"
+                    multiline={multiline}
+                    minRows={multiline ? 2 : 1}
+                    InputProps={{
+                      readOnly: !isEditMode,
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2.5,
+                        backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
+                        color: "#0f172a",
+                        "& fieldset": {
+                          borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
+                          boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
+                        },
+                        "& textarea": {
+                          cursor: isEditMode ? "auto" : "default",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "#1e3a8a",
+                        fontWeight: 600,
+                      },
+                    }}
+                  />
+                </Grid>
+              ))}
+
+              {/* BID OWNER & EMD SECTION */}
+              <Grid item xs={12}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 700,
+                    color: "#0d47a1",
+                    mb: 1.5,
+                    mt: 1,
+                    pb: 1,
+                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
+                  }}
+                >
+                  💼 Bid Owner & EMD
+                </Typography>
+              </Grid>
+
+              {[
+                ["Bid Owner", "bidOwner", false, "text"],
+                ["Value of EMD (Crore)", "valueEMDInCrore", false, "number"],
+              ].map(([label, field, multiline, type], idx) => (
+                <Grid item xs={12} sm={6} key={idx}>
+                  <TextField
+                    label={label}
+                    type={type}
+                    value={editingRow?.[field] || ""}
+                    onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                    fullWidth
+                    size="small"
+                    InputLabelProps={
+                      type === "date" ? { shrink: true } : undefined
+                    }
+                    InputProps={{
+                      readOnly: !isEditMode,
+                      ...(type === "number" && {
+                        startAdornment: (
+                          <InputAdornment position="start">₹</InputAdornment>
+                        ),
+                      }),
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2.5,
+                        backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
+                        color: "#0f172a",
+                        "& fieldset": {
+                          borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
+                          boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
+                        },
+                        "& input": {
+                          cursor: isEditMode ? "auto" : "default",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "#1e3a8a",
+                        fontWeight: 600,
+                      },
+                    }}
+                  />
+                </Grid>
+              ))}
+
+              {/* RFP TIMELINE SECTION */}
+              <Grid item xs={12}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 700,
+                    color: "#0d47a1",
+                    mb: 1.5,
+                    mt: 1,
+                    pb: 1,
+                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
+                  }}
+                >
+                  📅 RFP Timeline
+                </Typography>
+              </Grid>
+
+              {[
+                ["RFP Received On", "rfpReceivedOn", false, "date"],
+                ["RFP Due Date", "rfpDueDate", false, "date"],
+              ].map(([label, field, multiline, type], idx) => (
+                <Grid item xs={12} sm={6} key={idx}>
+                  <TextField
+                    label={label}
+                    type={type}
+                    value={editingRow?.[field] || ""}
+                    onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                    fullWidth
+                    size="small"
+                    InputLabelProps={
+                      type === "date" ? { shrink: true } : undefined
+                    }
+                    InputProps={{
+                      readOnly: !isEditMode,
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2.5,
+                        backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
+                        color: "#0f172a",
+                        "& fieldset": {
+                          borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
+                          boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
+                        },
+                        "& input": {
+                          cursor: isEditMode ? "auto" : "default",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "#1e3a8a",
+                        fontWeight: 600,
+                      },
+                    }}
+                  />
+                </Grid>
+              ))}
+
+              {/* APPROVAL WORKFLOW SECTION */}
+              <Grid item xs={12}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 700,
+                    color: "#0d47a1",
+                    mb: 1.5,
+                    mt: 1,
+                    pb: 1,
+                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
+                  }}
+                >
+                  ✅ Approval Workflow Dates
+                </Typography>
+              </Grid>
+
+              {[
+                ["Dmktg In-Principal Approval Rxd On", "dmktgInPrincipalApprovalRxdOn", false, "date"],
+                ["Selling Price Approval Initiated On", "sellingPriceApprovalInitiatedOn", false, "date"],
+                ["Bid Submitted On", "bidSubmittedOn", false, "date"],
+                ["Approval from SBU Finance On", "approvalSBUFinanceOn", false, "date"],
+                ["Approval from GM", "approvalGMOn", false, "date"],
+                ["Sent to Finance GM on Dmktg Approval Rxd On", "sentToFinanceGMDmktgApprovalRxdOn", false, "date"],
+                ["Dmktg Approval Rxd On", "dmktgApprovalRxdOn", false, "date"],
+              ].map(([label, field, multiline, type], idx) => (
+                <Grid item xs={12} sm={6} key={idx}>
+                  <TextField
+                    label={label}
+                    type={type}
+                    value={editingRow?.[field] || ""}
+                    onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                    fullWidth
+                    size="small"
+                    InputLabelProps={
+                      type === "date" ? { shrink: true } : undefined
+                    }
+                    InputProps={{
+                      readOnly: !isEditMode,
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2.5,
+                        backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
+                        color: "#0f172a",
+                        "& fieldset": {
+                          borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
+                          boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
+                        },
+                        "& input": {
+                          cursor: isEditMode ? "auto" : "default",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "#1e3a8a",
+                        fontWeight: 600,
+                      },
+                    }}
+                  />
+                </Grid>
+              ))}
+
+              {/* STATUS SECTION */}
+              <Grid item xs={12}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 700,
+                    color: "#0d47a1",
+                    mb: 1.5,
+                    mt: 1,
+                    pb: 1,
+                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
+                  }}
+                >
+                  📊 Status & Tracking
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  select
+                  label="Present Status"
+                  value={editingRow?.presentStatus || ""}
+                  onChange={(e) =>
+                    handleEditFieldChange("presentStatus", e.target.value)
+                  }
+                  fullWidth
+                  size="small"
+                  InputProps={{
+                    readOnly: !isEditMode,
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2.5,
+                      backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
+                      color: "#0f172a",
+                      "& fieldset": {
+                        borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
+                        boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      color: "#1e3a8a",
+                      fontWeight: 600,
+                    },
+                  }}
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {s}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+
+        {/* DIALOG ACTIONS - CONDITIONAL BUTTONS */}
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2.5,
             background: "#f1f5ff",
-            borderTop: "1px solid rgba(59,130,246,0.25)",
+            borderTop: "2px solid rgba(59,130,246,0.2)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <Button
@@ -2020,30 +3342,183 @@ function ViewLeadSubmittedData(props) {
               px: 3,
               fontWeight: 600,
               color: "#1e40af",
+              "&:hover": {
+                backgroundColor: "rgba(59, 130, 246, 0.1)",
+              },
             }}
           >
-            Cancel
+            Close
+          </Button>
+
+          {!isEditMode ? (
+            <Button
+              variant="contained"
+              onClick={handleSwitchToEditMode}
+              startIcon={<EditRounded />}
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                px: 4,
+                fontWeight: 700,
+                background:
+                  "linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#1d4ed8 100%)",
+                boxShadow: "0 10px 25px rgba(59,130,246,0.35)",
+                "&:hover": {
+                  background:
+                    "linear-gradient(135deg,#1d4ed8 0%,#2563eb 50%,#1e40af 100%)",
+                  boxShadow: "0 12px 30px rgba(59,130,246,0.45)",
+                  transform: "translateY(-2px)",
+                },
+              }}
+            >
+              Edit Details
+            </Button>
+          ) : (
+            <>
+              <Button
+                onClick={handleEditCancel}
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  px: 3,
+                  fontWeight: 600,
+                  color: "#ef4444",
+                  border: "2px solid #fed7aa",
+                  backgroundColor: "#fef3c7",
+                  "&:hover": {
+                    backgroundColor: "#fcd34d",
+                    borderColor: "#f59e0b",
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={handleSaveClick}
+                startIcon={<CheckRounded />}
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  px: 4,
+                  fontWeight: 700,
+                  background:
+                    "linear-gradient(135deg,#16a34a 0%,#22c55e 50%,#15803d 100%)",
+                  boxShadow: "0 10px 25px rgba(34, 197, 94, 0.35)",
+                  "&:hover": {
+                    background:
+                      "linear-gradient(135deg,#15803d 0%,#16a34a 50%,#166534 100%)",
+                    boxShadow: "0 12px 30px rgba(34, 197, 94, 0.45)",
+                    transform: "translateY(-2px)",
+                  },
+                }}
+              >
+                Save Changes
+              </Button>
+            </>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* SAVE CONFIRMATION DIALOG */}
+      <Dialog
+        open={saveConfirmationOpen}
+        onClose={handleSaveCancel}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background:
+              "linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)",
+            boxShadow: "0 20px 50px rgba(34, 197, 94, 0.25)",
+          },
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: "blur(8px)",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            color: "#15803d",
+            fontSize: "1.2rem",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          ⚠️ Confirm Changes
+        </DialogTitle>
+
+        <DialogContent sx={{ py: 3 }}>
+          <Typography variant="body1" sx={{ color: "#374151", lineHeight: 1.6 }}>
+            Are you sure you want to save these changes? Once saved, the updated information will be stored in the system.
+          </Typography>
+          <Box
+            sx={{
+              mt: 2.5,
+              p: 2,
+              backgroundColor: "rgba(34, 197, 94, 0.08)",
+              borderRadius: 2,
+              borderLeft: "4px solid #16a34a",
+            }}
+          >
+            <Typography variant="caption" sx={{ color: "#166534", fontWeight: 600 }}>
+              💡 Tip: Review all changes before confirming
+            </Typography>
+          </Box>
+        </DialogContent>
+
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            gap: 1.5,
+            background: "#f9fafb",
+            borderTop: "1px solid rgba(34, 197, 94, 0.2)",
+          }}
+        >
+          <Button
+            onClick={handleSaveCancel}
+            sx={{
+              borderRadius: 999,
+              textTransform: "none",
+              px: 3,
+              fontWeight: 600,
+              color: "#6b7280",
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.05)",
+              },
+            }}
+          >
+            No, Keep Editing
           </Button>
 
           <Button
             variant="contained"
             onClick={handleEditSave}
-            startIcon={<CheckRounded />}
+            startIcon={<CheckCircleRounded />}
             sx={{
               borderRadius: 999,
               textTransform: "none",
               px: 4,
               fontWeight: 700,
               background:
-                "linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#1d4ed8 100%)",
-              boxShadow: "0 10px 25px rgba(59,130,246,0.45)",
+                "linear-gradient(135deg,#16a34a 0%,#22c55e 50%,#15803d 100%)",
+              boxShadow: "0 8px 20px rgba(34, 197, 94, 0.3)",
               "&:hover": {
                 background:
-                  "linear-gradient(135deg,#1d4ed8 0%,#2563eb 50%,#1e40af 100%)",
+                  "linear-gradient(135deg,#15803d 0%,#16a34a 50%,#166534 100%)",
+                boxShadow: "0 10px 25px rgba(34, 197, 94, 0.4)",
               },
             }}
           >
-            Save Changes
+            Yes, Save Changes
           </Button>
         </DialogActions>
       </Dialog>

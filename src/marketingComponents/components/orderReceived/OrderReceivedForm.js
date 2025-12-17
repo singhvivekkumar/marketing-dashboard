@@ -32,6 +32,8 @@ import {
   CardContent,
   // Tab,
   MenuItem,
+  Checkbox,
+  Menu,
   // Table,
   // TableBody,
   // TableCell,
@@ -51,6 +53,7 @@ import {
   CloseRounded,
   CheckRounded,
 } from "@mui/icons-material";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -1063,6 +1066,59 @@ function ViewOrderRecievedData(props) {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewRow, setViewRow] = useState(null);
 
+  // COLUMN VISIBILITY STATE
+  const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
+  const columnMenuOpen = Boolean(columnMenuAnchor);
+
+  const [visibleColumns, setVisibleColumns] = useState({
+    contractName: true,
+    customerName: true,
+    customerAddress: true,
+    orderReceivedDate: true,
+    purchaseOrder: true,
+    typeOfTender: true,
+    valueWithoutGST: true,
+    valueWithGST: true,
+    JSON_competitors: true,
+    remarks: true,
+    contractCopy: true,
+    dateCreated: true,
+    actions: true,
+  });
+
+  // COLUMN DEFINITIONS
+  const leadColumns = [
+    { id: "contractName", label: "Contract Name" },
+    { id: "customerName", label: "Customer Name" },
+    { id: "customerAddress", label: "Customer Address" },
+    { id: "orderReceivedDate", label: "Order Received Date" },
+    { id: "purchaseOrder", label: "Purchase Order No" },
+    { id: "typeOfTender", label: "Tender Type" },
+    { id: "valueWithoutGST", label: "Value in CR without GST" },
+    { id: "valueWithGST", label: "Value in CR with GST" },
+    { id: "JSON_competitors", label: "Competitors" },
+    { id: "remarks", label: "Remarks" },
+    { id: "contractCopy", label: "Contract Copy/ Work Order/LOI" },
+    { id: "dateCreated", label: "Created Date" },
+    { id: "actions", label: "Actions" },
+  ];
+
+  // COLUMN HANDLERS
+  const handleColumnMenuOpen = (event) => {
+    setColumnMenuAnchor(event.currentTarget);
+  };
+
+  const handleColumnMenuClose = () => {
+    setColumnMenuAnchor(null);
+  };
+
+  const handleColumnToggle = (columnId) => {
+    setVisibleColumns((prev) => ({
+      ...prev,
+      [columnId]: !prev[columnId],
+    }));
+  };
+
   // ---------------- HANDLERS ----------------
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
@@ -1331,6 +1387,75 @@ function ViewOrderRecievedData(props) {
                 },
               }}
             />
+
+              {/* select columns to view in table */}
+              <Tooltip title="Select columns to display">
+                <IconButton
+                  onClick={handleColumnMenuOpen}
+                  sx={{
+                    borderRadius: 2.5,
+                    border: "2px solid #1e40af",
+                    backgroundColor: "rgba(30,64,175,0.08)",
+                    color: "#1e40af",
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      backgroundColor: "rgba(30,64,175,0.15)",
+                      transform: "scale(1.05)",
+                    },
+                  }}
+                >
+                  <ViewColumnIcon />
+                </IconButton>
+              </Tooltip>
+
+              {/* COLUMN VISIBILITY MENU */}
+              <Menu
+                anchorEl={columnMenuAnchor}
+                open={columnMenuOpen}
+                onClose={handleColumnMenuClose}
+                PaperProps={{
+                  sx: {
+                    borderRadius: 2,
+                    minWidth: 280,
+                    maxHeight: 400,
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+                  },
+                }}
+              >
+                {leadColumns.map((col) => (
+                  <Box
+                    key={col.id}
+                    onClick={() => handleColumnToggle(col.id)}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      px: 2,
+                      py: 1,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      "&:hover": {
+                        backgroundColor: "rgba(30,64,175,0.08)",
+                      },
+                    }}
+                  >
+                    <Checkbox
+                      checked={visibleColumns[col.id]}
+                      onChange={() => {}}
+                      size="small"
+                      sx={{
+                        color: "#1e40af",
+                        "&.Mui-checked": {
+                          color: "#1e40af",
+                        },
+                      }}
+                    />
+                    <Typography variant="body2" sx={{ fontSize: 13, color: "#0f172a" }}>
+                      {col.label}
+                    </Typography>
+                  </Box>
+                ))}
+              </Menu>
           </Box>
 
           {/* FILTERS + SORT */}
@@ -1543,29 +1668,17 @@ function ViewOrderRecievedData(props) {
           <Table stickyHeader aria-label="lead submitted table" size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={headerCellStyle}>Tender Name</TableCell>
-                <TableCell sx={headerCellStyle}>Customer Name</TableCell>
-                <TableCell sx={headerCellStyle}>Customer Address</TableCell>
-                <TableCell sx={{ ...headerCellStyle, minWidth: 200 }}>
-                  Order Received Date
-                </TableCell>
-                <TableCell sx={headerCellStyle}>Purchase Order No</TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Tender Type
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Value in CR without GST
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Value in CR with GST
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Competitors
-                </TableCell>
-                <TableCell sx={headerCellStyle}>Remarks</TableCell>
-                <TableCell sx={headerCellStyle}>Contract Copy/ Work Order/LOI</TableCell>
-                <TableCell sx={headerCellStyle}>Created Date</TableCell>
-                <TableCell sx={actionHeaderStyle}>Actions</TableCell>
+                {leadColumns.map(
+                  (col) =>
+                    visibleColumns[col.id] && (
+                      <TableCell
+                        key={col.id}
+                        sx={col.id === "actions" ? actionHeaderStyle : headerCellStyle}
+                      >
+                        {col.label}
+                      </TableCell>
+                    )
+                )}
               </TableRow>
             </TableHead>
 
@@ -1613,132 +1726,122 @@ function ViewOrderRecievedData(props) {
                       },
                     }}
                   >
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: 14,
-                        maxWidth: 180,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.contractName}
-                    </TableCell>
+                    {leadColumns.map((col) => {
+                      if (!visibleColumns[col.id]) return null;
 
-                    <TableCell
-                      sx={{
-                        fontSize: 14,
-                        maxWidth: 180,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.customerName}
-                    </TableCell>
-
-                    <TableCell
-                      align="left"
-                      sx={{
-                        fontSize: 13,
-                        maxWidth: 260,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.customerAddress}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.orderReceivedDate}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.purchaseOrder}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.typeOfTender}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.valueWithoutGST}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.valueWithGST}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.JSON_competitors}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.remarks}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.contractCopy}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.dateCreated}
-                    </TableCell>
-
-                    <TableCell align="center">
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        justifyContent="center"
-                        alignItems="center"
-                      >
-                        <Tooltip title="Edit">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditClick(row);
-                            }}
+                      // RENDER CONTRACT NAME AS HEADER
+                      if (col.id === "contractName") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            component="th"
+                            scope="row"
                             sx={{
-                              borderRadius: 2,
-                              backgroundColor: "rgba(59,130,246,0.12)",
-                              "&:hover": {
-                                backgroundColor: "rgba(59,130,246,0.25)",
-                              },
+                              fontWeight: 600,
+                              fontSize: 14,
+                              maxWidth: 180,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
                             }}
                           >
-                            <EditRounded fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteClick(row.id);
-                            }}
+                            {row.contractName}
+                          </TableCell>
+                        );
+                      }
+
+                      // RENDER CUSTOMER ADDRESS WITH MIN WIDTH
+                      if (col.id === "customerAddress") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            align="left"
                             sx={{
-                              borderRadius: 2,
-                              backgroundColor: "rgba(239,68,68,0.12)",
-                              "&:hover": {
-                                backgroundColor: "rgba(239,68,68,0.25)",
-                              },
+                              fontSize: 13,
+                              maxWidth: 260,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
                             }}
                           >
-                            <DeleteRounded fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
+                            {row.customerAddress}
+                          </TableCell>
+                        );
+                      }
+
+                      // RENDER ACTIONS
+                      if (col.id === "actions") {
+                        return (
+                          <TableCell key={col.id} align="center">
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              <Tooltip title="Edit">
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditClick(row);
+                                  }}
+                                  sx={{
+                                    borderRadius: 2,
+                                    backgroundColor: "rgba(59,130,246,0.12)",
+                                    "&:hover": {
+                                      backgroundColor: "rgba(59,130,246,0.25)",
+                                    },
+                                  }}
+                                >
+                                  <EditRounded fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteClick(row.id);
+                                  }}
+                                  sx={{
+                                    borderRadius: 2,
+                                    backgroundColor: "rgba(239,68,68,0.12)",
+                                    "&:hover": {
+                                      backgroundColor: "rgba(239,68,68,0.25)",
+                                    },
+                                  }}
+                                >
+                                  <DeleteRounded fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        );
+                      }
+
+                      // RENDER OTHER COLUMNS
+                      return (
+                        <TableCell
+                          key={col.id}
+                          align="left"
+                          sx={{
+                            fontSize: 13,
+                            maxWidth: 180,
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {row[col.id]}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={21} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={leadColumns.filter((c) => visibleColumns[c.id]).length} align="center" sx={{ py: 4 }}>
                     <Typography variant="body1" sx={{ color: "#6b7280" }}>
                       No leads found.
                     </Typography>

@@ -1977,6 +1977,12 @@ function ViewExportLeadData(props) {
             maxHeight: "90vh",
           },
         }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: "blur(5px)",
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
+          },
+        }}
       >
         {/* HEADER */}
         <DialogTitle

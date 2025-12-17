@@ -26,6 +26,8 @@ import {
   Card,
   Container,
   CircularProgress,
+  Checkbox,
+  Menu,
 } from "@mui/material";
 import * as XLSX from "xlsx";
 import Snackbar from "@mui/material/Snackbar";
@@ -41,7 +43,7 @@ import {
   CloseRounded,
   CheckRounded,
 } from "@mui/icons-material";
-
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import { useForm, Controller } from "react-hook-form";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
@@ -903,6 +905,65 @@ function ViewLostData(props) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
 
+  // COLUMN VISIBILITY STATE
+  const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
+  const columnMenuOpen = Boolean(columnMenuAnchor);
+
+  const [visibleColumns, setVisibleColumns] = useState({
+    tenderName: true,
+    tenderReferenceNo: true,
+    customerName: true,
+    customerAddress: true,
+    tenderType: true,
+    documentType: true,
+    valueInCrWithoutGST: true,
+    valueWithGST: true,
+    reasonLosing: true,
+    year: true,
+    partner: true,
+    competitors: true,
+    technicalScores: true,
+    quotedPrices: true,
+    dateCreated: true,
+    actions: true,
+  });
+
+  // COLUMN DEFINITIONS
+  const leadColumns = [
+    { id: "tenderName", label: "Tender Name" },
+    { id: "tenderReferenceNo", label: "Tender Reference No" },
+    { id: "customerName", label: "Customer Name" },
+    { id: "customerAddress", label: "Customer Address" },
+    { id: "tenderType", label: "Tender Type" },
+    { id: "documentType", label: "Document Type" },
+    { id: "valueInCrWithoutGST", label: "Value in CR w/o GST" },
+    { id: "valueWithGST", label: "Value in CR with GST" },
+    { id: "reasonLosing", label: "Reason for Losing" },
+    { id: "year", label: "Year we Lost" },
+    { id: "partner", label: "Partners" },
+    { id: "competitors", label: "Competitors" },
+    { id: "technicalScores", label: "Technical Score" },
+    { id: "quotedPrices", label: "Quoted Price" },
+    { id: "dateCreated", label: "Created Date" },
+    { id: "actions", label: "Actions" },
+  ];
+
+  // COLUMN HANDLERS
+  const handleColumnMenuOpen = (event) => {
+    setColumnMenuAnchor(event.currentTarget);
+  };
+
+  const handleColumnMenuClose = () => {
+    setColumnMenuAnchor(null);
+  };
+
+  const handleColumnToggle = (columnId) => {
+    setVisibleColumns((prev) => ({
+      ...prev,
+      [columnId]: !prev[columnId],
+    }));
+  };
+
   const tenderTypes = ["single tender", "EOI", "RFI", "RFP", "BQ"];
 
   // ---------------- HANDLERS ----------------
@@ -1040,6 +1101,75 @@ function ViewLostData(props) {
                 },
               }}
             />
+
+              {/* select columns to view in table */}
+              <Tooltip title="Select columns to display">
+                <IconButton
+                  onClick={handleColumnMenuOpen}
+                  sx={{
+                    borderRadius: 2.5,
+                    border: "2px solid #1e40af",
+                    backgroundColor: "rgba(30,64,175,0.08)",
+                    color: "#1e40af",
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      backgroundColor: "rgba(30,64,175,0.15)",
+                      transform: "scale(1.05)",
+                    },
+                  }}
+                >
+                  <ViewColumnIcon />
+                </IconButton>
+              </Tooltip>
+
+              {/* COLUMN VISIBILITY MENU */}
+              <Menu
+                anchorEl={columnMenuAnchor}
+                open={columnMenuOpen}
+                onClose={handleColumnMenuClose}
+                PaperProps={{
+                  sx: {
+                    borderRadius: 2,
+                    minWidth: 280,
+                    maxHeight: 400,
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+                  },
+                }}
+              >
+                {leadColumns.map((col) => (
+                  <Box
+                    key={col.id}
+                    onClick={() => handleColumnToggle(col.id)}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      px: 2,
+                      py: 1,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      "&:hover": {
+                        backgroundColor: "rgba(30,64,175,0.08)",
+                      },
+                    }}
+                  >
+                    <Checkbox
+                      checked={visibleColumns[col.id]}
+                      onChange={() => {}}
+                      size="small"
+                      sx={{
+                        color: "#1e40af",
+                        "&.Mui-checked": {
+                          color: "#1e40af",
+                        },
+                      }}
+                    />
+                    <Typography variant="body2" sx={{ fontSize: 13, color: "#0f172a" }}>
+                      {col.label}
+                    </Typography>
+                  </Box>
+                ))}
+              </Menu>
           </Box>
 
           {/* FILTERS + SORT */}
@@ -1232,43 +1362,31 @@ function ViewLostData(props) {
         >
           <Table stickyHeader aria-label="lost tenders table" size="small">
             <TableHead>
-              {[
-                "Tender Name",
-                "Tender Reference No",
-                "Customer Name",
-                "Customer Address",
-                "Tender Type",
-                "Document Type",
-                "Value in CR w/o GST",
-                "Value in CR with GST",
-                "Reason for Losing",
-                "Year we Lost",
-                "Partners",
-                "Competitors",
-                "Technical Score",
-                "Quoted Price",
-                "Created Date",
-                "Actions",
-              ].map((header, idx) => (
-                <TableCell
-                  key={header}
-                  align={idx === 0 ? "left" : idx === 15 ? "center" : "left"}
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: 13,
-                    color: "#f9fafb",
-                    background:
-                      "linear-gradient(90deg,#0ea5e9 0%,#2563eb 50%,#4f46e5 100%)",
-                    borderBottom: "none",
-                    whiteSpace: "nowrap",
-                    ...(header === "Customer Address"
-                      ? { minWidth: 200 }
-                      : {}),
-                  }}
-                >
-                  {header}
-                </TableCell>
-              ))}
+              <TableRow>
+                {leadColumns.map(
+                  (col) =>
+                    visibleColumns[col.id] && (
+                      <TableCell
+                        key={col.id}
+                        align={col.id === "actions" ? "center" : "left"}
+                        sx={{
+                          fontWeight: 800,
+                          fontSize: 13,
+                          color: "#f9fafb",
+                          background:
+                            "linear-gradient(90deg,#0ea5e9 0%,#2563eb 50%,#4f46e5 100%)",
+                          borderBottom: "none",
+                          whiteSpace: "nowrap",
+                          ...(col.id === "customerAddress"
+                            ? { minWidth: 200 }
+                            : {}),
+                        }}
+                      >
+                        {col.label}
+                      </TableCell>
+                    )
+                )}
+              </TableRow>
             </TableHead>
 
             <TableBody>
@@ -1343,189 +1461,153 @@ function ViewLostData(props) {
                         },
                       }}
                     >
-                      <TableCell
-                        component="th"
-                        scope="row"
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: 14,
-                          maxWidth: 180,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.tenderName}
-                      </TableCell>
+                      {leadColumns.map((col) => {
+                        if (!visibleColumns[col.id]) return null;
 
-                      <TableCell
-                        sx={{
-                          fontSize: 14,
-                          maxWidth: 180,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.tenderReferenceNo}
-                      </TableCell>
-
-                      <TableCell
-                        sx={{
-                          fontSize: 14,
-                          maxWidth: 180,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.customerName}
-                      </TableCell>
-
-                      <TableCell
-                        align="left"
-                        sx={{
-                          fontSize: 13,
-                          maxWidth: 260,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.customerAddress}
-                      </TableCell>
-
-                      {/* Tender Type with Chip */}
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        <Chip
-                          size="small"
-                          label={row.tenderType || "-"}
-                          sx={{
-                            borderRadius: 999,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            backgroundColor: "rgba(59,130,246,0.12)",
-                            color: "#1d4ed8",
-                          }}
-                        />
-                      </TableCell>
-
-                      {/* Document Type */}
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        <Chip
-                          size="small"
-                          label={row.documentType || "-"}
-                          sx={{
-                            borderRadius: 999,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            backgroundColor: "rgba(129,140,248,0.18)",
-                            color: "#4338ca",
-                          }}
-                        />
-                      </TableCell>
-
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.valueInCrWithoutGST}
-                      </TableCell>
-
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.valueWithGST}
-                      </TableCell>
-
-                      <TableCell
-                        align="left"
-                        sx={{
-                          fontSize: 13,
-                          maxWidth: 200,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.reasonLosing}
-                      </TableCell>
-
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.year}
-                      </TableCell>
-
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.partner}
-                      </TableCell>
-
-                      <TableCell
-                        align="left"
-                        sx={{
-                          fontSize: 13,
-                          maxWidth: 200,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.competitors}
-                      </TableCell>
-
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.technicalScores}
-                      </TableCell>
-
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.quotedPrices}
-                      </TableCell>
-
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.dateCreated}
-                      </TableCell>
-
-                      <TableCell align="center">
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          justifyContent="center"
-                          alignItems="center"
-                        >
-                          <Tooltip title="Edit">
-                            <IconButton
-                              size="small"
-                              onClick={(e) => handleEditClick(row, e)}
+                        // RENDER TENDER NAME AS HEADER
+                        if (col.id === "tenderName") {
+                          return (
+                            <TableCell
+                              key={col.id}
+                              component="th"
+                              scope="row"
                               sx={{
-                                borderRadius: 2,
-                                backgroundColor: "rgba(59,130,246,0.12)",
-                                "&:hover": {
-                                  backgroundColor: "rgba(59,130,246,0.25)",
-                                },
+                                fontWeight: 600,
+                                fontSize: 14,
+                                maxWidth: 180,
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
                               }}
                             >
-                              <EditRounded fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                              {row.tenderName}
+                            </TableCell>
+                          );
+                        }
 
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              onClick={(e) =>
-                                handleDeleteClick(row.id, e)
-                              }
+                        // RENDER CUSTOMER ADDRESS WITH MIN WIDTH
+                        if (col.id === "customerAddress") {
+                          return (
+                            <TableCell
+                              key={col.id}
+                              align="left"
                               sx={{
-                                borderRadius: 2,
-                                backgroundColor: "rgba(239,68,68,0.12)",
-                                "&:hover": {
-                                  backgroundColor: "rgba(239,68,68,0.25)",
-                                },
+                                fontSize: 13,
+                                maxWidth: 260,
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
                               }}
                             >
-                              <DeleteRounded fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
+                              {row.customerAddress}
+                            </TableCell>
+                          );
+                        }
+
+                        // RENDER TENDER TYPE & DOCUMENT TYPE AS CHIPS
+                        if (col.id === "tenderType") {
+                          return (
+                            <TableCell key={col.id} align="left" sx={{ fontSize: 13 }}>
+                              <Chip
+                                size="small"
+                                label={row.tenderType || "-"}
+                                sx={{
+                                  borderRadius: 999,
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  backgroundColor: "rgba(59,130,246,0.12)",
+                                  color: "#1d4ed8",
+                                }}
+                              />
+                            </TableCell>
+                          );
+                        }
+
+                        if (col.id === "documentType") {
+                          return (
+                            <TableCell key={col.id} align="left" sx={{ fontSize: 13 }}>
+                              <Chip
+                                size="small"
+                                label={row.documentType || "-"}
+                                sx={{
+                                  borderRadius: 999,
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  backgroundColor: "rgba(129,140,248,0.18)",
+                                  color: "#4338ca",
+                                }}
+                              />
+                            </TableCell>
+                          );
+                        }
+
+                        // RENDER ACTIONS
+                        if (col.id === "actions") {
+                          return (
+                            <TableCell key={col.id} align="center">
+                              <Stack
+                                direction="row"
+                                spacing={1}
+                                justifyContent="center"
+                                alignItems="center"
+                              >
+                                <Tooltip title="Edit">
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => handleEditClick(row, e)}
+                                    sx={{
+                                      borderRadius: 2,
+                                      backgroundColor: "rgba(59,130,246,0.12)",
+                                      "&:hover": {
+                                        backgroundColor: "rgba(59,130,246,0.25)",
+                                      },
+                                    }}
+                                  >
+                                    <EditRounded fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => handleDeleteClick(row.id, e)}
+                                    sx={{
+                                      borderRadius: 2,
+                                      backgroundColor: "rgba(239,68,68,0.12)",
+                                      "&:hover": {
+                                        backgroundColor: "rgba(239,68,68,0.25)",
+                                      },
+                                    }}
+                                  >
+                                    <DeleteRounded fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Stack>
+                            </TableCell>
+                          );
+                        }
+
+                        // RENDER OTHER COLUMNS
+                        return (
+                          <TableCell
+                            key={col.id}
+                            align="left"
+                            sx={{
+                              fontSize: 13,
+                              maxWidth: 180,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {row[col.id]}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))}
               {(!props.ViewData.data || props.ViewData.data.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={16} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={leadColumns.filter((c) => visibleColumns[c.id]).length} align="center" sx={{ py: 4 }}>
                     <Typography variant="body1" sx={{ color: "#6b7280" }}>
                       No lost tenders found.
                     </Typography>

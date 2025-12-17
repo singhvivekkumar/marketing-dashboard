@@ -31,6 +31,8 @@ import {
   DialogActions,
   InputAdornment,
   CircularProgress,
+  Checkbox,
+  Menu,
 } from "@mui/material";
 
 import {
@@ -43,6 +45,8 @@ import {
   CloseRounded,
   CheckRounded,
 } from "@mui/icons-material";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
+
 import * as XLSX from "xlsx";
 import axios from "axios";
 import * as FileSaver from "file-saver";
@@ -1273,6 +1277,44 @@ function ViewDomesticLeadsData(props) {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewRow, setViewRow] = useState(null);
 
+  // COLUMN SELECTION STATE
+  const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
+  const columnMenuOpen = Boolean(columnMenuAnchor);
+
+  const leadColumns = [
+    { id: "tenderName", label: "Tender Name" },
+    { id: "tenderReferenceNo", label: "Tender Ref No" },
+    { id: "customerName", label: "Customer Name" },
+    { id: "customerAddress", label: "Customer Address" },
+    { id: "tenderType", label: "Tender Type" },
+    { id: "documentType", label: "Document Type" },
+    { id: "leadOwner", label: "Lead Owner" },
+    { id: "civilOrDefence", label: "Civil / Defence" },
+    { id: "businessDomain", label: "Business Domain" },
+    { id: "valueOfEMD", label: "Value of EMD" },
+    { id: "estimatedValueInCrWithoutGST", label: "Estimate (Cr, w/o GST)" },
+    { id: "submittedValueInCrWithoutGST", label: "Submitted (Cr, w/o GST)" },
+    { id: "tenderDated", label: "Tender Dated" },
+    { id: "lastDateOfSub", label: "Last Date of Submission" },
+    { id: "soleOrConsortium", label: "Sole / Consortium" },
+    { id: "prebidMeetingDateTime", label: "Pre-bid Date & Time" },
+    { id: "competitorsInfo", label: "Competitors Info" },
+    { id: "wonLostParticipated", label: "Result Status" },
+    { id: "openClosed", label: "Open / Closed" },
+    { id: "orderWonValueInCrWithoutGST", label: "Order Won (Cr, w/o GST)" },
+    { id: "presentStatus", label: "Present Status" },
+    { id: "reasonForLossingOpp", label: "Reason / Decision Note" },
+    { id: "corrigendumsDateFile", label: "Corrigendum Info" },
+    { id: "dateCreated", label: "Created Date" },
+  ];
+
+  const [visibleColumns, setVisibleColumns] = useState(
+    leadColumns.reduce((acc, col) => {
+      acc[col.id] = true;
+      return acc;
+    }, {})
+  );
+
 
   // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
@@ -1288,6 +1330,22 @@ function ViewDomesticLeadsData(props) {
     setOpenClosedFilter(e.target.value);
 
   const handleSortByChange = (e) => setSortBy(e.target.value);
+
+  // COLUMN SELECTION HANDLERS
+  const handleColumnMenuOpen = (event) => {
+    setColumnMenuAnchor(event.currentTarget);
+  };
+
+  const handleColumnMenuClose = () => {
+    setColumnMenuAnchor(null);
+  };
+
+  const handleColumnToggle = (columnId) => {
+    setVisibleColumns((prev) => ({
+      ...prev,
+      [columnId]: !prev[columnId],
+    }));
+  };
 
   const toggleSortDirection = () =>
     setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -1517,6 +1575,59 @@ function ViewDomesticLeadsData(props) {
                 },
               }}
             />
+
+            
+            {/* Column Selection Menu */}
+            <Tooltip title="Select columns to view in table">
+              <IconButton
+                onClick={handleColumnMenuOpen}
+                sx={{
+                  border: "2px solid #1e40af",
+                  borderRadius: 1.5,
+                  backgroundColor: "rgba(30, 64, 175, 0.06)",
+                  color: "#1e40af",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: "rgba(30, 64, 175, 0.12)",
+                    transform: "scale(1.05)",
+                  },
+                }}
+              >
+                <ViewColumnIcon />
+              </IconButton>
+            </Tooltip>
+
+            <Menu
+              anchorEl={columnMenuAnchor}
+              open={columnMenuOpen}
+              onClose={handleColumnMenuClose}
+              PaperProps={{
+                sx: {
+                  minWidth: 280,
+                  maxHeight: 400,
+                },
+              }}
+            >
+              {leadColumns.map((col) => (
+                <MenuItem
+                  key={col.id}
+                  onClick={() => handleColumnToggle(col.id)}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <Checkbox
+                    checked={visibleColumns[col.id]}
+                    onChange={() => handleColumnToggle(col.id)}
+                    size="small"
+                  />
+                  <span>{col.label}</span>
+                </MenuItem>
+              ))}
+            </Menu>
+
           </Box>
 
           {/* FILTERS + SORT */}
@@ -1730,57 +1841,41 @@ function ViewDomesticLeadsData(props) {
           <Table stickyHeader aria-label="domestic leads table" size="small">
             <TableHead>
               <TableRow>
-                {[
-                  "Tender Name",
-                  "Tender Ref No",
-                  "Customer Name",
-                  "Customer Address",
-                  "Tender Type",
-                  "Document Type",
-                  "Lead Owner",
-                  "Civil / Defence",
-                  "Business Domain",
-                  "Value of EMD",
-                  "Estimate (Cr, w/o GST)",
-                  "Submitted (Cr, w/o GST)",
-                  "Tender Dated",
-                  "Last Date of Submission",
-                  "Sole / Consortium",
-                  "Pre-bid Date & Time",
-                  "Competitors Info",
-                  "Result Status",
-                  "Open / Closed",
-                  "Order Won (Cr, w/o GST)",
-                  "Present Status",
-                  "Reason / Decision Note",
-                  "Corrigendum Info",
-                  "Created Date",
-                  "Actions",
-                ].map((header, idx) => (
-                  <TableCell
-                    key={header}
-                    align={
-                      header === "Actions"
-                        ? "center"
-                        : idx === 0
-                        ? "left"
-                        : "left"
-                    }
-                    sx={{
-                      fontWeight: 800,
-                      fontSize: 13,
-                      color: "#f9fafb",
-                      background:
-                        "linear-gradient(90deg,#0ea5e9 0%,#2563eb 50%,#4f46e5 100%)",
-                      borderBottom: "none",
-                      whiteSpace: "nowrap",
-                      ...(header === "Customer Address" && { minWidth: 200 }),
-                      ...(header === "Competitors Info" && { minWidth: 220 }),
-                    }}
-                  >
-                    {header}
-                  </TableCell>
-                ))}
+                {leadColumns.map((col) =>
+                  visibleColumns[col.id] ? (
+                    <TableCell
+                      key={col.id}
+                      align="left"
+                      sx={{
+                        fontWeight: 800,
+                        fontSize: 13,
+                        color: "#f9fafb",
+                        background:
+                          "linear-gradient(90deg,#0ea5e9 0%,#2563eb 50%,#4f46e5 100%)",
+                        borderBottom: "none",
+                        whiteSpace: "nowrap",
+                        ...(col.id === "customerAddress" && { minWidth: 200 }),
+                        ...(col.id === "competitorsInfo" && { minWidth: 220 }),
+                      }}
+                    >
+                      {col.label}
+                    </TableCell>
+                  ) : null
+                )}
+                <TableCell
+                  align="center"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: 13,
+                    color: "#f9fafb",
+                    background:
+                      "linear-gradient(90deg,#0ea5e9 0%,#2563eb 50%,#4f46e5 100%)",
+                    borderBottom: "none",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHead>
 
@@ -1803,185 +1898,217 @@ function ViewDomesticLeadsData(props) {
                       },
                     }}
                   >
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: 14,
-                        maxWidth: 180,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.tenderName}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: 13,
-                        maxWidth: 160,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.tenderReferenceNo}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: 13,
-                        maxWidth: 160,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.customerName}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: 13,
-                        maxWidth: 260,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.customerAddress}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.tenderType}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.documentType}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>{row.leadOwner}</TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      <Chip
-                        size="small"
-                        label={row.civilOrDefence || "-"}
-                        sx={{
-                          borderRadius: 999,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          backgroundColor:
-                            row.civilOrDefence === "Defence"
-                              ? "rgba(22,163,74,0.12)"
-                              : "rgba(59,130,246,0.12)",
-                          color:
-                            row.civilOrDefence === "Defence"
-                              ? "#15803d"
-                              : "#1d4ed8",
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.businessDomain}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.valueOfEMD}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.estimatedValueInCrWithoutGST}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.submittedValueInCrWithoutGST}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.tenderDated}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.lastDateOfSub}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.soleOrConsortium}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.prebidMeetingDateTime}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: 13,
-                        maxWidth: 220,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.competitorsInfo}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      <Chip
-                        size="small"
-                        label={row.wonLostParticipated || "-"}
-                        sx={{
-                          borderRadius: 999,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          backgroundColor:
-                            row.wonLostParticipated === "Lost"
-                              ? "rgba(248,113,113,0.18)"
-                              : row.wonLostParticipated?.includes("Won")
-                              ? "rgba(52,211,153,0.18)"
-                              : row.wonLostParticipated?.includes("Not")
-                              ? "rgba(148,163,184,0.25)"
-                              : "rgba(234,179,8,0.18)",
-                          color:
-                            row.wonLostParticipated === "Lost"
-                              ? "#b91c1c"
-                              : row.wonLostParticipated?.includes("Won")
-                              ? "#15803d"
-                              : row.wonLostParticipated?.includes("Not")
-                              ? "#111827"
-                              : "#92400e",
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.openClosed}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.orderWonValueInCrWithoutGST}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      <Chip
-                        size="small"
-                        label={row.presentStatus || "-"}
-                        sx={{
-                          borderRadius: 999,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          backgroundColor: "rgba(59,130,246,0.1)",
-                          color: "#1d4ed8",
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: 13,
-                        maxWidth: 260,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.reasonForLossingOpp}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: 13,
-                        maxWidth: 220,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.corrigendumsDateFile}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>
-                      {row.dateCreated}
-                    </TableCell>
+                    {leadColumns.map((col) => {
+                      if (!visibleColumns[col.id]) return null;
+
+                      let cellContent = row[col.id];
+
+                      // Special rendering for specific columns
+                      if (col.id === "tenderName") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            component="th"
+                            scope="row"
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: 14,
+                              maxWidth: 180,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
+
+                      if (col.id === "tenderReferenceNo") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            sx={{
+                              fontSize: 13,
+                              maxWidth: 160,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
+
+                      if (col.id === "customerName") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            sx={{
+                              fontSize: 13,
+                              maxWidth: 160,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
+
+                      if (col.id === "customerAddress") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            sx={{
+                              fontSize: 13,
+                              maxWidth: 260,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
+
+                      if (col.id === "civilOrDefence") {
+                        return (
+                          <TableCell key={col.id} sx={{ fontSize: 13 }}>
+                            <Chip
+                              size="small"
+                              label={cellContent || "-"}
+                              sx={{
+                                borderRadius: 999,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                backgroundColor:
+                                  cellContent === "Defence"
+                                    ? "rgba(22,163,74,0.12)"
+                                    : "rgba(59,130,246,0.12)",
+                                color:
+                                  cellContent === "Defence"
+                                    ? "#15803d"
+                                    : "#1d4ed8",
+                              }}
+                            />
+                          </TableCell>
+                        );
+                      }
+
+                      if (col.id === "competitorsInfo") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            sx={{
+                              fontSize: 13,
+                              maxWidth: 220,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
+
+                      if (col.id === "wonLostParticipated") {
+                        return (
+                          <TableCell key={col.id} sx={{ fontSize: 13 }}>
+                            <Chip
+                              size="small"
+                              label={cellContent || "-"}
+                              sx={{
+                                borderRadius: 999,
+                                fontSize: 11,
+                                fontWeight: 700,
+                                backgroundColor:
+                                  cellContent === "Lost"
+                                    ? "rgba(248,113,113,0.18)"
+                                    : cellContent?.includes("Won")
+                                    ? "rgba(52,211,153,0.18)"
+                                    : cellContent?.includes("Not")
+                                    ? "rgba(148,163,184,0.25)"
+                                    : "rgba(234,179,8,0.18)",
+                                color:
+                                  cellContent === "Lost"
+                                    ? "#b91c1c"
+                                    : cellContent?.includes("Won")
+                                    ? "#15803d"
+                                    : cellContent?.includes("Not")
+                                    ? "#111827"
+                                    : "#92400e",
+                              }}
+                            />
+                          </TableCell>
+                        );
+                      }
+
+                      if (col.id === "presentStatus") {
+                        return (
+                          <TableCell key={col.id} sx={{ fontSize: 13 }}>
+                            <Chip
+                              size="small"
+                              label={cellContent || "-"}
+                              sx={{
+                                borderRadius: 999,
+                                fontSize: 11,
+                                fontWeight: 700,
+                                backgroundColor: "rgba(59,130,246,0.1)",
+                                color: "#1d4ed8",
+                              }}
+                            />
+                          </TableCell>
+                        );
+                      }
+
+                      if (col.id === "reasonForLossingOpp") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            sx={{
+                              fontSize: 13,
+                              maxWidth: 260,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
+
+                      if (col.id === "corrigendumsDateFile") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            sx={{
+                              fontSize: 13,
+                              maxWidth: 220,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      }
+
+                      // Default rendering for other columns
+                      return (
+                        <TableCell key={col.id} sx={{ fontSize: 13 }}>
+                          {cellContent}
+                        </TableCell>
+                      );
+                    })}
+
+                    {/* ACTIONS COLUMN */}
                     <TableCell align="center">
                       <Stack
                         direction="row"
@@ -2031,7 +2158,13 @@ function ViewDomesticLeadsData(props) {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={25} align="center" sx={{ py: 4 }}>
+                  <TableCell
+                    colSpan={
+                      leadColumns.filter((c) => visibleColumns[c.id]).length + 1
+                    }
+                    align="center"
+                    sx={{ py: 4 }}
+                  >
                     <Typography variant="body1" sx={{ color: "#6b7280" }}>
                       No domestic leads found.
                     </Typography>

@@ -36,7 +36,7 @@ const LeadTable = ({ rows, onAdd }) => {
           size="small"
           onChange={(e) => setSearch(e.target.value)}
         /> */}
-
+ 
         <div>
           <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
             <ViewColumnIcon />

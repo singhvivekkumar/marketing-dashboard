@@ -26,6 +26,8 @@ import {
   Card,
   Container,
   CircularProgress,
+  Checkbox,
+  Menu,
 } from "@mui/material";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
@@ -47,6 +49,7 @@ import { useForm, Controller } from "react-hook-form";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import axios from "axios";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 
 const BudgetaryQuotationForm = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -854,6 +857,33 @@ function ViewBudgetaryQuotationData(props) {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewRow, setViewRow] = useState(null);
 
+  // COLUMN SELECTION STATE
+  const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
+  const columnMenuOpen = Boolean(columnMenuAnchor);
+
+  const leadColumns = [
+    { id: "bqTitle", label: "BQ Title" },
+    { id: "customerName", label: "Customer Name" },
+    { id: "customerAddress", label: "Customer Address" },
+    { id: "leadOwner", label: "Lead Owner" },
+    { id: "defenceAndNonDefence", label: "Defence / Non Defence" },
+    { id: "estimateValueInCrWithoutGST", label: "Estimate (CR, w/o GST)" },
+    { id: "submittedValueInCrWithoutGST", label: "Submitted (CR, w/o GST)" },
+    { id: "dateOfLetterSubmission", label: "Letter Submission Date" },
+    { id: "referenceNo", label: "Reference No" },
+    { id: "competitors", label: "Competitors" },
+    { id: "remarks", label: "Remarks" },
+    { id: "presentStatus", label: "Present Status" },
+    { id: "dateCreated", label: "Created Date" },
+  ];
+
+  const [visibleColumns, setVisibleColumns] = useState(
+    leadColumns.reduce((acc, col) => {
+      acc[col.id] = true;
+      return acc;
+    }, {})
+  );
+
   // ---------------- HANDLERS ----------------
   const STATUS_OPTIONS = [
     "Draft",
@@ -887,6 +917,22 @@ function ViewBudgetaryQuotationData(props) {
   // Sort By
   const handleSortByChange = (e) => {
     setSortBy(e.target.value);
+  };
+
+  // COLUMN SELECTION HANDLERS
+  const handleColumnMenuOpen = (event) => {
+    setColumnMenuAnchor(event.currentTarget);
+  };
+
+  const handleColumnMenuClose = () => {
+    setColumnMenuAnchor(null);
+  };
+
+  const handleColumnToggle = (columnId) => {
+    setVisibleColumns((prev) => ({
+      ...prev,
+      [columnId]: !prev[columnId],
+    }));
   };
 
   // Toggle ASC / DESC
@@ -1082,6 +1128,58 @@ function ViewBudgetaryQuotationData(props) {
                 },
               }}
             />
+
+            
+            {/* Column Selection Menu */}
+            <Tooltip title="Select columns to view in table">
+              <IconButton
+                onClick={handleColumnMenuOpen}
+                sx={{
+                  border: "2px solid #1e40af",
+                  borderRadius: 1.5,
+                  backgroundColor: "rgba(30, 64, 175, 0.06)",
+                  color: "#1e40af",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: "rgba(30, 64, 175, 0.12)",
+                    transform: "scale(1.05)",
+                  },
+                }}
+              >
+                <ViewColumnIcon />
+              </IconButton>
+            </Tooltip>
+
+            <Menu
+              anchorEl={columnMenuAnchor}
+              open={columnMenuOpen}
+              onClose={handleColumnMenuClose}
+              PaperProps={{
+                sx: {
+                  minWidth: 280,
+                  maxHeight: 400,
+                },
+              }}
+            >
+              {leadColumns.map((col) => (
+                <MenuItem
+                  key={col.id}
+                  onClick={() => handleColumnToggle(col.id)}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <Checkbox
+                    checked={visibleColumns[col.id]}
+                    onChange={() => handleColumnToggle(col.id)}
+                    size="small"
+                  />
+                  <span>{col.label}</span>
+                </MenuItem>
+              ))}
+            </Menu>
           </Box>
 
           {/* FILTERS + SORT */}
@@ -1297,29 +1395,21 @@ function ViewBudgetaryQuotationData(props) {
           <Table stickyHeader aria-label="lead submitted table" size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={headerCellStyle}>Bq Title</TableCell>
-                <TableCell sx={headerCellStyle}>Customer Name</TableCell>
-                <TableCell sx={{ ...headerCellStyle, minWidth: 200 }}>
-                  Customer Address
-                </TableCell>
-                <TableCell sx={headerCellStyle}>Lead Owner</TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Defence / Non Defence
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Estimate (CR, w/o GST)
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Submitted (CR, w/o GST)
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Letter Submission Date
-                </TableCell>
-                <TableCell sx={headerCellStyle}>Reference No</TableCell>
-                <TableCell sx={headerCellStyle}>Competitors</TableCell>
-                <TableCell sx={headerCellStyle}>Remarks</TableCell>
-                <TableCell sx={headerCellStyle}>Present Status</TableCell>
-                <TableCell sx={headerCellStyle}>Created Date</TableCell>
+                {leadColumns.map((col) =>
+                  visibleColumns[col.id] ? (
+                    <TableCell
+                      key={col.id}
+                      sx={{
+                        ...headerCellStyle,
+                        ...(col.id === "customerAddress" && {
+                          minWidth: 200,
+                        }),
+                      }}
+                    >
+                      {col.label}
+                    </TableCell>
+                  ) : null
+                )}
                 <TableCell sx={actionHeaderStyle}>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -1397,136 +1487,178 @@ function ViewBudgetaryQuotationData(props) {
                         },
                       }}
                     >
-                      <TableCell
-                        component="th"
-                        scope="row"
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: 14,
-                          maxWidth: 180,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.bqTitle}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontSize: 14,
-                          maxWidth: 180,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.customerName}
-                      </TableCell>
-                      <TableCell
-                        align="left"
-                        sx={{
-                          fontSize: 13,
-                          maxWidth: 260,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.customerAddress}
-                      </TableCell>
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.leadOwner}
-                      </TableCell>
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        <Chip
-                          size="small"
-                          label={row.defenceAndNonDefence || "-"}
-                          sx={{
-                            borderRadius: 999,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            backgroundColor:
-                              row.defenceAndNonDefence === "Defence"
-                                ? "rgba(22,163,74,0.12)"
-                                : "rgba(59,130,246,0.12)",
-                            color:
-                              row.defenceAndNonDefence === "Defence"
-                                ? "#15803d"
-                                : "#1d4ed8",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.estimateValueInCrWithoutGST}
-                      </TableCell>
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.submittedValueInCrWithoutGST}
-                      </TableCell>
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.dateOfLetterSubmission}
-                      </TableCell>
-                      <TableCell
-                        align="left"
-                        sx={{
-                          fontSize: 13,
-                          maxWidth: 160,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.referenceNo}
-                      </TableCell>
-                      <TableCell
-                        align="left"
-                        sx={{
-                          fontSize: 13,
-                          maxWidth: 180,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.JSON_competitors}
-                      </TableCell>
-                      <TableCell
-                        align="left"
-                        sx={{
-                          fontSize: 13,
-                          maxWidth: 200,
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {row.remarks}
-                      </TableCell>
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        <Chip
-                          size="small"
-                          label={row.presentStatus || "-"}
-                          sx={{
-                            borderRadius: 999,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            backgroundColor:
-                              row.presentStatus === "Closed"
-                                ? "rgba(248,113,113,0.18)"
-                                : row.presentStatus === "In Progress"
-                                ? "rgba(234,179,8,0.18)"
-                                : "rgba(52,211,153,0.18)",
-                            color:
-                              row.presentStatus === "Closed"
-                                ? "#b91c1c"
-                                : row.presentStatus === "In Progress"
-                                ? "#92400e"
-                                : "#15803d",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="left" sx={{ fontSize: 13 }}>
-                        {row.dateCreated}
-                      </TableCell>
+                      {leadColumns.map((col) => {
+                        if (!visibleColumns[col.id]) return null;
+
+                        let cellContent = row[col.id];
+
+                        // Special rendering for specific columns
+                        if (col.id === "bqTitle") {
+                          return (
+                            <TableCell
+                              key={col.id}
+                              component="th"
+                              scope="row"
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: 14,
+                                maxWidth: 180,
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {cellContent}
+                            </TableCell>
+                          );
+                        }
+
+                        if (col.id === "customerName") {
+                          return (
+                            <TableCell
+                              key={col.id}
+                              sx={{
+                                fontSize: 14,
+                                maxWidth: 180,
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {cellContent}
+                            </TableCell>
+                          );
+                        }
+
+                        if (col.id === "customerAddress") {
+                          return (
+                            <TableCell
+                              key={col.id}
+                              align="left"
+                              sx={{
+                                fontSize: 13,
+                                maxWidth: 260,
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {cellContent}
+                            </TableCell>
+                          );
+                        }
+
+                        if (col.id === "defenceAndNonDefence") {
+                          return (
+                            <TableCell
+                              key={col.id}
+                              align="left"
+                              sx={{ fontSize: 13 }}
+                            >
+                              <Chip
+                                size="small"
+                                label={cellContent || "-"}
+                                sx={{
+                                  borderRadius: 999,
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  backgroundColor:
+                                    cellContent === "Defence"
+                                      ? "rgba(22,163,74,0.12)"
+                                      : "rgba(59,130,246,0.12)",
+                                  color:
+                                    cellContent === "Defence"
+                                      ? "#15803d"
+                                      : "#1d4ed8",
+                                }}
+                              />
+                            </TableCell>
+                          );
+                        }
+
+                        if (col.id === "presentStatus") {
+                          return (
+                            <TableCell
+                              key={col.id}
+                              align="left"
+                              sx={{ fontSize: 13 }}
+                            >
+                              <Chip
+                                size="small"
+                                label={cellContent || "-"}
+                                sx={{
+                                  borderRadius: 999,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  backgroundColor:
+                                    cellContent === "Closed"
+                                      ? "rgba(248,113,113,0.18)"
+                                      : cellContent === "In Progress"
+                                      ? "rgba(234,179,8,0.18)"
+                                      : "rgba(52,211,153,0.18)",
+                                  color:
+                                    cellContent === "Closed"
+                                      ? "#b91c1c"
+                                      : cellContent === "In Progress"
+                                      ? "#92400e"
+                                      : "#15803d",
+                                }}
+                              />
+                            </TableCell>
+                          );
+                        }
+
+                        if (col.id === "referenceNo" || col.id === "competitors") {
+                          return (
+                            <TableCell
+                              key={col.id}
+                              align="left"
+                              sx={{
+                                fontSize: 13,
+                                maxWidth: 160,
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {col.id === "competitors"
+                                ? row.JSON_competitors
+                                : cellContent}
+                            </TableCell>
+                          );
+                        }
+
+                        if (col.id === "remarks") {
+                          return (
+                            <TableCell
+                              key={col.id}
+                              align="left"
+                              sx={{
+                                fontSize: 13,
+                                maxWidth: 200,
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {cellContent}
+                            </TableCell>
+                          );
+                        }
+
+                        // Default rendering for other columns
+                        return (
+                          <TableCell
+                            key={col.id}
+                            align="left"
+                            sx={{ fontSize: 13 }}
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      })}
+
+                      {/* ACTIONS COLUMN */}
                       <TableCell align="center">
                         <Stack
                           direction="row"
@@ -1576,7 +1708,13 @@ function ViewBudgetaryQuotationData(props) {
                   ))}
               {(!props.ViewData.data || props.ViewData.data.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={15} align="center" sx={{ py: 4 }}>
+                  <TableCell
+                    colSpan={
+                      leadColumns.filter((c) => visibleColumns[c.id]).length + 1
+                    }
+                    align="center"
+                    sx={{ py: 4 }}
+                  >
                     <Typography variant="body1" sx={{ color: "#6b7280" }}>
                       No profiles found.
                     </Typography>

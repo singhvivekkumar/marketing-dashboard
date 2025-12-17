@@ -34,8 +34,8 @@ import {
   TableRow,
   CircularProgress,
   Checkbox,
-  Chip,
   Menu,
+  Chip,
 } from "@mui/material";
 import * as FileSaver from "file-saver";
 import {
@@ -47,8 +47,9 @@ import {
   DeleteRounded,
   CloseRounded,
   CheckRounded,
-  ViewColumnIcon,
 } from "@mui/icons-material";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
+
 
 const tenderTypeOptions = ["ST", "MT", "Nom", "LT"];
 const documentTypeOptions = ["RFP", "RFQ", "EOI", "BQ", "NIT", "RFI", "Others"];
@@ -744,7 +745,14 @@ function ViewCRMLeadData(props) {
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const [tempEditingRow, setTempEditingRow] = useState(null);
 
-  // Column visibility state
+  // READ-ONLY VIEW DIALOG STATE
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewRow, setViewRow] = useState(null);
+
+  // COLUMN VISIBILITY STATE
+  const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
+  const columnMenuOpen = Boolean(columnMenuAnchor);
+
   const [visibleColumns, setVisibleColumns] = useState({
     leadID: true,
     issueDate: true,
@@ -759,31 +767,37 @@ function ViewCRMLeadData(props) {
     teamAssigned: true,
     remarks: true,
     corrigendumInfo: true,
-    createdDate: true,
+    dateCreated: true,
     actions: true,
   });
 
-  // Column menu anchor state
-  const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
-
-  // Column definitions
+  // COLUMN DEFINITIONS
   const leadColumns = [
-    { id: "leadID", label: "Lead ID" },
+    { id: "leadID", label: "Lead Id" },
     { id: "issueDate", label: "Issue Date" },
     { id: "tenderName", label: "Tender Name" },
     { id: "organisation", label: "Organisation" },
     { id: "documentType", label: "Document Type" },
     { id: "tenderType", label: "Tender Type" },
-    { id: "emdInCrore", label: "EMD in Cr" },
+    { id: "emdInCrore", label: "EMD in CR" },
     { id: "approxTenderValueCrore", label: "Approx Tender Value in Cr" },
     { id: "lastDateSubmission", label: "Last Date of Submission" },
     { id: "preBidDate", label: "Pre-bid Date" },
     { id: "teamAssigned", label: "Team Assigned" },
     { id: "remarks", label: "Remarks" },
     { id: "corrigendumInfo", label: "Corrigendums Date & File" },
-    { id: "createdDate", label: "Created Date" },
+    { id: "dateCreated", label: "Created Date" },
     { id: "actions", label: "Actions" },
   ];
+
+  // COLUMN HANDLERS
+  const handleColumnMenuOpen = (event) => {
+    setColumnMenuAnchor(event.currentTarget);
+  };
+
+  const handleColumnMenuClose = () => {
+    setColumnMenuAnchor(null);
+  };
 
   const handleColumnToggle = (columnId) => {
     setVisibleColumns((prev) => ({
@@ -847,14 +861,7 @@ function ViewCRMLeadData(props) {
   // OPEN EDIT DIALOG
   const handleEditClick = (row) => {
     setEditingRow({ ...row });
-    setTempEditingRow({ ...row });
-    setIsEditMode(false);
     setEditDialogOpen(true);
-  };
-
-  // ENTER EDIT MODE
-  const handleEnterEditMode = () => {
-    setIsEditMode(true);
   };
 
   // UPDATE FIELD WHILE EDITING
@@ -862,43 +869,62 @@ function ViewCRMLeadData(props) {
     setEditingRow((prev) => ({ ...prev, [field]: value }));
   };
 
-  // SAVE EDITED VALUES - SHOW CONFIRMATION
-  const handleEditSave = () => {
-    setConfirmSaveOpen(true);
-  };
-
-  // CONFIRM SAVE - MOCK API CALL
-  const handleConfirmSave = () => {
-    console.log("Saving updated row:", editingRow);
-
-    // TODO: Replace with real API endpoint
-    // Example: axios.put(`/api/crmLeads/${editingRow.id}`, editingRow)
-
-    // Mock API call with delay
-    setTimeout(() => {
-      console.log("Data saved successfully!");
-      setConfirmSaveOpen(false);
-      setEditDialogOpen(false);
-      setIsEditMode(false);
-      setEditingRow(null);
-      setTempEditingRow(null);
-    }, 800);
-  };
-
-  // CANCEL EDIT - RESET STATES
-  const handleCancelEdit = () => {
+  // CANCEL EDIT
+  const handleEditCancel = () => {
     setEditDialogOpen(false);
-    setIsEditMode(false);
     setEditingRow(null);
-    setTempEditingRow(null);
+    setIsEditMode(false);
     setConfirmSaveOpen(false);
   };
 
-  // OLD CANCEL
-  const handleEditCancel = () => {
-    setEditingRow(null);
-    setEditDialogOpen(false);
+  // ENTER EDIT MODE
+  const handleEnterEditMode = () => {
+    setIsEditMode(true);
   };
+
+  // SAVE EDITED VALUES (Show Confirmation)
+  const handleEditSave = () => {
+    setTempEditingRow({ ...editingRow });
+    setConfirmSaveOpen(true);
+  };
+
+  // CONFIRM AND SAVE TO BACKEND
+  const handleConfirmSave = async () => {
+    try {
+      console.log("Saving updated row:", editingRow);
+      
+      // Mock API call - Replace with real API endpoint
+      const mockApiResponse = await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            success: true,
+            message: "Record updated successfully",
+            data: editingRow
+          });
+        }, 800);
+      });
+
+      if (mockApiResponse.success) {
+        console.log("Backend Response:", mockApiResponse);
+        alert("Changes saved successfully!");
+        setConfirmSaveOpen(false);
+        setEditDialogOpen(false);
+        setIsEditMode(false);
+        setEditingRow(null);
+      }
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      alert("Failed to save changes. Please try again.");
+    }
+  };
+
+  // CANCEL EDIT MODE
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditingRow({ ...tempEditingRow });
+  };
+
+ 
   // DELETE ROW
   const handleDeleteClick = (id) => {
     if (!window.confirm("Are you sure you want to delete this entry?")) return;
@@ -1089,6 +1115,75 @@ function ViewCRMLeadData(props) {
                 },
               }}
             />
+
+            {/* select columns to view in table */}
+            <Tooltip title="Select columns to display">
+              <IconButton
+                onClick={handleColumnMenuOpen}
+                sx={{
+                  borderRadius: 2.5,
+                  border: "2px solid #1e40af",
+                  backgroundColor: "rgba(30,64,175,0.08)",
+                  color: "#1e40af",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: "rgba(30,64,175,0.15)",
+                    transform: "scale(1.05)",
+                  },
+                }}
+              >
+                <ViewColumnIcon />
+              </IconButton>
+            </Tooltip>
+
+            {/* COLUMN VISIBILITY MENU */}
+            <Menu
+              anchorEl={columnMenuAnchor}
+              open={columnMenuOpen}
+              onClose={handleColumnMenuClose}
+              PaperProps={{
+                sx: {
+                  borderRadius: 2,
+                  minWidth: 280,
+                  maxHeight: 400,
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+                },
+              }}
+            >
+              {leadColumns.map((col) => (
+                <Box
+                  key={col.id}
+                  onClick={() => handleColumnToggle(col.id)}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    px: 2,
+                    py: 1,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      backgroundColor: "rgba(30,64,175,0.08)",
+                    },
+                  }}
+                >
+                  <Checkbox
+                    checked={visibleColumns[col.id]}
+                    onChange={() => {}}
+                    size="small"
+                    sx={{
+                      color: "#1e40af",
+                      "&.Mui-checked": {
+                        color: "#1e40af",
+                      },
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ fontSize: 13, color: "#0f172a" }}>
+                    {col.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Menu>
           </Box>
 
           {/* FILTERS + SORT */}
@@ -1226,62 +1321,6 @@ function ViewCRMLeadData(props) {
               </IconButton>
             </Tooltip>
 
-            {/* COLUMN TOGGLE BUTTON */}
-            <Tooltip title="Toggle Columns">
-              <IconButton
-                onClick={(e) => setColumnMenuAnchor(e.currentTarget)}
-                sx={{
-                  ml: 0.5,
-                  borderRadius: 2.5,
-                  border: "1px solid rgba(148,163,184,0.7)",
-                  backgroundColor: "rgba(240,248,255,0.9)",
-                  color: "#0f172a",
-                  "&:hover": {
-                    backgroundColor: "rgba(224,242,254,1)",
-                  },
-                }}
-              >
-                <ViewColumnIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-
-            {/* COLUMN VISIBILITY MENU */}
-            <Menu
-              anchorEl={columnMenuAnchor}
-              open={Boolean(columnMenuAnchor)}
-              onClose={() => setColumnMenuAnchor(null)}
-              PaperProps={{
-                sx: {
-                  borderRadius: 2,
-                  minWidth: 200,
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-                },
-              }}
-            >
-              {leadColumns.map((col) => (
-                <MenuItem
-                  key={col.id}
-                  onClick={() => {
-                    handleColumnToggle(col.id);
-                  }}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    py: 1,
-                    px: 2,
-                  }}
-                >
-                  <Checkbox
-                    checked={visibleColumns[col.id] || false}
-                    size="small"
-                    sx={{ color: "#1e40af" }}
-                  />
-                  <Typography sx={{ fontSize: "0.9rem" }}>{col.label}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
-
             <Button
               variant="contained"
               onClick={handleDownloadAllData}
@@ -1357,31 +1396,17 @@ function ViewCRMLeadData(props) {
           <Table stickyHeader aria-label="lead submitted table" size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={headerCellStyle}>Lead Id</TableCell>
-                <TableCell sx={headerCellStyle}>Issue Date</TableCell>
-                <TableCell sx={{ ...headerCellStyle, minWidth: 200 }}>
-                  Tender Name
-                </TableCell>
-                <TableCell sx={headerCellStyle}>Organisation</TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Document Type
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Tender Type
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  EMD  in CR
-                </TableCell>
-                <TableCell sx={headerCellStyle}>
-                  Approx Tender Value in Cr
-                </TableCell>
-                <TableCell sx={headerCellStyle}>Last Date of Submission</TableCell>
-                <TableCell sx={headerCellStyle}>Pre-bid Date</TableCell>
-                <TableCell sx={headerCellStyle}>Team Assigned</TableCell>
-                <TableCell sx={headerCellStyle}>Remarks</TableCell>
-                <TableCell sx={headerCellStyle}>Corrigendums Date & File</TableCell>
-                <TableCell sx={headerCellStyle}>Created Date</TableCell>
-                <TableCell sx={actionHeaderStyle}>Actions</TableCell>
+                {leadColumns.map(
+                  (col) =>
+                    visibleColumns[col.id] && (
+                      <TableCell
+                        key={col.id}
+                        sx={col.id === "actions" ? actionHeaderStyle : headerCellStyle}
+                      >
+                        {col.label}
+                      </TableCell>
+                    )
+                )}
               </TableRow>
             </TableHead>
 
@@ -1425,136 +1450,125 @@ function ViewCRMLeadData(props) {
                       },
                     }}
                   >
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: 14,
-                        maxWidth: 180,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.leadID}
-                    </TableCell>
+                    {leadColumns.map((col) => {
+                      if (!visibleColumns[col.id]) return null;
 
-                    <TableCell
-                      sx={{
-                        fontSize: 14,
-                        maxWidth: 180,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.issueDate}
-                    </TableCell>
-
-                    <TableCell
-                      align="left"
-                      sx={{
-                        fontSize: 13,
-                        maxWidth: 260,
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {row.tenderName}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.organisation}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.documentType}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.tenderType}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.emdInCrore}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.approxTenderValueCrore}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.lastDateSubmission}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.preBidDate}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.teamAssigned}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.corrigendumInfo}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ fontSize: 13 }}>
-                      {row.dateCreated}
-                    </TableCell>
-
-                    <TableCell align="center">
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        justifyContent="center"
-                        alignItems="center"
-                      >
-                        <Tooltip title="Edit">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditClick(row);
-                            }}
+                      // RENDER LEAD ID AS HEADER
+                      if (col.id === "leadID") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            component="th"
+                            scope="row"
                             sx={{
-                              borderRadius: 2,
-                              backgroundColor: "rgba(59,130,246,0.12)",
-                              "&:hover": {
-                                backgroundColor: "rgba(59,130,246,0.25)",
-                              },
+                              fontWeight: 600,
+                              fontSize: 14,
+                              maxWidth: 180,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
                             }}
                           >
-                            <EditRounded fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteClick(row.id);
-                            }}
+                            {row.leadID}
+                          </TableCell>
+                        );
+                      }
+
+                      // RENDER TENDER NAME WITH MIN WIDTH
+                      if (col.id === "tenderName") {
+                        return (
+                          <TableCell
+                            key={col.id}
+                            align="left"
                             sx={{
-                              borderRadius: 2,
-                              backgroundColor: "rgba(239,68,68,0.12)",
-                              "&:hover": {
-                                backgroundColor: "rgba(239,68,68,0.25)",
-                              },
+                              fontSize: 13,
+                              maxWidth: 260,
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
                             }}
                           >
-                            <DeleteRounded fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
+                            {row.tenderName}
+                          </TableCell>
+                        );
+                      }
+
+                      // RENDER ACTIONS
+                      if (col.id === "actions") {
+                        return (
+                          <TableCell key={col.id} align="center">
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              <Tooltip title="Edit">
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditClick(row);
+                                  }}
+                                  sx={{
+                                    borderRadius: 2,
+                                    backgroundColor: "rgba(59,130,246,0.12)",
+                                    "&:hover": {
+                                      backgroundColor: "rgba(59,130,246,0.25)",
+                                    },
+                                  }}
+                                >
+                                  <EditRounded fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteClick(row.id);
+                                  }}
+                                  sx={{
+                                    borderRadius: 2,
+                                    backgroundColor: "rgba(239,68,68,0.12)",
+                                    "&:hover": {
+                                      backgroundColor: "rgba(239,68,68,0.25)",
+                                    },
+                                  }}
+                                >
+                                  <DeleteRounded fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        );
+                      }
+
+                      // RENDER ALL OTHER COLUMNS
+                      return (
+                        <TableCell
+                          key={col.id}
+                          align="left"
+                          sx={{
+                            fontSize: 13,
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {row[col.id] || "-"}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={21} align="center" sx={{ py: 4 }}>
+                  <TableCell
+                    colSpan={leadColumns.filter((c) => visibleColumns[c.id]).length}
+                    align="center"
+                    sx={{ py: 4 }}
+                  >
                     <Typography variant="body1" sx={{ color: "#6b7280" }}>
                       No leads found.
                     </Typography>
@@ -1567,49 +1581,55 @@ function ViewCRMLeadData(props) {
       </Box>
 
 
-      {/* EDIT DIALOG - VIEW MODE & EDIT MODE - PROFESSIONAL BLUE THEME */}
+       {/* EDIT DIALOG */}
       <Dialog
         open={editDialogOpen}
-        onClose={handleCancelEdit}
-        maxWidth="xl"
+        onClose={handleEditCancel}
+        maxWidth="md"
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 3,
+            borderRadius: 4,
             overflow: "hidden",
-            background: "#ffffff",
-            boxShadow: "0 25px 50px rgba(0,0,0,0.15), 0 10px 30px rgba(30,64,95,0.2)",
-            maxHeight: "90vh",
+            background:
+              "linear-gradient(135deg, #f8fbff 0%, #eef5ff 50%, #e3eeff 100%)",
+            color: "#0f172a",
+            boxShadow: "0 25px 60px rgba(59,130,246,0.25)",
+          },
+        }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: "blur(5px)",
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
           },
         }}
       >
-        {/* HEADER */}
+        {/* ---------------- TITLE ---------------- */}
         <DialogTitle
           sx={{
             fontWeight: 800,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            pr: 2,
-            background: "linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)",
-            color: "#ffffff",
-            borderBottom: "3px solid #60a5fa",
+            px: 3,
             py: 2.5,
+            color: "#0d47a1",
+            background: "linear-gradient(90deg,#e3f2fd,#f8fbff)",
+            borderBottom: "2px solid rgba(59,130,246,0.2)",
           }}
         >
-          <Box display="flex" alignItems="center" gap={2}>
-            <Box sx={{ fontSize: 28, fontWeight: 800 }}>📋</Box>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Box sx={{ fontSize: 24 }}>📋</Box>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: "#ffffff" }}>
-                {editingRow?.tenderName || "CRM Lead Details"}
+              <Typography sx={{ fontWeight: 800, color: "#0d47a1" }}>
+                {editingRow?.tenderName || "Lead Details"}
               </Typography>
-              <Typography variant="caption" sx={{ color: "#bfdbfe", mt: 0.5 }}>
+              <Typography variant="caption" sx={{ color: "#64748b" }}>
                 Lead ID: {editingRow?.leadID || "N/A"}
               </Typography>
             </Box>
           </Box>
-
-          <Box display="flex" alignItems="center" gap={2}>
+          <Box display="flex" alignItems="center" gap={1}>
             <Chip
               label={isEditMode ? "EDIT MODE" : "VIEW MODE"}
               size="small"
@@ -1621,10 +1641,10 @@ function ViewCRMLeadData(props) {
               }}
             />
             <IconButton
-              onClick={handleCancelEdit}
+              onClick={handleEditCancel}
               sx={{
-                color: "#ffffff",
-                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+                color: "#1e40af",
+                "&:hover": { backgroundColor: "rgba(59,130,246,0.15)" },
               }}
             >
               <CloseRounded />
@@ -1632,466 +1652,126 @@ function ViewCRMLeadData(props) {
           </Box>
         </DialogTitle>
 
-        {/* CONTENT - TABULAR MATRIX FORMAT */}
+        {/* ---------------- CONTENT ---------------- */}
         <DialogContent
+          dividers
           sx={{
-            background: "#f8fafc",
-            p: 0,
-            maxHeight: "calc(90vh - 130px)",
+            background: "#f8fbff",
+            borderColor: "rgba(59,130,246,0.25)",
+            px: 3,
+            py: 2.5,
+            maxHeight: "60vh",
             overflowY: "auto",
-            overflowX: "hidden",
-            "&::-webkit-scrollbar": {
-              width: "8px",
-            },
-            "&::-webkit-scrollbar-track": {
-              background: "#e2e8f0",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "#94a3b8",
-              borderRadius: "4px",
-            },
           }}
         >
-          <Box sx={{ p: 2.5 }}>
-            {/* LEAD INFORMATION SECTION */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 800,
-                  color: "#1e3a5f",
-                  mb: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  fontSize: "0.95rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
-                Lead Information
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(4, 1fr)",
-                  },
-                  gap: 1.5,
-                }}
-              >
-                {[
-                  { label: "Lead ID", key: "leadID" },
-                  { label: "Issue Date", key: "issueDate", isDate: true },
-                  { label: "Tender Name", key: "tenderName" },
-                  { label: "Organisation", key: "organisation" },
-                ].map((field) => (
-                  <Box
-                    key={field.key}
+          <Grid container spacing={2.5}>
+            {[
+              ["Lead ID", "leadID"],
+              ["Issue Date", "issueDate", "date"],
+              ["Tender Name", "tenderName"],
+              ["Organisation", "organisation"],
+              ["Document Type", "documentType"],
+              ["Tender Type", "tenderType"],
+              ["EMD in Crore", "emdInCrore"],
+              ["Approx Tender Value in Crore", "approxTenderValueCrore"],
+              ["Last Date of Submission", "lastDateSubmission", "date"],
+              ["Pre-bid Date", "preBidDate"],
+              ["Team Assigned", "teamAssigned"],
+              ["Remarks", "remarks", "text", true],
+              ["Corrigendum Info", "corrigendumInfo"],
+            ].map(([label, field, type, multiline], idx) => (
+              <Grid item xs={12} md={multiline ? 12 : 6} key={idx}>
+                <Box>
+                  <Typography
+                    variant="caption"
                     sx={{
-                      background: "#ffffff",
-                      border: "1px solid #e0e7ff",
-                      borderRadius: 2,
-                      p: 2,
-                      "&:hover": {
-                        borderColor: "#60a5fa",
-                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
-                      },
-                      transition: "all 0.2s ease",
+                      color: "#64748b",
+                      fontWeight: 700,
+                      fontSize: "0.75rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
                     }}
                   >
-                    <Typography
-                      variant="caption"
+                    {label}
+                  </Typography>
+                  {isEditMode ? (
+                    <TextField
+                      value={editingRow?.[field] || ""}
+                      onChange={(e) =>
+                        handleEditFieldChange(field, e.target.value)
+                      }
+                      fullWidth
+                      size="small"
+                      type={type || "text"}
+                      multiline={!!multiline}
+                      minRows={multiline ? 2 : 1}
+                      InputLabelProps={
+                        type === "date" ? { shrink: true } : undefined
+                      }
                       sx={{
-                        color: "#64748b",
+                        mt: 0.8,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 1.5,
+                          background: "#ffffff",
+                          "& fieldset": {
+                            borderColor: "#93c5fd",
+                          },
+                          "&:hover fieldset": {
+                            borderColor: "#3b82f6",
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: "#1e40af",
+                            borderWidth: 2,
+                          },
+                        },
+                        "& .MuiOutlinedInput-input": {
+                          color: "#0f172a",
+                          fontWeight: 500,
+                        },
+                      }}
+                    />
+                  ) : (
+                    <Typography
+                      sx={{
+                        mt: 0.8,
+                        color: "#1e293b",
                         fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        fontSize: "0.7rem",
+                        fontSize: "0.95rem",
+                        p: 1,
+                        background: "rgba(59,130,246,0.05)",
+                        borderRadius: 1,
+                        border: "1px solid rgba(59,130,246,0.1)",
                       }}
                     >
-                      {field.label}
+                      {editingRow?.[field] || "-"}
                     </Typography>
-                    {isEditMode ? (
-                      <TextField
-                        value={editingRow?.[field.key] || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange(field.key, e.target.value)
-                        }
-                        fullWidth
-                        size="small"
-                        type={field.isDate ? "date" : "text"}
-                        InputLabelProps={
-                          field.isDate ? { shrink: true } : undefined
-                        }
-                        sx={{
-                          mt: 1,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1.5,
-                            background: "#ffffff",
-                            "& fieldset": {
-                              borderColor: "#60a5fa",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
-                            fontWeight: 600,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        sx={{
-                          mt: 1,
-                          color: "#1e293b",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
-                        }}
-                      >
-                        {editingRow?.[field.key] || "-"}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
-            {/* DOCUMENT & TENDER DETAILS SECTION */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 800,
-                  color: "#1e3a5f",
-                  mb: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  fontSize: "0.95rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
-                Document & Tender Details
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(4, 1fr)",
-                  },
-                  gap: 1.5,
-                }}
-              >
-                {[
-                  { label: "Document Type", key: "documentType" },
-                  { label: "Tender Type", key: "tenderType" },
-                  { label: "EMD in Crore", key: "emdInCrore" },
-                  { label: "Approx Tender Value (Cr)", key: "approxTenderValueCrore" },
-                ].map((field) => (
-                  <Box
-                    key={field.key}
-                    sx={{
-                      background: "#ffffff",
-                      border: "1px solid #e0e7ff",
-                      borderRadius: 2,
-                      p: 2,
-                      "&:hover": {
-                        borderColor: "#60a5fa",
-                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
-                      },
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: "#64748b",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        fontSize: "0.7rem",
-                      }}
-                    >
-                      {field.label}
-                    </Typography>
-                    {isEditMode ? (
-                      <TextField
-                        value={editingRow?.[field.key] || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange(field.key, e.target.value)
-                        }
-                        fullWidth
-                        size="small"
-                        sx={{
-                          mt: 1,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1.5,
-                            background: "#ffffff",
-                            "& fieldset": {
-                              borderColor: "#60a5fa",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
-                            fontWeight: 600,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        sx={{
-                          mt: 1,
-                          color: "#1e293b",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
-                        }}
-                      >
-                        {editingRow?.[field.key] || "-"}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
-            {/* TIMELINE SECTION */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 800,
-                  color: "#1e3a5f",
-                  mb: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  fontSize: "0.95rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
-                Timeline & Dates
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(3, 1fr)",
-                  },
-                  gap: 1.5,
-                }}
-              >
-                {[
-                  { label: "Last Date of Submission", key: "lastDateSubmission", isDate: true },
-                  { label: "Pre-Bid Date & Time", key: "preBidDate" },
-                  { label: "Team Assigned", key: "teamAssigned" },
-                ].map((field) => (
-                  <Box
-                    key={field.key}
-                    sx={{
-                      background: "#ffffff",
-                      border: "1px solid #e0e7ff",
-                      borderRadius: 2,
-                      p: 2,
-                      "&:hover": {
-                        borderColor: "#60a5fa",
-                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
-                      },
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: "#64748b",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        fontSize: "0.7rem",
-                      }}
-                    >
-                      {field.label}
-                    </Typography>
-                    {isEditMode ? (
-                      <TextField
-                        value={editingRow?.[field.key] || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange(field.key, e.target.value)
-                        }
-                        fullWidth
-                        size="small"
-                        type={field.isDate ? "datetime-local" : "text"}
-                        InputLabelProps={
-                          field.isDate ? { shrink: true } : undefined
-                        }
-                        sx={{
-                          mt: 1,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1.5,
-                            background: "#ffffff",
-                            "& fieldset": {
-                              borderColor: "#60a5fa",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
-                            fontWeight: 600,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        sx={{
-                          mt: 1,
-                          color: "#1e293b",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
-                        }}
-                      >
-                        {editingRow?.[field.key] || "-"}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-
-              {/* Remarks & Corrigendum - Full Width */}
-              <Box sx={{ mt: 1.5, display: "grid", gridTemplateColumns: { xs: "1fr", lg: "repeat(2, 1fr)" }, gap: 1.5 }}>
-                {[
-                  { label: "Remarks", key: "remarks" },
-                  { label: "Corrigendums Date & File", key: "corrigendumInfo" },
-                ].map((field) => (
-                  <Box
-                    key={field.key}
-                    sx={{
-                      background: "#ffffff",
-                      border: "1px solid #e0e7ff",
-                      borderRadius: 2,
-                      p: 2,
-                      "&:hover": {
-                        borderColor: "#60a5fa",
-                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
-                      },
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: "#64748b",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        fontSize: "0.7rem",
-                      }}
-                    >
-                      {field.label}
-                    </Typography>
-                    {isEditMode ? (
-                      <TextField
-                        value={editingRow?.[field.key] || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange(field.key, e.target.value)
-                        }
-                        fullWidth
-                        size="small"
-                        multiline
-                        minRows={2}
-                        sx={{
-                          mt: 1,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1.5,
-                            background: "#ffffff",
-                            "& fieldset": {
-                              borderColor: "#60a5fa",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
-                            fontWeight: 600,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        sx={{
-                          mt: 1,
-                          color: "#1e293b",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
-                          whiteSpace: "pre-wrap",
-                        }}
-                      >
-                        {editingRow?.[field.key] || "-"}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          </Box>
+                  )}
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
         </DialogContent>
 
-        {/* ACTION BUTTONS */}
+        {/* ---------------- ACTIONS ---------------- */}
         <DialogActions
           sx={{
-            background: "#f8fafc",
-            borderTop: "1px solid #e0e7ff",
-            p: 2.5,
+            px: 3,
+            py: 2.5,
+            background: "#f1f5ff",
+            borderTop: "1px solid rgba(59,130,246,0.25)",
             gap: 1.5,
           }}
         >
           {!isEditMode ? (
             <>
               <Button
-                onClick={handleCancelEdit}
+                onClick={handleEditCancel}
                 sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  px: 3,
+                  fontWeight: 600,
                   color: "#64748b",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
                   "&:hover": {
                     backgroundColor: "#e2e8f0",
                   },
@@ -2103,16 +1783,18 @@ function ViewCRMLeadData(props) {
                 onClick={handleEnterEditMode}
                 variant="contained"
                 sx={{
-                  background: "linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)",
-                  color: "#ffffff",
+                  borderRadius: 999,
+                  textTransform: "none",
+                  px: 4,
                   fontWeight: 700,
-                  textTransform: "uppercase",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
-                  px: 3,
+                  background:
+                    "linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)",
+                  color: "#ffffff",
+                  boxShadow: "0 8px 20px rgba(30,64,95,0.3)",
                   "&:hover": {
-                    background: "linear-gradient(135deg, #1e3a5f 0%, #162e4a 100%)",
-                    boxShadow: "0 8px 24px rgba(30,64,95,0.3)",
+                    background:
+                      "linear-gradient(135deg, #1e3a5f 0%, #162e4a 100%)",
+                    boxShadow: "0 12px 28px rgba(30,64,95,0.4)",
                   },
                   "&:active": {
                     transform: "scale(0.98)",
@@ -2125,13 +1807,13 @@ function ViewCRMLeadData(props) {
           ) : (
             <>
               <Button
-                onClick={() => setIsEditMode(false)}
+                onClick={handleCancelEdit}
                 sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  px: 3,
+                  fontWeight: 600,
                   color: "#64748b",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
                   "&:hover": {
                     backgroundColor: "#e2e8f0",
                   },
@@ -2143,16 +1825,18 @@ function ViewCRMLeadData(props) {
                 onClick={handleEditSave}
                 variant="contained"
                 sx={{
-                  background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                  color: "#ffffff",
+                  borderRadius: 999,
+                  textTransform: "none",
+                  px: 4,
                   fontWeight: 700,
-                  textTransform: "uppercase",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
-                  px: 3,
+                  background:
+                    "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                  color: "#ffffff",
+                  boxShadow: "0 8px 20px rgba(16,185,129,0.3)",
                   "&:hover": {
-                    background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
-                    boxShadow: "0 8px 24px rgba(16,185,129,0.3)",
+                    background:
+                      "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                    boxShadow: "0 12px 28px rgba(16,185,129,0.4)",
                   },
                   "&:active": {
                     transform: "scale(0.98)",
@@ -2179,6 +1863,12 @@ function ViewCRMLeadData(props) {
             boxShadow: "0 25px 50px rgba(0,0,0,0.2)",
           },
         }}
+        BackdropProps={{
+          sx: {
+            backdropFilter: "blur(5px)",
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
+          },
+        }}
       >
         <DialogTitle
           sx={{
@@ -2202,12 +1892,11 @@ function ViewCRMLeadData(props) {
           </Box>
         </DialogTitle>
         <DialogContent sx={{ py: 3 }}>
-          <Typography sx={{ color: "#475569", lineHeight: 1.6 }}>
-            You are about to update this CRM lead record with the following changes. This action will be synced to the database immediately.
+          <Typography sx={{ color: "#475569", lineHeight: 1.6, mb: 2 }}>
+            You are about to update this lead record with the changes. This action will be synced to the database immediately.
           </Typography>
           <Box
             sx={{
-              mt: 2.5,
               p: 2,
               background: "#f0f9ff",
               border: "1px solid #bfdbfe",
@@ -2244,15 +1933,18 @@ function ViewCRMLeadData(props) {
             onClick={handleConfirmSave}
             variant="contained"
             sx={{
-              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
               color: "#ffffff",
               fontWeight: 700,
               textTransform: "uppercase",
               fontSize: "0.85rem",
               px: 3,
               "&:hover": {
-                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
-                boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
+                background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                boxShadow: "0 8px 24px rgba(16,185,129,0.3)",
+              },
+              "&:active": {
+                transform: "scale(0.98)",
               },
             }}
           >
