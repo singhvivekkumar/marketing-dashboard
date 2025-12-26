@@ -2000,11 +2000,11 @@ function ViewLeadSubmittedData(props) {
       </Box>
 
       
-     {/* EDIT DIALOG - PROFESSIONAL BLUE THEME WITH TABLE LAYOUT */}
+     {/* EDIT DIALOG - PROFESSIONAL BLUE THEME WITH TABLE LAYOUT - RESPONSIVE */}
      <Dialog
         open={editDialogOpen}
         onClose={handleEditCancel}
-        maxWidth="lg"
+        maxWidth="xl"
         fullWidth
         PaperProps={{
           sx: {
@@ -2013,6 +2013,8 @@ function ViewLeadSubmittedData(props) {
             background: "#ffffff",
             color: "#0f172a",
             boxShadow: "0 20px 60px rgba(13, 71, 161, 0.25)",
+            height: "90vh",
+            maxHeight: "90vh",
           },
         }}
         BackdropProps={{
@@ -2029,11 +2031,12 @@ function ViewLeadSubmittedData(props) {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            px: 4,
-            py: 3,
+            px: { xs: 2, md: 4 },
+            py: 2.5,
             color: "#ffffff",
             background: "linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1e88e5 100%)",
             borderBottom: "none",
+            flexShrink: 0,
           }}
         >
           <Box>
@@ -2042,7 +2045,7 @@ function ViewLeadSubmittedData(props) {
               sx={{
                 fontWeight: 800,
                 color: "#ffffff",
-                fontSize: "1.3rem",
+                fontSize: { xs: "1.1rem", md: "1.3rem" },
               }}
             >
               {isEditMode ? "✏️ Edit Lead Details" : "📋 Lead Submission Details"}
@@ -2051,8 +2054,9 @@ function ViewLeadSubmittedData(props) {
               variant="caption"
               sx={{
                 color: "rgba(255, 255, 255, 0.85)",
-                mt: 0.5,
+                mt: 0.3,
                 display: "block",
+                fontSize: { xs: "0.75rem", md: "0.85rem" },
               }}
             >
               {isEditMode ? "Update the information below" : "Review all details in matrix format"}
@@ -2063,20 +2067,23 @@ function ViewLeadSubmittedData(props) {
             sx={{
               color: "#ffffff",
               "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.15)" },
+              flexShrink: 0,
             }}
           >
             <CloseRounded />
           </IconButton>
         </DialogTitle>
 
-        {/* DIALOG CONTENT - TABLE FORMAT */}
+        {/* DIALOG CONTENT - TABLE FORMAT - RESPONSIVE */}
         <DialogContent
           sx={{
             background: "#f5f8fc",
-            px: 0,
-            py: 0,
-            maxHeight: "65vh",
-            overflowY: "auto",
+            px: { xs: 1.5, md: 2 },
+            py: 2,
+            flex: 1,
+            overflow: "auto",
+            display: "flex",
+            flexDirection: "column",
             "&::-webkit-scrollbar": {
               width: "8px",
             },
@@ -2148,12 +2155,12 @@ function ViewLeadSubmittedData(props) {
                     >
                       <TableCell
                         sx={{
-                          py: 2.5,
-                          px: 3,
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
                           fontWeight: 700,
                           color: "#0d47a1",
                           width: "35%",
-                          fontSize: "0.95rem",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
                           borderBottom: "1px solid #e8eef7",
                         }}
                       >
@@ -2161,8 +2168,8 @@ function ViewLeadSubmittedData(props) {
                       </TableCell>
                       <TableCell
                         sx={{
-                          py: 2.5,
-                          px: 3,
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
                           width: "65%",
                           borderBottom: "1px solid #e8eef7",
                         }}
@@ -2178,15 +2185,16 @@ function ViewLeadSubmittedData(props) {
                             readOnly: !isEditMode,
                             style: {
                               fontWeight: 500,
+                              fontSize: "0.9rem",
                             },
                           }}
                           select={type === "select"}
                           sx={{
                             "& .MuiOutlinedInput-root": {
-                              borderRadius: 2,
+                              borderRadius: 1,
                               backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
                               color: "#0f172a",
-                              fontSize: "0.95rem",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
                               transition: "all 0.2s ease",
                               "& fieldset": {
                                 borderColor: isEditMode ? "#1e88e5" : "#ccc",
@@ -2255,12 +2263,12 @@ function ViewLeadSubmittedData(props) {
                     >
                       <TableCell
                         sx={{
-                          py: 2.5,
-                          px: 3,
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
                           fontWeight: 700,
                           color: "#0d47a1",
                           width: "35%",
-                          fontSize: "0.95rem",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
                           borderBottom: "1px solid #e8eef7",
                           verticalAlign: "top",
                         }}
@@ -2269,8 +2277,8 @@ function ViewLeadSubmittedData(props) {
                       </TableCell>
                       <TableCell
                         sx={{
-                          py: 2.5,
-                          px: 3,
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
                           width: "65%",
                           borderBottom: "1px solid #e8eef7",
                         }}
@@ -2287,14 +2295,15 @@ function ViewLeadSubmittedData(props) {
                             readOnly: !isEditMode,
                             style: {
                               fontWeight: 500,
+                              fontSize: "0.9rem",
                             },
                           }}
                           sx={{
                             "& .MuiOutlinedInput-root": {
-                              borderRadius: 2,
+                              borderRadius: 1,
                               backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
                               color: "#0f172a",
-                              fontSize: "0.95rem",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
                               transition: "all 0.2s ease",
                               "& fieldset": {
                                 borderColor: isEditMode ? "#1e88e5" : "#ccc",
@@ -2328,11 +2337,11 @@ function ViewLeadSubmittedData(props) {
                     <TableCell
                       colSpan={2}
                       sx={{
-                        py: 2,
-                        px: 3,
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
                         color: "#ffffff",
                         fontWeight: 700,
-                        fontSize: "1rem",
+                        fontSize: { xs: "0.95rem", md: "1rem" },
                         borderBottom: "2px solid #1565c0",
                       }}
                     >
@@ -2432,11 +2441,11 @@ function ViewLeadSubmittedData(props) {
                     <TableCell
                       colSpan={2}
                       sx={{
-                        py: 2,
-                        px: 3,
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
                         color: "#ffffff",
                         fontWeight: 700,
-                        fontSize: "1rem",
+                        fontSize: { xs: "0.95rem", md: "1rem" },
                         borderBottom: "2px solid #1565c0",
                       }}
                     >
@@ -2461,12 +2470,12 @@ function ViewLeadSubmittedData(props) {
                     >
                       <TableCell
                         sx={{
-                          py: 2.5,
-                          px: 3,
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
                           fontWeight: 700,
                           color: "#0d47a1",
                           width: "35%",
-                          fontSize: "0.95rem",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
                           borderBottom: "1px solid #e8eef7",
                         }}
                       >
@@ -2474,8 +2483,8 @@ function ViewLeadSubmittedData(props) {
                       </TableCell>
                       <TableCell
                         sx={{
-                          py: 2.5,
-                          px: 3,
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
                           width: "65%",
                           borderBottom: "1px solid #e8eef7",
                         }}
@@ -2491,14 +2500,15 @@ function ViewLeadSubmittedData(props) {
                             readOnly: !isEditMode,
                             style: {
                               fontWeight: 500,
+                              fontSize: "0.9rem",
                             },
                           }}
                           sx={{
                             "& .MuiOutlinedInput-root": {
-                              borderRadius: 2,
+                              borderRadius: 1,
                               backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
                               color: "#0f172a",
-                              fontSize: "0.95rem",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
                               transition: "all 0.2s ease",
                               "& fieldset": {
                                 borderColor: isEditMode ? "#1e88e5" : "#ccc",
@@ -2532,11 +2542,11 @@ function ViewLeadSubmittedData(props) {
                     <TableCell
                       colSpan={2}
                       sx={{
-                        py: 2,
-                        px: 3,
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
                         color: "#ffffff",
                         fontWeight: 700,
-                        fontSize: "1rem",
+                        fontSize: { xs: "0.95rem", md: "1rem" },
                         borderBottom: "2px solid #1565c0",
                       }}
                     >
@@ -2566,12 +2576,12 @@ function ViewLeadSubmittedData(props) {
                     >
                       <TableCell
                         sx={{
-                          py: 2.5,
-                          px: 3,
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
                           fontWeight: 700,
                           color: "#0d47a1",
                           width: "35%",
-                          fontSize: "0.95rem",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
                           borderBottom: "1px solid #e8eef7",
                         }}
                       >
@@ -2579,8 +2589,8 @@ function ViewLeadSubmittedData(props) {
                       </TableCell>
                       <TableCell
                         sx={{
-                          py: 2.5,
-                          px: 3,
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
                           width: "65%",
                           borderBottom: "1px solid #e8eef7",
                         }}
@@ -2596,14 +2606,15 @@ function ViewLeadSubmittedData(props) {
                             readOnly: !isEditMode,
                             style: {
                               fontWeight: 500,
+                              fontSize: "0.9rem",
                             },
                           }}
                           sx={{
                             "& .MuiOutlinedInput-root": {
-                              borderRadius: 2,
+                              borderRadius: 1,
                               backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
                               color: "#0f172a",
-                              fontSize: "0.95rem",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
                               transition: "all 0.2s ease",
                               "& fieldset": {
                                 borderColor: isEditMode ? "#1e88e5" : "#ccc",
@@ -2637,11 +2648,11 @@ function ViewLeadSubmittedData(props) {
                     <TableCell
                       colSpan={2}
                       sx={{
-                        py: 2,
-                        px: 3,
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
                         color: "#ffffff",
                         fontWeight: 700,
-                        fontSize: "1rem",
+                        fontSize: { xs: "0.95rem", md: "1rem" },
                         borderBottom: "2px solid #1565c0",
                       }}
                     >
@@ -2661,12 +2672,12 @@ function ViewLeadSubmittedData(props) {
                   >
                     <TableCell
                       sx={{
-                        py: 2.5,
-                        px: 3,
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
                         fontWeight: 700,
                         color: "#0d47a1",
                         width: "35%",
-                        fontSize: "0.95rem",
+                        fontSize: { xs: "0.85rem", md: "0.95rem" },
                         borderBottom: "1px solid #e8eef7",
                       }}
                     >
@@ -2674,8 +2685,8 @@ function ViewLeadSubmittedData(props) {
                     </TableCell>
                     <TableCell
                       sx={{
-                        py: 2.5,
-                        px: 3,
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
                         width: "65%",
                         borderBottom: "1px solid #e8eef7",
                       }}
@@ -2692,14 +2703,15 @@ function ViewLeadSubmittedData(props) {
                           readOnly: !isEditMode,
                           style: {
                             fontWeight: 500,
+                            fontSize: "0.9rem",
                           },
                         }}
                         sx={{
                           "& .MuiOutlinedInput-root": {
-                            borderRadius: 2,
+                            borderRadius: 1,
                             backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
                             color: "#0f172a",
-                            fontSize: "0.95rem",
+                            fontSize: { xs: "0.85rem", md: "0.9rem" },
                             transition: "all 0.2s ease",
                             "& fieldset": {
                               borderColor: isEditMode ? "#1e88e5" : "#ccc",
@@ -2731,22 +2743,24 @@ function ViewLeadSubmittedData(props) {
         {/* DIALOG ACTIONS - CONDITIONAL BUTTONS */}
         <DialogActions
           sx={{
-            px: 4,
-            py: 2.5,
+            px: { xs: 1.5, md: 3 },
+            py: 2,
             background: "#ffffff",
             borderTop: "2px solid #e8eef7",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexShrink: 0,
           }}
         >
           <Button
             onClick={handleEditCancel}
             sx={{
-              borderRadius: 2,
+              borderRadius: 1,
               textTransform: "none",
-              px: 3,
+              px: { xs: 2, md: 3 },
               fontWeight: 600,
+              fontSize: { xs: "0.85rem", md: "0.95rem" },
               color: "#1565c0",
               "&:hover": {
                 backgroundColor: "rgba(21, 101, 192, 0.08)",
@@ -2762,10 +2776,11 @@ function ViewLeadSubmittedData(props) {
               onClick={handleSwitchToEditMode}
               startIcon={<EditRounded />}
               sx={{
-                borderRadius: 2,
+                borderRadius: 1,
                 textTransform: "none",
-                px: 4,
+                px: { xs: 2.5, md: 4 },
                 fontWeight: 700,
+                fontSize: { xs: "0.85rem", md: "0.95rem" },
                 background: "linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)",
                 boxShadow: "0 8px 20px rgba(13, 71, 161, 0.3)",
                 color: "#ffffff",
@@ -2783,10 +2798,11 @@ function ViewLeadSubmittedData(props) {
               <Button
                 onClick={handleEditCancel}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 1,
                   textTransform: "none",
-                  px: 3,
+                  px: { xs: 2, md: 3 },
                   fontWeight: 600,
+                  fontSize: { xs: "0.85rem", md: "0.95rem" },
                   color: "#d97706",
                   border: "1.5px solid #fcd34d",
                   backgroundColor: "#fef3c7",
@@ -2804,10 +2820,11 @@ function ViewLeadSubmittedData(props) {
                 onClick={handleSaveClick}
                 startIcon={<CheckRounded />}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 1,
                   textTransform: "none",
-                  px: 4,
+                  px: { xs: 2.5, md: 4 },
                   fontWeight: 700,
+                  fontSize: { xs: "0.85rem", md: "0.95rem" },
                   background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
                   boxShadow: "0 8px 20px rgba(5, 150, 105, 0.3)",
                   color: "#ffffff",
@@ -2926,602 +2943,7 @@ function ViewLeadSubmittedData(props) {
           </Button>
         </DialogActions>
       </Dialog>
-              {/* TENDER DETAILS SECTION */}
-              <Grid item xs={12}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: 700,
-                    color: "#0d47a1",
-                    mb: 1.5,
-                    pb: 1,
-                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
-                  }}
-                >
-                  📋 Tender Information
-                </Typography>
-              </Grid>
-
-              {[
-                ["Tender Name", "tenderName", false, "text"],
-                ["Tender Reference No", "tenderReferenceNo", false, "text"],
-                ["Tender Type", "tenderType", false, "select", TENDER_TYPE_OPTIONS],
-                ["Tender Date", "tenderDate", false, "date"],
-                ["Website", "website", false, "text"],
-              ].map(([label, field, multiline, type, options], idx) => (
-                <Grid item xs={12} sm={type === "date" ? 6 : 12} key={idx}>
-                  <TextField
-                    label={label}
-                    type={type === "date" ? "date" : type === "select" ? "select" : "text"}
-                    value={editingRow?.[field] || ""}
-                    onChange={(e) => handleEditFieldChange(field, e.target.value)}
-                    fullWidth
-                    size="small"
-                    InputLabelProps={
-                      type === "date" ? { shrink: true } : undefined
-                    }
-                    InputProps={{
-                      readOnly: !isEditMode,
-                    }}
-                    select={type === "select"}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: 2.5,
-                        backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
-                        color: "#0f172a",
-                        "& fieldset": {
-                          borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
-                          boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
-                        },
-                        "& input": {
-                          cursor: isEditMode ? "auto" : "default",
-                        },
-                      },
-                      "& .MuiInputLabel-root": {
-                        color: "#1e3a8a",
-                        fontWeight: 600,
-                      },
-                    }}
-                  >
-                    {type === "select" && options?.map((opt) => (
-                      <MenuItem key={opt} value={opt}>
-                        {opt}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-              ))}
-
-              {/* CUSTOMER DETAILS SECTION */}
-              <Grid item xs={12}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: 700,
-                    color: "#0d47a1",
-                    mb: 1.5,
-                    mt: 1,
-                    pb: 1,
-                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
-                  }}
-                >
-                  👤 Customer Information
-                </Typography>
-              </Grid>
-
-              {[
-                ["Customer Name", "customerName", false, "text"],
-                ["Customer Address", "customerAddress", true, "text"],
-              ].map(([label, field, multiline, type], idx) => (
-                <Grid item xs={12} key={idx}>
-                  <TextField
-                    label={label}
-                    type={type}
-                    value={editingRow?.[field] || ""}
-                    onChange={(e) => handleEditFieldChange(field, e.target.value)}
-                    fullWidth
-                    size="small"
-                    multiline={multiline}
-                    minRows={multiline ? 2 : 1}
-                    InputProps={{
-                      readOnly: !isEditMode,
-                    }}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: 2.5,
-                        backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
-                        color: "#0f172a",
-                        "& fieldset": {
-                          borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
-                          boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
-                        },
-                        "& textarea": {
-                          cursor: isEditMode ? "auto" : "default",
-                        },
-                      },
-                      "& .MuiInputLabel-root": {
-                        color: "#1e3a8a",
-                        fontWeight: 600,
-                      },
-                    }}
-                  />
-                </Grid>
-              ))}
-
-              {/* BID OWNER & EMD SECTION */}
-              <Grid item xs={12}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: 700,
-                    color: "#0d47a1",
-                    mb: 1.5,
-                    mt: 1,
-                    pb: 1,
-                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
-                  }}
-                >
-                  💼 Bid Owner & EMD
-                </Typography>
-              </Grid>
-
-              {[
-                ["Bid Owner", "bidOwner", false, "text"],
-                ["Value of EMD (Crore)", "valueEMDInCrore", false, "number"],
-              ].map(([label, field, multiline, type], idx) => (
-                <Grid item xs={12} sm={6} key={idx}>
-                  <TextField
-                    label={label}
-                    type={type}
-                    value={editingRow?.[field] || ""}
-                    onChange={(e) => handleEditFieldChange(field, e.target.value)}
-                    fullWidth
-                    size="small"
-                    InputLabelProps={
-                      type === "date" ? { shrink: true } : undefined
-                    }
-                    InputProps={{
-                      readOnly: !isEditMode,
-                      ...(type === "number" && {
-                        startAdornment: (
-                          <InputAdornment position="start">₹</InputAdornment>
-                        ),
-                      }),
-                    }}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: 2.5,
-                        backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
-                        color: "#0f172a",
-                        "& fieldset": {
-                          borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
-                          boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
-                        },
-                        "& input": {
-                          cursor: isEditMode ? "auto" : "default",
-                        },
-                      },
-                      "& .MuiInputLabel-root": {
-                        color: "#1e3a8a",
-                        fontWeight: 600,
-                      },
-                    }}
-                  />
-                </Grid>
-              ))}
-
-              {/* RFP TIMELINE SECTION */}
-              <Grid item xs={12}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: 700,
-                    color: "#0d47a1",
-                    mb: 1.5,
-                    mt: 1,
-                    pb: 1,
-                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
-                  }}
-                >
-                  📅 RFP Timeline
-                </Typography>
-              </Grid>
-
-              {[
-                ["RFP Received On", "rfpReceivedOn", false, "date"],
-                ["RFP Due Date", "rfpDueDate", false, "date"],
-              ].map(([label, field, multiline, type], idx) => (
-                <Grid item xs={12} sm={6} key={idx}>
-                  <TextField
-                    label={label}
-                    type={type}
-                    value={editingRow?.[field] || ""}
-                    onChange={(e) => handleEditFieldChange(field, e.target.value)}
-                    fullWidth
-                    size="small"
-                    InputLabelProps={
-                      type === "date" ? { shrink: true } : undefined
-                    }
-                    InputProps={{
-                      readOnly: !isEditMode,
-                    }}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: 2.5,
-                        backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
-                        color: "#0f172a",
-                        "& fieldset": {
-                          borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
-                          boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
-                        },
-                        "& input": {
-                          cursor: isEditMode ? "auto" : "default",
-                        },
-                      },
-                      "& .MuiInputLabel-root": {
-                        color: "#1e3a8a",
-                        fontWeight: 600,
-                      },
-                    }}
-                  />
-                </Grid>
-              ))}
-
-              {/* APPROVAL WORKFLOW SECTION */}
-              <Grid item xs={12}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: 700,
-                    color: "#0d47a1",
-                    mb: 1.5,
-                    mt: 1,
-                    pb: 1,
-                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
-                  }}
-                >
-                  ✅ Approval Workflow Dates
-                </Typography>
-              </Grid>
-
-              {[
-                ["Dmktg In-Principal Approval Rxd On", "dmktgInPrincipalApprovalRxdOn", false, "date"],
-                ["Selling Price Approval Initiated On", "sellingPriceApprovalInitiatedOn", false, "date"],
-                ["Bid Submitted On", "bidSubmittedOn", false, "date"],
-                ["Approval from SBU Finance On", "approvalSBUFinanceOn", false, "date"],
-                ["Approval from GM", "approvalGMOn", false, "date"],
-                ["Sent to Finance GM on Dmktg Approval Rxd On", "sentToFinanceGMDmktgApprovalRxdOn", false, "date"],
-                ["Dmktg Approval Rxd On", "dmktgApprovalRxdOn", false, "date"],
-              ].map(([label, field, multiline, type], idx) => (
-                <Grid item xs={12} sm={6} key={idx}>
-                  <TextField
-                    label={label}
-                    type={type}
-                    value={editingRow?.[field] || ""}
-                    onChange={(e) => handleEditFieldChange(field, e.target.value)}
-                    fullWidth
-                    size="small"
-                    InputLabelProps={
-                      type === "date" ? { shrink: true } : undefined
-                    }
-                    InputProps={{
-                      readOnly: !isEditMode,
-                    }}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: 2.5,
-                        backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
-                        color: "#0f172a",
-                        "& fieldset": {
-                          borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
-                          boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
-                        },
-                        "& input": {
-                          cursor: isEditMode ? "auto" : "default",
-                        },
-                      },
-                      "& .MuiInputLabel-root": {
-                        color: "#1e3a8a",
-                        fontWeight: 600,
-                      },
-                    }}
-                  />
-                </Grid>
-              ))}
-
-              {/* STATUS SECTION */}
-              <Grid item xs={12}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: 700,
-                    color: "#0d47a1",
-                    mb: 1.5,
-                    mt: 1,
-                    pb: 1,
-                    borderBottom: "2px solid rgba(59, 130, 246, 0.3)",
-                  }}
-                >
-                  📊 Status & Tracking
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  select
-                  label="Present Status"
-                  value={editingRow?.presentStatus || ""}
-                  onChange={(e) =>
-                    handleEditFieldChange("presentStatus", e.target.value)
-                  }
-                  fullWidth
-                  size="small"
-                  InputProps={{
-                    readOnly: !isEditMode,
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2.5,
-                      backgroundColor: isEditMode ? "#ffffff" : "#f1f5ff",
-                      color: "#0f172a",
-                      "& fieldset": {
-                        borderColor: isEditMode ? "#93c5fd" : "#bfdbfe",
-                      },
-                      "&:hover fieldset": {
-                        borderColor: isEditMode ? "#3b82f6" : "#bfdbfe",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: isEditMode ? "#2563eb" : "#bfdbfe",
-                        boxShadow: isEditMode ? "0 0 0 3px rgba(59,130,246,0.2)" : "none",
-                      },
-                    },
-                    "& .MuiInputLabel-root": {
-                      color: "#1e3a8a",
-                      fontWeight: 600,
-                    },
-                  }}
-                >
-                  {STATUS_OPTIONS.map((s) => (
-                    <MenuItem key={s} value={s}>
-                      {s}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-
-        {/* DIALOG ACTIONS - CONDITIONAL BUTTONS */}
-        <DialogActions
-          sx={{
-            px: 3,
-            py: 2.5,
-            background: "#f1f5ff",
-            borderTop: "2px solid rgba(59,130,246,0.2)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Button
-            onClick={handleEditCancel}
-            sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 3,
-              fontWeight: 600,
-              color: "#1e40af",
-              "&:hover": {
-                backgroundColor: "rgba(59, 130, 246, 0.1)",
-              },
-            }}
-          >
-            Close
-          </Button>
-
-          {!isEditMode ? (
-            <Button
-              variant="contained"
-              onClick={handleSwitchToEditMode}
-              startIcon={<EditRounded />}
-              sx={{
-                borderRadius: 999,
-                textTransform: "none",
-                px: 4,
-                fontWeight: 700,
-                background:
-                  "linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#1d4ed8 100%)",
-                boxShadow: "0 10px 25px rgba(59,130,246,0.35)",
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg,#1d4ed8 0%,#2563eb 50%,#1e40af 100%)",
-                  boxShadow: "0 12px 30px rgba(59,130,246,0.45)",
-                  transform: "translateY(-2px)",
-                },
-              }}
-            >
-              Edit Details
-            </Button>
-          ) : (
-            <>
-              <Button
-                onClick={handleEditCancel}
-                sx={{
-                  borderRadius: 999,
-                  textTransform: "none",
-                  px: 3,
-                  fontWeight: 600,
-                  color: "#ef4444",
-                  border: "2px solid #fed7aa",
-                  backgroundColor: "#fef3c7",
-                  "&:hover": {
-                    backgroundColor: "#fcd34d",
-                    borderColor: "#f59e0b",
-                  },
-                }}
-              >
-                Cancel
-              </Button>
-
-              <Button
-                variant="contained"
-                onClick={handleSaveClick}
-                startIcon={<CheckRounded />}
-                sx={{
-                  borderRadius: 999,
-                  textTransform: "none",
-                  px: 4,
-                  fontWeight: 700,
-                  background:
-                    "linear-gradient(135deg,#16a34a 0%,#22c55e 50%,#15803d 100%)",
-                  boxShadow: "0 10px 25px rgba(34, 197, 94, 0.35)",
-                  "&:hover": {
-                    background:
-                      "linear-gradient(135deg,#15803d 0%,#16a34a 50%,#166534 100%)",
-                    boxShadow: "0 12px 30px rgba(34, 197, 94, 0.45)",
-                    transform: "translateY(-2px)",
-                  },
-                }}
-              >
-                Save Changes
-              </Button>
-            </>
-          )}
-        </DialogActions>
-      </Dialog>
-
-      {/* SAVE CONFIRMATION DIALOG */}
-      <Dialog
-        open={saveConfirmationOpen}
-        onClose={handleSaveCancel}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            background:
-              "linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)",
-            boxShadow: "0 20px 50px rgba(34, 197, 94, 0.25)",
-          },
-        }}
-        BackdropProps={{
-          sx: {
-            backdropFilter: "blur(8px)",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            fontWeight: 800,
-            color: "#15803d",
-            fontSize: "1.2rem",
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-          }}
-        >
-          ⚠️ Confirm Changes
-        </DialogTitle>
-
-        <DialogContent sx={{ py: 3 }}>
-          <Typography variant="body1" sx={{ color: "#374151", lineHeight: 1.6 }}>
-            Are you sure you want to save these changes? Once saved, the updated information will be stored in the system.
-          </Typography>
-          <Box
-            sx={{
-              mt: 2.5,
-              p: 2,
-              backgroundColor: "rgba(34, 197, 94, 0.08)",
-              borderRadius: 2,
-              borderLeft: "4px solid #16a34a",
-            }}
-          >
-            <Typography variant="caption" sx={{ color: "#166534", fontWeight: 600 }}>
-              💡 Tip: Review all changes before confirming
-            </Typography>
-          </Box>
-        </DialogContent>
-
-        <DialogActions
-          sx={{
-            px: 3,
-            py: 2,
-            gap: 1.5,
-            background: "#f9fafb",
-            borderTop: "1px solid rgba(34, 197, 94, 0.2)",
-          }}
-        >
-          <Button
-            onClick={handleSaveCancel}
-            sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 3,
-              fontWeight: 600,
-              color: "#6b7280",
-              "&:hover": {
-                backgroundColor: "rgba(0, 0, 0, 0.05)",
-              },
-            }}
-          >
-            No, Keep Editing
-          </Button>
-
-          <Button
-            variant="contained"
-            onClick={handleEditSave}
-            startIcon={<CheckCircleRounded />}
-            sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 4,
-              fontWeight: 700,
-              background:
-                "linear-gradient(135deg,#16a34a 0%,#22c55e 50%,#15803d 100%)",
-              boxShadow: "0 8px 20px rgba(34, 197, 94, 0.3)",
-              "&:hover": {
-                background:
-                  "linear-gradient(135deg,#15803d 0%,#16a34a 50%,#166534 100%)",
-                boxShadow: "0 10px 25px rgba(34, 197, 94, 0.4)",
-              },
-            }}
-          >
-            Yes, Save Changes
-          </Button>
-        </DialogActions>
-      </Dialog>
+      
 
       {/* READ-ONLY VIEW DIALOG */}
       <Dialog

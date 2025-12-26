@@ -1,0 +1,303 @@
+**Software Requirements Specification (SRS)
+Automation of GR to UD Process with Barcode/QR Code Integration**
+
+---
+
+# **1. Introduction**
+
+## **1.1 Purpose of the Document**
+
+This Software Requirements Specification (SRS) document outlines the business need, system functionality, architecture, constraints, technical requirements, and acceptance criteria for the automation of the Goods Receipt (GR) to Usage Decision (UD) process using OCR and QR/Barcode technology integrated with SAP. It serves as a reference for developers, SAP integrators, QA teams, business stakeholders, and implementation partners.
+
+## **1.2 Intended Audience**
+
+* Business Owners & Process Stakeholders
+* SAP Functional & Technical Consultants
+* Software Architects & Developers
+* QA & Testing Teams
+* Procurement & Store Teams
+* Automation / RPA Teams
+* Compliance & Audit Teams
+
+## **1.3 Project Overview**
+
+The proposed system automates GR and UD processes by extracting invoice/PO information using OCR, generating QR codes for traceability, capturing inspection results, and auto-posting GR and UD decisions into SAP through BAPI integrations.
+
+## **1.4 Definitions, Acronyms & Abbreviations**
+
+| Term     | Meaning                                    |
+| -------- | ------------------------------------------ |
+| GR       | Goods Receipt                              |
+| UD       | Usage Decision                             |
+| PO       | Purchase Order                             |
+| OCR      | Optical Character Recognition              |
+| BAPI     | Business Application Programming Interface |
+| SAP      | ERP System used for business operations    |
+| QR Code  | Machine-readable square barcode            |
+| Indentor | Person requesting material procurement     |
+
+---
+
+# **2. Business Purpose & Objectives**
+
+The project aims to:
+
+* Automate GR-to-UD workflow end-to-end
+* Reduce manual workload and human dependency
+* Improve accuracy in material receipt and inspection
+* Enable real-time item traceability and auditability
+* Standardize vendor documentation and inspection procedures
+* Eliminate spreadsheet-based rejected material tracking
+
+---
+
+# **3. Problem Statement**
+
+Currently, the GR to UD process involves:
+
+* Manual PDF uploads into SAP
+* Human-led extraction and verification of PO details
+* Manual GR posting and UD entry
+* No QR or item-level traceability
+* Rejection reasons maintained offline
+* High chances of data mismatch and compliance issues
+
+As a result:
+
+* Efficiency drops
+* Processing time increases
+* Error probability rises
+* Audit and transparency gaps exist
+
+---
+
+# **4. System Scope**
+
+The proposed system will:
+
+* Accept and extract data from supplier delivery PDFs
+* Validate extracted values using SAP PO data
+* Generate QR codes for each material line
+* Automate GR creation using SAP BAPI
+* Enable scanning-based verification and inspection
+* Automate UD decision posting
+* Provide real-time dashboards and reports
+* Log all activities for compliance and audits
+
+### **Out of Scope (Current Phase)**
+
+* Material return automation
+* SAP MM configuration changes
+* Vendor portal integration
+* Mobile app development (planned future enhancement)
+
+---
+
+# **5. Stakeholder Roles and Responsibilities**
+
+| Stakeholder           | Role       | Responsibility                                     |
+| --------------------- | ---------- | -------------------------------------------------- |
+| Supplier              | External   | Uploads invoice/delivery document                  |
+| Indentor              | Business   | Confirms receipt of goods                          |
+| Store/Inspection Team | Operations | Scans QR, records accepted/rejected items          |
+| SAP System            | ERP        | Posts GR & UD transactions                         |
+| Automation Tool       | System     | OCR, validation, QR, API, logging & reporting      |
+| QA Team               | Testing    | Performs system and integration testing            |
+| IT/SAP Basis          | Support    | User access, RFC connectivity, system availability |
+
+---
+
+# **6. Existing Workflow (As-Is)**
+
+1. Supplier submits invoice/delivery challan manually.
+2. Team uploads PDF into SAP.
+3. PO details manually verified and entered.
+4. GR manually posted in SAP.
+5. Physical items inspected and results recorded manually.
+6. UD decision manually entered in SAP.
+7. Rejected material tracked separately using Excel or registers.
+
+Pain Points:
+
+* Manual effort & delays
+* Human errors
+* No standardized rejection tracking
+* Lack of real-time visibility
+
+---
+
+# **7. Proposed Workflow (To-Be)**
+
+### **Step 1: Document Upload & OCR Extraction**
+
+* Supplier uploads invoice PDF to web portal.
+* System extracts PO number, item description, quantity, batch, and supplier name.
+* Extracted data validated against SAP PO via API.
+
+### **Step 2: QR/Barcode Generation**
+
+* System generates unique QR per material line item.
+* QR contains encrypted PO, GR, batch, material code, and quantity.
+* System prints labels using Zebra printer.
+
+### **Step 3: Automated GR Posting**
+
+* GR auto-posted using `BAPI_GOODSMVT_CREATE`.
+* SAP returns GR number and status.
+* System stores mapping of PO → GR → QR.
+
+### **Step 4: Indentor Verification**
+
+* Indentor scans QR to confirm material receipt.
+* Accepted & rejected items recorded digitally.
+
+### **Step 5: Inspection & Quality Process**
+
+* Inspection team scans QR during quality testing.
+* Accepted/rejected quantity and remarks entered.
+* SAP updated via `BAPI_INSPOPER_RECORDRESULTS`.
+
+### **Step 6: Automated UD Posting**
+
+* UD posted using `BAPI_INSPLOT_SETUSAGEDECISION`.
+* SAP inspection lot updated.
+
+### **Step 7: Reporting & Notifications**
+
+* Auto-generated summary PDF reports
+* Email/SMS notifications for approvals, delays, rejections
+* Web dashboard displays live GR/UD metrics
+
+### **Step 8: Exception Handling**
+
+* Logs OCR extraction failures
+* Logs mismatched SAP data
+* Tracks incomplete UD postings
+* Generates corrective action alerts
+
+---
+
+# **8. Functional Requirements**
+
+## **8.1 Document Processing Requirements**
+
+* System shall allow suppliers to upload PDF documents.
+* System shall support invoice, delivery challan, and packing list formats.
+* System shall extract text using OCR.
+* System shall validate mandatory fields.
+
+## **8.2 QR/Barcode Requirements**
+
+* System shall generate QR per item.
+* QR shall be scan-capable using mobile and handheld scanners.
+* System shall regenerate QR if label lost/damaged (role restricted).
+
+## **8.3 SAP Integration Requirements**
+
+* System shall connect to SAP via RFC or OData.
+* System shall post GR, inspection, and UD decisions via BAPIs:
+
+  * `BAPI_GOODSMVT_CREATE`
+  * `BAPI_INSPOPER_RECORDRESULTS`
+  * `BAPI_INSPLOT_SETUSAGEDECISION`
+* System shall fetch PO, vendor, and material details.
+
+## **8.4 User Interface Requirements**
+
+* Web portal for document upload and monitoring
+* Dashboard showing GR → Inspection → UD aging status
+* QR scan-based UI for inspection teams
+* Audit trail screen with filters
+
+## **8.5 Reporting Requirements**
+
+* GR summary report
+* UD completion report
+* Rejection trend report
+* Supplier performance report
+* Inspection delay report
+
+---
+
+# **9. Non-Functional Requirements**
+
+## **9.1 Performance**
+
+* System shall process OCR extraction within 10 seconds.
+* Dashboard refresh rate ≤ 3 seconds.
+* SAP posting shall respond within 5 seconds.
+
+## **9.2 Security**
+
+* Data encryption (AES-256 at rest, TLS 1.2 in transit)
+* JWT authentication
+* Role-based access control (RBAC)
+* Activity logging & timestamping
+
+## **9.3 Reliability & Availability**
+
+* System uptime ≥ 99%
+* Auto-retry on failed API calls
+
+## **9.4 Scalability**
+
+* Ability to support increasing suppliers and transactions
+* Cloud and on-premise deployment compatible
+
+## **9.5 Usability**
+
+* QR scanning must require ≤ 2 clicks
+* UI must support tablet and desktop
+
+---
+
+# **10. System Architecture Overview**
+
+* Web portal communicates with backend API
+* Backend interacts with OCR engine & SAP
+* Database stores transactional data
+* QR generator produces printable labels
+* Dashboard consumes aggregated data via APIs
+
+Architecture Layers:
+
+1. Presentation Layer — React.js
+2. Application Layer — Flask/Python
+3. Integration Layer — SAP RFC/OData
+4. Database Layer — PostgreSQL/SQLite
+5. Analytics Layer — Reporting & dashboards
+
+---
+
+# **11. Technology & Integration Stack**
+
+| Component       | Technology               |
+| --------------- | ------------------------ |
+| OCR             | Tesseract / AWS Textract |
+| QR Code         | Python qrcode / pyzbar   |
+| Backend         | Flask (Python)           |
+| UI/Frontend     | React.js                 |
+| Database        | PostgreSQL / SQLite      |
+| SAP Integration | RFC / OData              |
+| Notifications   | Email/SMS Gateway        |
+| Label Printing  | Zebra Printer API        |
+
+---
+
+# **12. Constraints & Assumptions**
+
+### Assumptions:
+
+* SAP credentials, BAPI access, and firewall approvals provided.
+* All suppliers provide readable PDF documents.
+* Users trained on QR scanning devices.
+
+### Constraints:
+
+* OCR accuracy depends on document clarity.
+* SAP downtime impacts auto-posting.
+* Barcode printer availability required.
+
+---
+
+# **13. Risks & Mitigation**

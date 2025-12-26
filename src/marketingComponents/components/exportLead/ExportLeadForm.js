@@ -1962,7 +1962,7 @@ function ViewExportLeadData(props) {
         </TableContainer>
       </Box>
 
-      {/* EDIT DIALOG - VIEW MODE & EDIT MODE - PROFESSIONAL BLUE THEME */}
+      {/* EDIT DIALOG - PROFESSIONAL BLUE TABULAR MATRIX */}
       <Dialog
         open={editDialogOpen}
         onClose={handleEditCancel}
@@ -1970,11 +1970,12 @@ function ViewExportLeadData(props) {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 3,
+            height: "90vh",
+            maxHeight: "90vh",
+            borderRadius: 2,
             overflow: "hidden",
             background: "#ffffff",
             boxShadow: "0 25px 50px rgba(0,0,0,0.15), 0 10px 30px rgba(30,64,95,0.2)",
-            maxHeight: "90vh",
           },
         }}
         BackdropProps={{
@@ -1984,1012 +1985,932 @@ function ViewExportLeadData(props) {
           },
         }}
       >
-        {/* HEADER */}
+        {/* HEADER - PROFESSIONAL GRADIENT */}
         <DialogTitle
           sx={{
-            fontWeight: 800,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            pr: 2,
-            background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%)",
-            color: "#ffffff",
-            borderBottom: "3px solid #60a5fa",
+            px: { xs: 2, md: 4 },
             py: 2.5,
+            background: "linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1e88e5 100%)",
+            color: "#ffffff",
+            fontWeight: 700,
+            fontSize: { xs: "1.1rem", md: "1.3rem" },
+            flexShrink: 0,
           }}
         >
-          <Box display="flex" alignItems="center" gap={2}>
-            <Box
-              sx={{
-                fontSize: 28,
-                fontWeight: 800,
-              }}
-            >
-              📋
-            </Box>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: "#ffffff" }}>
-                {editingRow?.tenderName || "Lead Details"}
-              </Typography>
-              <Typography variant="caption" sx={{ color: "#bfdbfe", mt: 0.5 }}>
-                Reference: {editingRow?.tenderReferenceNo || "N/A"}
-              </Typography>
-            </Box>
-          </Box>
-
-          <Box display="flex" alignItems="center" gap={2}>
-            <Chip
-              label={isEditMode ? "EDIT MODE" : "VIEW MODE"}
-              size="small"
-              sx={{
-                fontWeight: 700,
-                fontSize: "0.75rem",
-                background: isEditMode ? "#fbbf24" : "#60a5fa",
-                color: isEditMode ? "#1f2937" : "#ffffff",
-              }}
-            />
-            <IconButton
-              onClick={handleEditCancel}
-              sx={{
-                color: "#ffffff",
-                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
-              }}
-            >
-              <CloseRounded />
-            </IconButton>
-          </Box>
+          📋 {isEditMode ? "✏️ Edit Export Lead Details" : "📋 Export Lead Details"}
         </DialogTitle>
 
-        {/* CONTENT - TABULAR MATRIX FORMAT */}
+        {/* CONTENT - TABULAR MATRIX FORMAT WITH 7 SECTIONS */}
         <DialogContent
           sx={{
-            background: "#f8fafc",
-            p: 0,
-            maxHeight: "calc(90vh - 130px)",
-            overflowY: "auto",
-            overflowX: "hidden",
+            px: { xs: 1.5, md: 2 },
+            py: 2,
+            flex: 1,
+            overflow: "auto",
+            display: "flex",
+            flexDirection: "column",
+            background: "#f5f8fc",
             "&::-webkit-scrollbar": {
               width: "8px",
             },
             "&::-webkit-scrollbar-track": {
-              background: "#e2e8f0",
+              background: "#e8eef7",
             },
             "&::-webkit-scrollbar-thumb": {
-              background: "#94a3b8",
+              background: "#1565c0",
               borderRadius: "4px",
-            },
-            "@media (max-height: 800px)": {
-              maxHeight: "calc(85vh - 130px)",
+              "&:hover": {
+                background: "#0d47a1",
+              },
             },
           }}
         >
-          <Box sx={{ p: 2.5 }}>
-            {/* TENDER INFORMATION SECTION */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
+          {editingRow && (
+            <TableContainer sx={{ background: "#f5f8fc" }}>
+              <Table
                 sx={{
-                  fontWeight: 800,
-                  color: "#1e3a5f",
-                  mb: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  fontSize: "0.95rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
-                Tender Information
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(4, 1fr)",
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  "& .MuiTableCell-root": {
+                    border: "none",
                   },
-                  gap: 1.5,
                 }}
               >
-                {[
-                  { label: "Tender Name", key: "tenderName" },
-                  { label: "Tender Reference No", key: "tenderReferenceNo" },
-                  { label: "Document Type", key: "documentType" },
-                  { label: "Tender Dated", key: "tenderDated", isDate: true },
-                ].map((field) => (
-                  <Box
-                    key={field.key}
+                <TableBody>
+                  {/* TENDER DETAILS SECTION */}
+                  <TableRow
                     sx={{
-                      background: "#ffffff",
-                      border: "1px solid #e0e7ff",
-                      borderRadius: 2,
-                      p: 2,
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
                       "&:hover": {
-                        borderColor: "#60a5fa",
-                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
                       },
-                      transition: "all 0.2s ease",
                     }}
                   >
-                    <Typography
-                      variant="caption"
+                    <TableCell
+                      colSpan={2}
                       sx={{
-                        color: "#64748b",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        fontSize: "0.7rem",
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: { xs: "0.95rem", md: "1rem" },
+                        borderBottom: "2px solid #1565c0",
                       }}
                     >
-                      {field.label}
-                    </Typography>
-                    {isEditMode ? (
-                      <TextField
-                        value={editingRow?.[field.key] || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange(field.key, e.target.value)
-                        }
-                        fullWidth
-                        size="small"
-                        type={field.isDate ? "date" : "text"}
-                        InputLabelProps={
-                          field.isDate ? { shrink: true } : undefined
-                        }
-                        sx={{
-                          mt: 1,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1.5,
-                            background: "#ffffff",
-                            "& fieldset": {
-                              borderColor: "#60a5fa",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
-                            fontWeight: 600,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        sx={{
-                          mt: 1,
-                          color: "#1e293b",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
-                        }}
-                      >
-                        {editingRow?.[field.key] || "-"}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
+                      📋 Tender Details
+                    </TableCell>
+                  </TableRow>
 
-            {/* CUSTOMER INFORMATION SECTION */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 800,
-                  color: "#1e3a5f",
-                  mb: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  fontSize: "0.95rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
-                Customer Information
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(4, 1fr)",
-                  },
-                  gap: 1.5,
-                }}
-              >
-                {[
-                  { label: "Customer Name", key: "customerName" },
-                  { label: "Lead Owner", key: "leadOwner" },
-                  { label: "Civil / Defence", key: "civilOrDefence" },
-                  { label: "Business Domain", key: "businessDomain" },
-                ].map((field) => (
-                  <Box
-                    key={field.key}
-                    sx={{
-                      background: "#ffffff",
-                      border: "1px solid #e0e7ff",
-                      borderRadius: 2,
-                      p: 2,
-                      "&:hover": {
-                        borderColor: "#60a5fa",
-                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
-                      },
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
+                  {[
+                    ["Tender Name", "tenderName", "text"],
+                    ["Tender Reference No", "tenderReferenceNo", "text"],
+                    ["Tender Dated", "tenderDated", "date"],
+                    ["Document Type", "documentType", "text"],
+                    ["Last Date of Submission", "lastDateOfSub", "date"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
                       sx={{
-                        color: "#64748b",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        fontSize: "0.7rem",
-                      }}
-                    >
-                      {field.label}
-                    </Typography>
-                    {isEditMode ? (
-                      <TextField
-                        value={editingRow?.[field.key] || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange(field.key, e.target.value)
-                        }
-                        fullWidth
-                        size="small"
-                        sx={{
-                          mt: 1,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1.5,
-                            background: "#ffffff",
-                            "& fieldset": {
-                              borderColor: "#60a5fa",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
-                            fontWeight: 600,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        sx={{
-                          mt: 1,
-                          color: "#1e293b",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
-                        }}
-                      >
-                        {editingRow?.[field.key] || "-"}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-
-              {/* Customer Address - Full Width */}
-              <Box
-                sx={{
-                  background: "#ffffff",
-                  border: "1px solid #e0e7ff",
-                  borderRadius: 2,
-                  p: 2,
-                  mt: 2,
-                  "&:hover": {
-                    borderColor: "#60a5fa",
-                    boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
-                  },
-                  transition: "all 0.2s ease",
-                }}
-              >
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: "#64748b",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    fontSize: "0.7rem",
-                  }}
-                >
-                  Customer Address
-                </Typography>
-                {isEditMode ? (
-                  <TextField
-                    value={editingRow?.customerAddress || ""}
-                    onChange={(e) =>
-                      handleEditFieldChange("customerAddress", e.target.value)
-                    }
-                    fullWidth
-                    size="small"
-                    multiline
-                    minRows={2}
-                    sx={{
-                      mt: 1,
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: 1.5,
-                        background: "#ffffff",
-                        "& fieldset": {
-                          borderColor: "#60a5fa",
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
                         },
-                        "&:hover fieldset": {
-                          borderColor: "#1e40af",
+                      }}
+                    >
+                      <TableCell
+                        sx={{
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type === "date" ? "date" : "text"}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          InputLabelProps={type === "date" ? { shrink: true } : undefined}
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                              fontSize: "0.9rem",
+                            },
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 1,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& input": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* CUSTOMER INFORMATION SECTION */}
+                  <TableRow
+                    sx={{
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      colSpan={2}
+                      sx={{
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: { xs: "0.95rem", md: "1rem" },
+                        borderBottom: "2px solid #1565c0",
+                      }}
+                    >
+                      👤 Customer Information
+                    </TableCell>
+                  </TableRow>
+
+                  {[
+                    ["Customer Name", "customerName", "text"],
+                    ["Customer Address", "customerAddress", "text"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
                         },
-                        "&.Mui-focused fieldset": {
-                          borderColor: "#1e40af",
-                          borderWidth: 2,
+                      }}
+                    >
+                      <TableCell
+                        sx={{
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
+                          borderBottom: "1px solid #e8eef7",
+                          verticalAlign: "top",
+                        }}
+                      >
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          multiline={field === "customerAddress"}
+                          minRows={field === "customerAddress" ? 2 : 1}
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                              fontSize: "0.9rem",
+                            },
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 1,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& textarea": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* LEAD OWNER & CLASSIFICATION SECTION */}
+                  <TableRow
+                    sx={{
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      colSpan={2}
+                      sx={{
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: { xs: "0.95rem", md: "1rem" },
+                        borderBottom: "2px solid #1565c0",
+                      }}
+                    >
+                      👤 Lead Owner & Classification
+                    </TableCell>
+                  </TableRow>
+
+                  {[
+                    ["Lead Owner", "leadOwner", "text"],
+                    ["Civil/Defence", "civilOrDefence", "text"],
+                    ["Business Domain", "businessDomain", "text"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
                         },
-                      },
-                      "& .MuiOutlinedInput-input": {
-                        color: "#1e293b",
-                        fontWeight: 600,
-                      },
-                    }}
-                  />
-                ) : (
-                  <Typography
-                    sx={{
-                      mt: 1,
-                      color: "#1e293b",
-                      fontWeight: 600,
-                      fontSize: "0.95rem",
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {editingRow?.customerAddress || "-"}
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-
-            {/* FINANCIAL DETAILS SECTION */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 800,
-                  color: "#1e3a5f",
-                  mb: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  fontSize: "0.95rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
-                Financial Details
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(4, 1fr)",
-                  },
-                  gap: 1.5,
-                }}
-              >
-                {[
-                  { label: "Value of EMD", key: "valueOfEMD" },
-                  { label: "Estimated Value (Cr, w/o GST)", key: "estimatedValueInCrWithoutGST" },
-                  { label: "Submitted Value (Cr, w/o GST)", key: "submittedValueInCrWithoutGST" },
-                  { label: "Order Won Value (Cr, w/o GST)", key: "orderWonValueInCrWithoutGST" },
-                ].map((field) => (
-                  <Box
-                    key={field.key}
-                    sx={{
-                      background: "#ffffff",
-                      border: "1px solid #e0e7ff",
-                      borderRadius: 2,
-                      p: 2,
-                      "&:hover": {
-                        borderColor: "#60a5fa",
-                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
-                      },
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: "#64748b",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        fontSize: "0.7rem",
                       }}
                     >
-                      {field.label}
-                    </Typography>
-                    {isEditMode ? (
-                      <TextField
-                        value={editingRow?.[field.key] || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange(field.key, e.target.value)
-                        }
-                        fullWidth
-                        size="small"
+                      <TableCell
                         sx={{
-                          mt: 1,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1.5,
-                            background: "#ffffff",
-                            "& fieldset": {
-                              borderColor: "#60a5fa",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
-                            fontWeight: 600,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        sx={{
-                          mt: 1,
-                          color: "#1e293b",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
+                          borderBottom: "1px solid #e8eef7",
                         }}
                       >
-                        {editingRow?.[field.key] || "-"}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                              fontSize: "0.9rem",
+                            },
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 1,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& input": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
 
-            {/* TIMELINE SECTION */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 800,
-                  color: "#1e3a5f",
-                  mb: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  fontSize: "0.95rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
-                Timeline
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(3, 1fr)",
-                  },
-                  gap: 1.5,
-                }}
-              >
-                {[
-                  { label: "Last Date of Submission", key: "lastDateOfSub", isDate: true },
-                  { label: "Sole / Consortium", key: "soleOrConsortium" },
-                  { label: "Pre-Bid Meeting Date & Time", key: "prebidMeetingDateTime" },
-                ].map((field) => (
-                  <Box
-                    key={field.key}
+                  {/* FINANCIAL INFORMATION SECTION */}
+                  <TableRow
                     sx={{
-                      background: "#ffffff",
-                      border: "1px solid #e0e7ff",
-                      borderRadius: 2,
-                      p: 2,
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
                       "&:hover": {
-                        borderColor: "#60a5fa",
-                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
                       },
-                      transition: "all 0.2s ease",
                     }}
                   >
-                    <Typography
-                      variant="caption"
+                    <TableCell
+                      colSpan={2}
                       sx={{
-                        color: "#64748b",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        fontSize: "0.7rem",
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: { xs: "0.95rem", md: "1rem" },
+                        borderBottom: "2px solid #1565c0",
                       }}
                     >
-                      {field.label}
-                    </Typography>
-                    {isEditMode ? (
-                      <TextField
-                        value={editingRow?.[field.key] || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange(field.key, e.target.value)
-                        }
-                        fullWidth
-                        size="small"
-                        type={field.isDate ? "datetime-local" : "text"}
-                        InputLabelProps={
-                          field.isDate ? { shrink: true } : undefined
-                        }
+                      💰 Financial Information
+                    </TableCell>
+                  </TableRow>
+
+                  {[
+                    ["EMD Value (Crore)", "valueOfEMD", "number"],
+                    ["Estimated Value without GST (Crore)", "estimatedValueInCrWithoutGST", "number"],
+                    ["Submitted Value without GST (Crore)", "submittedValueInCrWithoutGST", "number"],
+                    ["Order Won Value without GST (Crore)", "orderWonValueInCrWithoutGST", "number"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
+                        },
+                      }}
+                    >
+                      <TableCell
                         sx={{
-                          mt: 1,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1.5,
-                            background: "#ffffff",
-                            "& fieldset": {
-                              borderColor: "#60a5fa",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
-                            fontWeight: 600,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        sx={{
-                          mt: 1,
-                          color: "#1e293b",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
+                          borderBottom: "1px solid #e8eef7",
                         }}
                       >
-                        {editingRow?.[field.key] || "-"}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                              fontSize: "0.9rem",
+                            },
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 1,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& input": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
 
-            {/* STATUS & RESULTS SECTION */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 800,
-                  color: "#1e3a5f",
-                  mb: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  fontSize: "0.95rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
-                Status & Results
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(3, 1fr)",
-                  },
-                  gap: 1.5,
-                }}
-              >
-                {[
-                  { label: "Won / Lost / Participated", key: "wonLostParticipated" },
-                  { label: "Open / Closed", key: "openClosed" },
-                  { label: "Present Status", key: "presentStatus" },
-                ].map((field) => (
-                  <Box
-                    key={field.key}
+                  {/* SUBMISSION & DATES SECTION */}
+                  <TableRow
                     sx={{
-                      background: "#ffffff",
-                      border: "1px solid #e0e7ff",
-                      borderRadius: 2,
-                      p: 2,
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
                       "&:hover": {
-                        borderColor: "#60a5fa",
-                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
                       },
-                      transition: "all 0.2s ease",
                     }}
                   >
-                    <Typography
-                      variant="caption"
+                    <TableCell
+                      colSpan={2}
                       sx={{
-                        color: "#64748b",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        fontSize: "0.7rem",
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: { xs: "0.95rem", md: "1rem" },
+                        borderBottom: "2px solid #1565c0",
                       }}
                     >
-                      {field.label}
-                    </Typography>
-                    {isEditMode ? (
-                      <TextField
-                        value={editingRow?.[field.key] || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange(field.key, e.target.value)
-                        }
-                        fullWidth
-                        size="small"
+                      📅 Submission & Dates
+                    </TableCell>
+                  </TableRow>
+
+                  {[
+                    ["Pre-bid Meeting Date & Time", "prebidMeetingDateTime", "datetime-local"],
+                    ["Sole/Consortium", "soleOrConsortium", "text"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
+                        },
+                      }}
+                    >
+                      <TableCell
                         sx={{
-                          mt: 1,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1.5,
-                            background: "#ffffff",
-                            "& fieldset": {
-                              borderColor: "#60a5fa",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
-                            fontWeight: 600,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        sx={{
-                          mt: 1,
-                          color: "#1e293b",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
+                          borderBottom: "1px solid #e8eef7",
                         }}
                       >
-                        {editingRow?.[field.key] || "-"}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          InputLabelProps={type === "date" || type === "datetime-local" ? { shrink: true } : undefined}
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                              fontSize: "0.9rem",
+                            },
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 1,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& input": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
 
-            {/* ADDITIONAL INFORMATION SECTION */}
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 800,
-                  color: "#1e3a5f",
-                  mb: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  fontSize: "0.95rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
-                Additional Information
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(3, 1fr)",
-                  },
-                  gap: 1.5,
-                }}
-              >
-                {[
-                  { label: "Competitors Info", key: "competitorsInfo" },
-                  { label: "Reason for Losing/Participating", key: "reasonForLossingOpp" },
-                  { label: "Corrigendums Date / File", key: "corrigendumsDateFile" },
-                ].map((field) => (
-                  <Box
-                    key={field.key}
+                  {/* COMPETITION & PARTICIPATION SECTION */}
+                  <TableRow
                     sx={{
-                      background: "#ffffff",
-                      border: "1px solid #e0e7ff",
-                      borderRadius: 2,
-                      p: 2,
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
                       "&:hover": {
-                        borderColor: "#60a5fa",
-                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
                       },
-                      transition: "all 0.2s ease",
                     }}
                   >
-                    <Typography
-                      variant="caption"
+                    <TableCell
+                      colSpan={2}
                       sx={{
-                        color: "#64748b",
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        fontSize: "0.7rem",
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: { xs: "0.95rem", md: "1rem" },
+                        borderBottom: "2px solid #1565c0",
                       }}
                     >
-                      {field.label}
-                    </Typography>
-                    {isEditMode ? (
-                      <TextField
-                        value={editingRow?.[field.key] || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange(field.key, e.target.value)
-                        }
-                        fullWidth
-                        size="small"
-                        multiline
-                        minRows={2}
+                      🏆 Competition & Participation
+                    </TableCell>
+                  </TableRow>
+
+                  {[
+                    ["Competitors Info", "competitorsInfo", "text"],
+                    ["Won/Lost/Participated", "wonLostParticipated", "text"],
+                    ["Open/Closed", "openClosed", "text"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
+                        },
+                      }}
+                    >
+                      <TableCell
                         sx={{
-                          mt: 1,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1.5,
-                            background: "#ffffff",
-                            "& fieldset": {
-                              borderColor: "#60a5fa",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
-                            fontWeight: 600,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        sx={{
-                          mt: 1,
-                          color: "#1e293b",
-                          fontWeight: 600,
-                          fontSize: "0.95rem",
-                          whiteSpace: "pre-wrap",
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
+                          borderBottom: "1px solid #e8eef7",
                         }}
                       >
-                        {editingRow?.[field.key] || "-"}
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          </Box>
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          multiline={field === "competitorsInfo"}
+                          minRows={field === "competitorsInfo" ? 2 : 1}
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                              fontSize: "0.9rem",
+                            },
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 1,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& textarea": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* STATUS & NOTES SECTION */}
+                  <TableRow
+                    sx={{
+                      background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #0d47a1 0%, #1565c0 100%)",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      colSpan={2}
+                      sx={{
+                        py: { xs: 1.5, md: 2 },
+                        px: { xs: 1.5, md: 2.5 },
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: { xs: "0.95rem", md: "1rem" },
+                        borderBottom: "2px solid #1565c0",
+                      }}
+                    >
+                      📊 Status & Notes
+                    </TableCell>
+                  </TableRow>
+
+                  {[
+                    ["Present Status", "presentStatus", "text"],
+                    ["Reason for Losing Opportunity", "reasonForLossingOpp", "text"],
+                    ["Corrigendums - Date & File", "corrigendumsDateFile", "text"],
+                  ].map(([label, field, type], idx) => (
+                    <TableRow
+                      key={idx}
+                      sx={{
+                        background: idx % 2 === 0 ? "#ffffff" : "#f9fafb",
+                        borderBottom: "1px solid #e8eef7",
+                        "&:hover": {
+                          background: isEditMode ? "#eff6ff" : (idx % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                          transition: "background 0.2s ease",
+                        },
+                      }}
+                    >
+                      <TableCell
+                        sx={{
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          fontWeight: 700,
+                          color: "#0d47a1",
+                          width: "35%",
+                          fontSize: { xs: "0.85rem", md: "0.95rem" },
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        {label}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          py: { xs: 1.5, md: 2 },
+                          px: { xs: 1.5, md: 2.5 },
+                          width: "65%",
+                          borderBottom: "1px solid #e8eef7",
+                        }}
+                      >
+                        <TextField
+                          type={type}
+                          value={editingRow?.[field] || ""}
+                          onChange={(e) => handleEditFieldChange(field, e.target.value)}
+                          fullWidth
+                          size="small"
+                          multiline={(field === "reasonForLossingOpp" || field === "corrigendumsDateFile")}
+                          minRows={(field === "reasonForLossingOpp" || field === "corrigendumsDateFile") ? 2 : 1}
+                          InputProps={{
+                            readOnly: !isEditMode,
+                            style: {
+                              fontWeight: 500,
+                              fontSize: "0.9rem",
+                            },
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 1,
+                              backgroundColor: isEditMode ? "#ffffff" : "#f9fafb",
+                              color: "#0f172a",
+                              fontSize: { xs: "0.85rem", md: "0.9rem" },
+                              transition: "all 0.2s ease",
+                              "& fieldset": {
+                                borderColor: isEditMode ? "#1e88e5" : "#ccc",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: isEditMode ? "#1565c0" : "#ccc",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#0d47a1",
+                                boxShadow: "0 0 0 3px rgba(13, 71, 161, 0.1)",
+                              },
+                              "& textarea": {
+                                cursor: isEditMode ? "auto" : "default",
+                              },
+                            },
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </DialogContent>
+
+        {/* DIALOG ACTIONS - CONDITIONAL BUTTONS */}
         <DialogActions
           sx={{
-            background: "#f8fafc",
-            borderTop: "1px solid #e0e7ff",
-            p: 2.5,
-            gap: 1.5,
+            px: { xs: 1.5, md: 3 },
+            py: 2,
+            background: "#ffffff",
+            borderTop: "2px solid #e8eef7",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexShrink: 0,
           }}
         >
+          <Button
+            onClick={handleEditCancel}
+            sx={{
+              borderRadius: 1,
+              textTransform: "none",
+              px: { xs: 2, md: 3 },
+              fontWeight: 600,
+              fontSize: { xs: "0.85rem", md: "0.95rem" },
+              color: "#1565c0",
+              "&:hover": {
+                backgroundColor: "rgba(21, 101, 192, 0.08)",
+              },
+            }}
+          >
+            Close
+          </Button>
+
           {!isEditMode ? (
+            <Button
+              variant="contained"
+              onClick={handleEnterEditMode}
+              startIcon={<EditRounded />}
+              sx={{
+                borderRadius: 1,
+                textTransform: "none",
+                px: { xs: 2.5, md: 4 },
+                fontWeight: 700,
+                fontSize: { xs: "0.85rem", md: "0.95rem" },
+                background: "linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)",
+                boxShadow: "0 8px 20px rgba(13, 71, 161, 0.3)",
+                color: "#ffffff",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #0a3a81 0%, #0d47a1 100%)",
+                  boxShadow: "0 10px 25px rgba(13, 71, 161, 0.4)",
+                  transform: "translateY(-2px)",
+                },
+              }}
+            >
+              Edit Details
+            </Button>
+          ) : (
             <>
               <Button
                 onClick={handleEditCancel}
                 sx={{
-                  color: "#64748b",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
+                  borderRadius: 1,
+                  textTransform: "none",
+                  px: { xs: 2, md: 3 },
+                  fontWeight: 600,
+                  fontSize: { xs: "0.85rem", md: "0.95rem" },
+                  color: "#d97706",
+                  border: "1.5px solid #fcd34d",
+                  backgroundColor: "#fef3c7",
                   "&:hover": {
-                    backgroundColor: "#e2e8f0",
-                  },
-                }}
-              >
-                Close
-              </Button>
-              <Button
-                onClick={handleEnterEditMode}
-                variant="contained"
-                sx={{
-                  background: "linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)",
-                  color: "#ffffff",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
-                  px: 3,
-                  "&:hover": {
-                    background: "linear-gradient(135deg, #1e3a5f 0%, #162e4a 100%)",
-                    boxShadow: "0 8px 24px rgba(30,64,95,0.3)",
-                  },
-                  "&:active": {
-                    transform: "scale(0.98)",
-                  },
-                }}
-              >
-                ✏️ Edit Details
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                onClick={handleCancelEdit}
-                sx={{
-                  color: "#64748b",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
-                  "&:hover": {
-                    backgroundColor: "#e2e8f0",
+                    backgroundColor: "#fce7a8",
+                    borderColor: "#f59e0b",
                   },
                 }}
               >
                 Cancel
               </Button>
+
               <Button
-                onClick={handleEditSave}
                 variant="contained"
+                onClick={handleEditSave}
+                startIcon={<CheckRounded />}
                 sx={{
-                  background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                  color: "#ffffff",
+                  borderRadius: 1,
+                  textTransform: "none",
+                  px: { xs: 2.5, md: 4 },
                   fontWeight: 700,
-                  textTransform: "uppercase",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
-                  px: 3,
+                  fontSize: { xs: "0.85rem", md: "0.95rem" },
+                  background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                  boxShadow: "0 8px 20px rgba(5, 150, 105, 0.3)",
+                  color: "#ffffff",
                   "&:hover": {
-                    background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
-                    boxShadow: "0 8px 24px rgba(16,185,129,0.3)",
-                  },
-                  "&:active": {
-                    transform: "scale(0.98)",
+                    background: "linear-gradient(135deg, #047857 0%, #059669 100%)",
+                    boxShadow: "0 10px 25px rgba(5, 150, 105, 0.4)",
+                    transform: "translateY(-2px)",
                   },
                 }}
               >
-                💾 Save Changes
+                Save Changes
               </Button>
             </>
           )}
         </DialogActions>
       </Dialog>
 
-      {/* CONFIRMATION DIALOG */}
+      {/* SAVE CONFIRMATION DIALOG */}
       <Dialog
         open={confirmSaveOpen}
-        onClose={() => setConfirmSaveOpen(false)}
+        onClose={handleCancelEdit}
         maxWidth="sm"
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 3,
-            background: "#ffffff",
-            boxShadow: "0 25px 50px rgba(0,0,0,0.2)",
+            borderRadius: 2,
+            overflow: "hidden",
           },
         }}
       >
         <DialogTitle
           sx={{
-            fontWeight: 800,
-            color: "#1e3a5f",
-            background: "#f8fafc",
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            borderBottom: "2px solid #fbbf24",
+            background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+            color: "#ffffff",
+            fontWeight: 700,
+            fontSize: "1.1rem",
           }}
         >
-          <Box sx={{ fontSize: 28 }}>⚠️</Box>
-          <Box>
-            <Typography sx={{ fontWeight: 800, color: "#1e3a5f" }}>
-              Confirm Update
-            </Typography>
-            <Typography variant="caption" sx={{ color: "#64748b" }}>
-              Please review before saving
-            </Typography>
-          </Box>
+          ✅ Confirm Changes
         </DialogTitle>
         <DialogContent sx={{ py: 3 }}>
           <Typography sx={{ color: "#475569", lineHeight: 1.6 }}>
-            You are about to update this tender record with the following changes. This action will be synced to the database immediately.
+            Are you sure you want to save these changes? This action will update the record in the database.
           </Typography>
-          <Box
-            sx={{
-              mt: 2.5,
-              p: 2,
-              background: "#f0f9ff",
-              border: "1px solid #bfdbfe",
-              borderRadius: 2,
-              color: "#1e3a5f",
-              fontSize: "0.9rem",
-              fontWeight: 600,
-            }}
-          >
-            📌 Make sure all fields are correct before confirming.
-          </Box>
         </DialogContent>
-        <DialogActions
-          sx={{
-            background: "#f8fafc",
-            borderTop: "1px solid #e0e7ff",
-            p: 2,
-            gap: 1,
-          }}
-        >
+        <DialogActions sx={{ gap: 1, p: 2 }}>
           <Button
-            onClick={() => setConfirmSaveOpen(false)}
+            onClick={handleCancelEdit}
             sx={{
               color: "#64748b",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              fontSize: "0.85rem",
-              "&:hover": { backgroundColor: "#e2e8f0" },
+              fontWeight: 600,
+              fontSize: "0.9rem",
             }}
           >
-            Cancel
+            No, Keep Editing
           </Button>
           <Button
-            onClick={handleConfirmSave}
             variant="contained"
+            onClick={handleConfirmSave}
             sx={{
-              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
               color: "#ffffff",
               fontWeight: 700,
-              textTransform: "uppercase",
-              fontSize: "0.85rem",
-              px: 3,
-              "&:hover": {
-                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
-                boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
-              },
+              fontSize: "0.9rem",
             }}
           >
-            ✓ Yes, Save Changes
+            Yes, Save Changes
           </Button>
         </DialogActions>
       </Dialog>
