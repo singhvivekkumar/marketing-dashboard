@@ -28,6 +28,7 @@ import {
   CircularProgress,
   Checkbox,
   Menu,
+  Link,
 } from "@mui/material";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
@@ -42,7 +43,6 @@ import {
   DeleteRounded,
 } from "@mui/icons-material";
 
-// import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
@@ -61,6 +61,11 @@ const BudgetaryQuotationForm = () => {
   const [value, setValue] = useState(0);
   const [orderData, setOrderData] = useState([]);
   const [ServerIp, SetServerIp] = useState("");
+  
+  // Document Upload States
+  const [documentFile, setDocumentFile] = useState(null);
+  const [uploadedDocument, setUploadedDocument] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const API = "/getBudgetaryQuoatation";
   let user = JSON.parse(localStorage.getItem("user"));
@@ -192,6 +197,71 @@ const BudgetaryQuotationForm = () => {
       link.click();
       URL.revokeObjectURL(url);
     }
+  };
+
+  // ===== DOCUMENT UPLOAD HANDLERS =====
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setDocumentFile(file);
+    }
+  };
+
+  const handleUploadDocument = async () => {
+    if (!documentFile) {
+      alert("Please select a document first");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append("document", documentFile);
+
+      // Mock API call - In production, this would be your real upload endpoint
+      // Simulating backend response with server-generated filename
+      const mockResponse = await new Promise((resolve) => {
+        setTimeout(() => {
+          const timestamp = Date.now();
+          const fileExtension = documentFile.name.split(".").pop();
+          const serverFilename = `BQ_DOC_${timestamp}.${fileExtension}`;
+          const filePath = `/uploads/documents/${serverFilename}`;
+
+          resolve({
+            success: true,
+            filename: serverFilename,
+            originalName: documentFile.name,
+            filePath: filePath,
+            uploadedAt: new Date().toISOString(),
+          });
+        }, 1500); // Simulate network delay
+      });
+
+      if (mockResponse.success) {
+        setUploadedDocument({
+          filename: mockResponse.filename,
+          originalName: mockResponse.originalName,
+          filePath: mockResponse.filePath,
+          uploadedAt: mockResponse.uploadedAt,
+        });
+        alert(`✅ Document uploaded successfully!\nFilename: ${mockResponse.filename}`);
+        setDocumentFile(null); // Clear selected file
+      }
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      alert("❌ Failed to upload document. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleClearDocument = () => {
+    setDocumentFile(null);
+    setUploadedDocument(null);
+    // Clear file input
+    const fileInput = document.getElementById("document-input");
+    if (fileInput) fileInput.value = "";
   };
   return (
     <Container
@@ -700,7 +770,217 @@ const BudgetaryQuotationForm = () => {
                 </Grid>
               </Card>
 
-              {/* ---------------- BUTTONS ---------------- */}
+              {/* ===== DOCUMENT UPLOAD CARD ===== */}
+              <Card
+                sx={{
+                  mt: -1,
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 4,
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  border: "1px solid rgba(13, 71, 161, 0.1)",
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                >
+                  📎 Document/Attachment Upload
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  {/* File Input */}
+                  <Box
+                    sx={{
+                      border: "2px dashed #42a5f5",
+                      borderRadius: 3,
+                      p: 2.5,
+                      textAlign: "center",
+                      backgroundColor: "rgba(66, 165, 245, 0.05)",
+                      transition: "all 0.2s ease",
+                      cursor: "pointer",
+                      "&:hover": {
+                        borderColor: "#1e88e5",
+                        backgroundColor: "rgba(30, 136, 229, 0.08)",
+                      },
+                    }}
+                  >
+                    <input
+                      id="document-input"
+                      type="file"
+                      onChange={handleFileSelect}
+                      style={{ display: "none" }}
+                    />
+                    <label
+                      htmlFor="document-input"
+                      style={{ cursor: "pointer", display: "block" }}
+                    >
+                      <CloudUploadOutlinedIcon
+                        sx={{
+                          fontSize: 48,
+                          color: "#42a5f5",
+                          mb: 1,
+                        }}
+                      />
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 700,
+                          color: "#1e40af",
+                          mb: 0.5,
+                        }}
+                      >
+                        Click to browse or drag & drop your document
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#64748b", display: "block" }}
+                      >
+                        Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, TXT
+                        (Max 10MB)
+                      </Typography>
+                    </label>
+                  </Box>
+
+                  {/* Selected File Name */}
+                  {documentFile && (
+                    <Box
+                      sx={{
+                        p: 2,
+                        backgroundColor: "#e3f2fd",
+                        borderRadius: 2,
+                        border: "1px solid #42a5f5",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            color: "#1e40af",
+                            fontSize: "0.95rem",
+                          }}
+                        >
+                          📄 {documentFile.name}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: "#64748b" }}
+                        >
+                          ({(documentFile.size / 1024).toFixed(2)} KB)
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Uploaded Document Info */}
+                  {uploadedDocument && (
+                    <Box
+                      sx={{
+                        p: 2,
+                        backgroundColor: "#e8f5e9",
+                        borderRadius: 2,
+                        border: "1px solid #4caf50",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            color: "#2e7d32",
+                            fontSize: "0.95rem",
+                          }}
+                        >
+                          ✅ Document Uploaded
+                        </Typography>
+                      </Box>
+                      <Box display="flex" gap={1}>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: "#2e7d32", fontWeight: 600 }}
+                        >
+                          {uploadedDocument.filename}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Upload and Clear Buttons */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 2,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Button
+                      onClick={handleUploadDocument}
+                      disabled={!documentFile || isUploading}
+                      variant="contained"
+                      startIcon={<CloudUploadOutlinedIcon />}
+                      sx={{
+                        background:
+                          "linear-gradient(135deg, #1565c0, #42a5f5)",
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        textTransform: "none",
+                        borderRadius: 2.5,
+                        px: 3,
+                        py: 1.2,
+                        transition: "0.3s",
+                        "&:hover": {
+                          transform: "scale(1.02)",
+                          background:
+                            "linear-gradient(135deg, #0d47a1, #1e88e5)",
+                        },
+                        "&:disabled": {
+                          background: "#bdbdbd",
+                          color: "#757575",
+                        },
+                      }}
+                    >
+                      {isUploading ? "Uploading..." : "Upload Document"}
+                    </Button>
+
+                    {(documentFile || uploadedDocument) && (
+                      <Button
+                        onClick={handleClearDocument}
+                        disabled={isUploading}
+                        variant="outlined"
+                        startIcon={<CloseRounded />}
+                        sx={{
+                          borderColor: "#ef5350",
+                          color: "#ef5350",
+                          fontWeight: 700,
+                          textTransform: "none",
+                          borderRadius: 2.5,
+                          px: 3,
+                          py: 1.2,
+                          transition: "0.3s",
+                          "&:hover": {
+                            borderColor: "#c62828",
+                            color: "#c62828",
+                            backgroundColor: "rgba(239, 83, 80, 0.05)",
+                          },
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
+              </Card>
+
+              {/* FORM ACTION BUTTONS */}
               <Box
                 sx={{
                   display: "flex",
@@ -900,6 +1180,11 @@ function ViewBudgetaryQuotationData(props) {
   const [tempEditingRow, setTempEditingRow] = useState(null);
   const [dialogOpenedFrom, setDialogOpenedFrom] = useState("rowClick"); // "rowClick" or "editIcon"
   
+  // Document Upload States
+  const [documentFile, setDocumentFile] = useState(null);
+  const [uploadedDocument, setUploadedDocument] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+
 
   // COLUMN SELECTION STATE
   const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
@@ -919,6 +1204,7 @@ function ViewBudgetaryQuotationData(props) {
     { id: "remarks", label: "Remarks" },
     { id: "presentStatus", label: "Present Status" },
     { id: "dateCreated", label: "Created Date" },
+    { id: "document", label: "Document" },
   ];
 
   const [visibleColumns, setVisibleColumns] = useState(
@@ -1118,6 +1404,83 @@ function ViewBudgetaryQuotationData(props) {
     console.log("Deleting row with ID:", id);
 
     // TODO: delete logic here
+  };
+
+  // OPEN DOCUMENT PREVIEW
+  const handleDocumentClick = (filePath, filename) => {
+    if (!filePath) {
+      alert("No document available for this record");
+      return;
+    }
+
+    // Open document in new window/tab
+    // In production, this would open the actual file from your document server
+    window.open(filePath, "_blank");
+    console.log(`Opening document: ${filename} from ${filePath}`);
+  };
+
+  // DIALOG DOCUMENT UPLOAD HANDLER
+  const handleDialogFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setDocumentFile(file);
+    }
+  };
+
+  // DIALOG DOCUMENT UPLOAD
+  const handleDialogUploadDocument = async () => {
+    if (!documentFile) {
+      alert("Please select a document first");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("document", documentFile);
+
+      // Mock API - simulates server response
+      const mockResponse = await new Promise((resolve) => {
+        setTimeout(() => {
+          const timestamp = Date.now();
+          const fileExtension = documentFile.name.split(".").pop();
+          const serverFilename = `BQ_DOC_${timestamp}.${fileExtension}`;
+          resolve({
+            success: true,
+            filename: serverFilename,
+            originalName: documentFile.name,
+            filePath: `/uploads/documents/${serverFilename}`,
+            uploadedAt: new Date().toISOString(),
+          });
+        }, 1500);
+      });
+
+      if (mockResponse.success) {
+        const uploadResponse = {
+          filename: mockResponse.filename,
+          originalName: mockResponse.originalName,
+          filePath: mockResponse.filePath,
+          uploadedAt: mockResponse.uploadedAt,
+        };
+        setUploadedDocument(uploadResponse);
+        handleEditFieldChange("document", uploadResponse);
+        alert(
+          `✅ Document uploaded successfully!\nFilename: ${mockResponse.filename}`
+        );
+        setDocumentFile(null);
+      }
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      alert("❌ Failed to upload document. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // DIALOG DOCUMENT CLEAR
+  const handleDialogClearDocument = () => {
+    setDocumentFile(null);
+    setUploadedDocument(null);
+    handleEditFieldChange("document", null);
   };
 
   // DOUBLE CLICK → OPEN READ-ONLY VIEW
@@ -1826,6 +2189,48 @@ function ViewBudgetaryQuotationData(props) {
                               }}
                             >
                               {cellContent}
+                            </TableCell>
+                          );
+                        }
+
+                        if (col.id === "document") {
+                          return (
+                            <TableCell
+                              key={col.id}
+                              align="left"
+                              sx={{ fontSize: 13 }}
+                            >
+                              {row.document ? (
+                                <Link
+                                  onClick={() =>
+                                    handleDocumentClick(
+                                      row.document.filePath,
+                                      row.document.filename
+                                    )
+                                  }
+                                  sx={{
+                                    cursor: "pointer",
+                                    color: "#1e40af",
+                                    fontWeight: 600,
+                                    textDecoration: "none",
+                                    "&:hover": {
+                                      textDecoration: "underline",
+                                      color: "#0d47a1",
+                                    },
+                                  }}
+                                >
+                                  📄 {row.document.filename}
+                                </Link>
+                              ) : (
+                                <Typography
+                                  sx={{
+                                    color: "#9ca3af",
+                                    fontSize: "0.85rem",
+                                  }}
+                                >
+                                  No document
+                                </Typography>
+                              )}
                             </TableCell>
                           );
                         }
@@ -2622,6 +3027,258 @@ function ViewBudgetaryQuotationData(props) {
                 ))}
               </Box>
             </Box>
+
+            {/* DOCUMENT UPLOAD SECTION - EDIT MODE ONLY */}
+            {isEditMode && (
+              <Box sx={{ mb: 3 }}>
+                <Box
+                  sx={{
+                    background: "#ffffff",
+                    border: "2px dashed #60a5fa",
+                    borderRadius: 2,
+                    p: 2,
+                    "&:hover": {
+                      borderColor: "#1e40af",
+                      backgroundColor: "rgba(96,165,250,0.02)",
+                    },
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap={1} mb={1.5}>
+                    <CloudUploadOutlinedIcon
+                      sx={{ color: "#1e40af", fontSize: 22 }}
+                    />
+                    <Typography
+                      sx={{
+                        color: "#1e3a5f",
+                        fontWeight: 700,
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      📎 Document/Attachment
+                    </Typography>
+                  </Box>
+
+                  <input
+                    id="dialog-document-input"
+                    type="file"
+                    onChange={handleDialogFileSelect}
+                    style={{ display: "none" }}
+                  />
+
+                  <label
+                    htmlFor="dialog-document-input"
+                    style={{
+                      cursor: "pointer",
+                      display: "block",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        p: 1.5,
+                        backgroundColor: "#f0f9ff",
+                        borderRadius: 1.5,
+                        border: "1px dashed #60a5fa",
+                        textAlign: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          backgroundColor: "#e0f2fe",
+                          borderColor: "#1e40af",
+                        },
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: "#1e40af",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        Click to select document
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#64748b", display: "block", mt: 0.5 }}
+                      >
+                        PDF, DOC, DOCX, XLS, XLSX, PPT, TXT (Max 10MB)
+                      </Typography>
+                    </Box>
+                  </label>
+
+                  {/* Selected File Display */}
+                  {documentFile && (
+                    <Box
+                      sx={{
+                        p: 1,
+                        backgroundColor: "#e0f2fe",
+                        borderRadius: 1.5,
+                        border: "1px solid #60a5fa",
+                        mb: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          color: "#1e40af",
+                          fontSize: "0.8rem",
+                          flex: 1,
+                        }}
+                      >
+                        📄 {documentFile.name}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#64748b", ml: 1 }}
+                      >
+                        ({(documentFile.size / 1024).toFixed(2)} KB)
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* Uploaded Success Display */}
+                  {uploadedDocument && (
+                    <Box
+                      sx={{
+                        p: 1,
+                        backgroundColor: "#dcfce7",
+                        borderRadius: 1.5,
+                        border: "1px solid #4caf50",
+                        mb: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          color: "#2e7d32",
+                          fontSize: "0.8rem",
+                          flex: 1,
+                        }}
+                      >
+                        ✅ {uploadedDocument.filename}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* Action Buttons */}
+                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                    <Button
+                      onClick={handleDialogUploadDocument}
+                      disabled={!documentFile || isUploading}
+                      size="small"
+                      variant="contained"
+                      sx={{
+                        background: "linear-gradient(135deg, #1e40af, #1e3a5f)",
+                        color: "#ffffff",
+                        fontWeight: 600,
+                        fontSize: "0.75rem",
+                        textTransform: "none",
+                        borderRadius: 1.5,
+                        px: 2,
+                        py: 0.7,
+                        "&:hover": {
+                          background: "linear-gradient(135deg, #1e3a5f, #162e4a)",
+                        },
+                        "&:disabled": {
+                          background: "#bdbdbd",
+                          color: "#757575",
+                        },
+                      }}
+                    >
+                      {isUploading ? "Uploading..." : "Upload"}
+                    </Button>
+
+                    {(documentFile || uploadedDocument) && (
+                      <Button
+                        onClick={handleDialogClearDocument}
+                        disabled={isUploading}
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          borderColor: "#ef5350",
+                          color: "#ef5350",
+                          fontWeight: 600,
+                          fontSize: "0.75rem",
+                          textTransform: "none",
+                          borderRadius: 1.5,
+                          px: 2,
+                          py: 0.7,
+                          "&:hover": {
+                            borderColor: "#c62828",
+                            color: "#c62828",
+                            backgroundColor: "rgba(239, 83, 80, 0.05)",
+                          },
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+            )}
+
+            {/* DOCUMENT VIEW - VIEW MODE ONLY */}
+            {!isEditMode && editingRow?.document && (
+              <Box sx={{ mb: 3 }}>
+                <Box
+                  sx={{
+                    background: "#ffffff",
+                    border: "1px solid #e0e7ff",
+                    borderRadius: 2,
+                    p: 2,
+                    "&:hover": {
+                      borderColor: "#60a5fa",
+                      boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                    },
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap={1} mb={1}>
+                    <CloudUploadOutlinedIcon
+                      sx={{ color: "#1e40af", fontSize: 20 }}
+                    />
+                    <Typography
+                      sx={{
+                        color: "#1e3a5f",
+                        fontWeight: 700,
+                        fontSize: "0.85rem",
+                      }}
+                    >
+                      📎 Document
+                    </Typography>
+                  </Box>
+                  <Link
+                    onClick={() =>
+                      handleDocumentClick(
+                        editingRow.document.filePath,
+                        editingRow.document.filename
+                      )
+                    }
+                    sx={{
+                      cursor: "pointer",
+                      color: "#1e40af",
+                      fontWeight: 600,
+                      fontSize: "0.85rem",
+                      textDecoration: "none",
+                      "&:hover": {
+                        textDecoration: "underline",
+                        color: "#0d47a1",
+                      },
+                    }}
+                  >
+                    📄 {editingRow.document.filename}
+                  </Link>
+                </Box>
+              </Box>
+            )}
 
             {/* ADDITIONAL INFORMATION SECTION */}
             <Box sx={{ mb: 2 }}>
