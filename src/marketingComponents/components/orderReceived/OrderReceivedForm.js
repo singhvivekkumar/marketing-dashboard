@@ -29,7 +29,6 @@ import {
   DialogActions,
   Card,
   Chip,
-  CardContent,
   // Tab,
   MenuItem,
   Checkbox,
@@ -57,6 +56,10 @@ import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
 import dayjs from "dayjs";
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import CloudQueueRoundedIcon from "@mui/icons-material/CloudQueueRounded";
 
 const STATUS_OPTIONS = [
   "Draft",
@@ -68,9 +71,7 @@ const STATUS_OPTIONS = [
   "On Hold",
 ];
 
-const TENDER_TYPE_OPTIONS = [
-  "ST", "MT", "Nom", "LT"
-];
+const TENDER_TYPE_OPTIONS = ["ST", "MT", "LT"];
 
 const OrederReceivedForm = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -101,16 +102,19 @@ const OrederReceivedForm = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      contractName: "",
+      projectTitle: "",
       customerName: "",
       customerAddress: "",
-      orderReceivedDate: "",
-      purchaseOrder: "",
-      typeOfTender: "",
+      defenceOrCivil: "",
+      PoCoWoNo: "",
+      orderRxdDate: "",
+      qty: "",
       valueWithoutGST: "",
       valueWithGST: "",
-      JSON_competitors: "",
+      tenderType: "",
+      deliverySchedule: "",
       remarks: "",
+      JSON_competitors: "",
       contractCopy: "",
       // operator details
       OperatorId: "",
@@ -140,7 +144,7 @@ const OrederReceivedForm = () => {
         axios
           .get(response.data.project[0].ServerIP[0].NodeServerIP + API)
           .then((response) => {
-            console.log(" error while getting API : ", response)
+            console.log(" error while getting API : ", response);
             setOrderData(response.data);
           })
           .catch((error) => console.log(error.message));
@@ -159,18 +163,40 @@ const OrederReceivedForm = () => {
   const onSubmit = (data) => {
     // Convert string numbers to actual numbers with 2 decimal precision
 
+
+    // defaultValues: {
+    //   projectTitle: "",
+    //   customerName: "",
+    //   customerAddress: "",
+    //   defenceOrCivil: "",
+    //   PoCoWoNo: "",
+    //   orderRxdDate: "",
+    //   qty: "",
+    //   valueWithoutGST: "",
+    //   valueWithGST: "",
+    //   tenderType: "",
+    //   deliverySchedule: "",
+    //   remarks: "",
+    //   JSON_competitors: "",
+    //   contractCopy: "",
+
+
+
     console.log(data);
     const formattedData = {
-      contractName: data.contractName,
+      projectTitle: data.projectTitle,
       customerName: data.customerName,
       customerAddress: data.customerAddress,
-      orderReceivedDate: data.orderReceivedDate,
-      purchaseOrder: data.purchaseOrder,
-      typeOfTender: data.typeOfTender,
+      defenceOrCivil: data.defenceOrCivil,
+      PoCoWoNo: data.PoCoWoNo,
+      orderRxdDate: data.orderRxdDate,
+      qty: data.qty,
       valueWithoutGST: parseFloat(parseFloat(data.valueWithoutGST).toFixed(2)),
       valueWithGST: parseFloat(parseFloat(data.valueWithGST).toFixed(2)),
-      JSON_competitors: data.JSON_competitors,
+      tenderType: data.tenderType,
+      deliverySchedule: data.deliverySchedule,
       remarks: data.remarks,
+      JSON_competitors: data.JSON_competitors,
       attachment: selectedFile ? selectedFile.name : "",
       submittedAt: new Date().toISOString(),
       // new fields
@@ -274,6 +300,8 @@ const OrederReceivedForm = () => {
     setSubmitSuccess(false);
   };
 
+  const today = new Date().toLocaleDateString("en-CA");
+
   const handleDownloadJSON = () => {
     if (submittedData) {
       const dataStr = JSON.stringify(submittedData, null, 2);
@@ -287,708 +315,797 @@ const OrederReceivedForm = () => {
     }
   };
 
-
   return (
     <Container
       maxWidth="xl"
       sx={{
-        py: 2,
-        mb: 4,
+        mt: -7,
+        py: 1,
         minHeight: "85vh",
         background: "linear-gradient(135deg, #e3eeff 0%, #f8fbff 100%)",
         borderRadius: 4,
       }}
     >
+      <Typography
+        variant="h4"
+        sx={{
+          fontWeight: 700,
+          background: "linear-gradient(45deg, #0d47a1, #42a5f5, #1e88e5)",
+          WebkitBackgroundClip: "text",
+          color: "transparent",
+        }}
+      >
+        Order Received
+      </Typography>
+
+      <Divider
+        flexItem
+        sx={{
+          background: "linear-gradient(135deg, #0d47a1 , #42a5f5, #1e88e5)",
+          height: "4px",
+          mt: 3,
+        }}
+      />
+
+      {/* ------------------------ TABS ------------------------ */}
       <Tabs
         value={value}
         onChange={(e, v) => setValue(v)}
         centered
         sx={{
           mb: 4,
-
-          "& .MuiTabs-flexContainer": {
-            justifyContent: "center", // ✅ center tab items
-            gap: 1,
-          },
-
           "& .MuiTab-root": {
-            minHeight: 48,
-            px: { xs: 2.5, sm: 4 },
             fontWeight: 700,
-            fontSize: { xs: "0.9rem", sm: "1rem" },
+            fontSize: "1rem",
             textTransform: "none",
-            borderRadius: 999,
-            color: "#475569",
-            transition: "all 0.25s ease",
-            "&:hover": {
-              backgroundColor: "rgba(59,130,246,0.12)",
-              color: "#1e40af",
-              transform: "translateY(-1px)",
-            },
+            px: 4,
           },
-
           "& .Mui-selected": {
-            color: "#ffffff !important",
-            background:
-              "linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#1d4ed8 100%)",
-            boxShadow: "0 10px 28px rgba(37,99,235,0.45)",
+            color: "#0d47a1 !important",
           },
-
           "& .MuiTabs-indicator": {
-            display: "none", // pill style
+            height: 4,
+            borderRadius: 2,
+            background: "linear-gradient(90deg, #0d47a1, #42a5f5, #1e88e5)",
           },
         }}
-
-
       >
-        <Tab label="Create Data" />
-        <Tab label="View Data" />
-        <Tab label="Bulk Upload" />
+        <Tab
+          icon={<AddCircleOutlineRoundedIcon />}
+          iconPosition="start"
+          label="Create Data"
+        />
+        <Tab
+          icon={<VisibilityOutlinedIcon />}
+          iconPosition="start"
+          label="View Data"
+        />
+        <Tab
+          icon={<CloudUploadOutlinedIcon />}
+          iconPosition="start"
+          label="Bulk Upload"
+        />
       </Tabs>
 
       {/* ------------------------ CREATE FORM ------------------------ */}
       {value === 0 && (
         <Container maxWidth="lg">
-        <Paper
-          elevation={10}
-          sx={{
-            p: { xs: 2, md: 5 },
-            borderRadius: 2,
-            background: "rgba(255,255,255,0.85)",
-            backdropFilter: "blur(14px)",
-            // transition: "0.3s",
-            boxShadow: "0 12px 32px rgba(0,0,0,0.10)",
-            // "&:hover": { transform: "scale(1.01)" },
-          }}
-        >
-          <Box sx={{ textAlign: "center", mb: 4 }}>
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 900,
-                background: "linear-gradient(45deg, #0d47a1, #42a5f5, #1e88e5)",
-                WebkitBackgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              Domestic Order Received Form
-            </Typography>
-            <Typography
-              variant="subtitle1"
-              sx={{ opacity: 0.7, mt: 1, fontWeight: 500 }}
-            >
-              Complete all required fields to submit order information
-            </Typography>
-          </Box>
-
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {/* Order Details Section */}
-            <Card
-              sx={{
-                mb: 4,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                // transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                // "&:hover": {
-                //   transform: "translateY(-4px)",
-                //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                // },
-              }}
-            >
-
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
-              >
-                📋 Order Details
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <Controller
-                    name="contractName"
-                    control={control}
-                    rules={{ required: "Contract Name is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Contract Name"
-                        fullWidth
-                        required
-                        error={!!errors.contractName}
-                        helperText={errors.contractName?.message}
-                        variant="outlined"
-                      />
-                    )}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Controller
-                    name="orderReceivedDate"
-                    control={control}
-                    rules={{ required: "Order Received Date is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Order Received Date"
-                        type="date"
-                        fullWidth
-                        required
-                        error={!!errors.orderReceivedDate}
-                        helperText={errors.orderReceivedDate?.message}
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                        variant="outlined"
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </Card>
-
-            {/* Customer Information Section */}
-            <Card
-              sx={{
-                mb: 4,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                // transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                // "&:hover": {
-                //   transform: "translateY(-4px)",
-                //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                // },
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
-              >
-                👤 Customer Information
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Controller
-                    name="customerName"
-                    control={control}
-                    rules={{ required: "Customer Name is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Customer Name"
-                        fullWidth
-                        required
-                        error={!!errors.customerName}
-                        helperText={errors.customerName?.message}
-                        variant="outlined"
-                      />
-                    )}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Controller
-                    name="customerAddress"
-                    control={control}
-                    rules={{ required: "Customer Address is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Customer Address"
-                        multiline
-                        rows={3}
-                        fullWidth
-                        required
-                        error={!!errors.customerAddress}
-                        helperText={errors.customerAddress?.message}
-                        variant="outlined"
-                        placeholder="Enter complete customer address..."
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </Card>
-
-            {/* Document Information Section */}
-            <Card
-              sx={{
-                mb: 4,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                // transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                // "&:hover": {
-                //   transform: "translateY(-4px)",
-                //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                // },
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
-              >
-                📄 Document Information
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Controller
-                    name="purchaseOrder"
-                    control={control}
-                    rules={{
-                      required:
-                        "Purchase Order/Work Order Number is required",
-                    }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Purchase Order/Work Order Number"
-                        fullWidth
-                        required
-                        error={!!errors.purchaseOrder}
-                        helperText={errors.purchaseOrder?.message}
-                        variant="outlined"
-                      />
-                    )}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Controller
-                    name="typeOfTender"
-                    control={control}
-                    rules={{ required: "Order Type is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        select
-                        label="Order Type"
-                        fullWidth
-                        required
-                        error={!!errors.typeOfTender}
-                        helperText={errors.typeOfTender?.message}
-                        variant="outlined"
-                      >
-                        {orderTypes.map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {option}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </Card>
-
-            {/* Financial Details Section */}
-            <Card
-              sx={{
-                mb: 4,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                // transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                // "&:hover": {
-                //   transform: "translateY(-4px)",
-                //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                // },
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
-              >
-                💰 Financial Details
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Tooltip
-                    title="Enter value in crore (e.g., 1.50 for 1.5 crore)"
-                    arrow
-                  >
-                    <Controller
-                      name="valueWithoutGST"
-                      control={control}
-                      rules={{
-                        required: "Value without GST is required",
-                        pattern: {
-                          value: /^[0-9]+(\.[0-9]{1,2})?$/,
-                          message:
-                            "Please enter a valid number with max 2 decimals",
-                        },
-                        min: {
-                          value: 0.01,
-                          message: "Value must be greater than 0",
-                        },
-                      }}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Value without GST (in Crore)"
-                          // type="number"
-                          fullWidth
-                          required
-                          error={!!errors.valueWithoutGST}
-                          helperText={
-                            errors.valueWithoutGST?.message ||
-                            "Enter value in crore"
-                          }
-                          variant="outlined"
-                          inputProps={{
-                            step: "0.01",
-                            min: "0",
-                          }}
-                          InputProps={{
-                            startAdornment: (
-                              <Typography sx={{ mr: 1 }}>₹</Typography>
-                            ),
-                            endAdornment: (
-                              <Typography
-                                sx={{
-                                  ml: 1,
-                                  fontSize: "0.875rem",
-                                  color: "text.secondary",
-                                }}
-                              >
-                                Cr
-                              </Typography>
-                            ),
-                          }}
-                        />
-                      )}
-                    />
-                  </Tooltip>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Tooltip
-                    title="Enter value in crore (e.g., 1.77 for 1.77 crore)"
-                    arrow
-                  >
-                    <Controller
-                      name="valueWithGST"
-                      control={control}
-                      rules={{
-                        required: "Value with GST is required",
-                        pattern: {
-                          value: /^[0-9]+(\.[0-9]{1,2})?$/,
-                          message:
-                            "Please enter a valid number with max 2 decimals",
-                        },
-                        min: {
-                          value: 0.01,
-                          message: "Value must be greater than 0",
-                        },
-                      }}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Value with GST (in Crore)"
-                          // type="number"
-                          fullWidth
-                          required
-                          error={!!errors.valueWithGST}
-                          helperText={
-                            errors.valueWithGST?.message ||
-                            "Enter value in crore"
-                          }
-                          variant="outlined"
-                          inputProps={{
-                            step: "0.01",
-                            min: "0",
-                          }}
-                          InputProps={{
-                            startAdornment: (
-                              <Typography sx={{ mr: 1 }}>₹</Typography>
-                            ),
-                            endAdornment: (
-                              <Typography
-                                sx={{
-                                  ml: 1,
-                                  fontSize: "0.875rem",
-                                  color: "text.secondary",
-                                }}
-                              >
-                                Cr
-                              </Typography>
-                            ),
-                          }}
-                        />
-                      )}
-                    />
-                  </Tooltip>
-                </Grid>
-              </Grid>
-            </Card>
-
-            {/* Competitors & Remarks Section */}
-            <Card
-              sx={{
-                mb: 4,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                // transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                // "&:hover": {
-                //   transform: "translateY(-4px)",
-                //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                // },
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
-              >
-                🏢 Competitors &amp; Remarks
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={3}>
-                <Grid item xs={6} md={6}>
-                  <Controller
-                    name="JSON_competitors"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Competitors (Optional)"
-                        multiline
-                        rows={3}
-                        fullWidth
-                        variant="outlined"
-                        placeholder="Enter competitor names separated by commas (e.g., Company A, Company B, Company C)"
-                        helperText="List all competing companies for this order"
-                      />
-                    )}
-                  />
-                </Grid>
-
-                <Grid item xs={6} md={6}>
-                  <Controller
-                    name="remarks"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Remarks (Optional)"
-                        multiline
-                        rows={3}
-                        fullWidth
-                        variant="outlined"
-                        placeholder="Add any additional comments or notes about this order..."
-                        helperText="Any special notes or observations"
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-
-            </Card>
-
-            {/* Attachments Section */}
-            <Card
-              sx={{
-                mb: 4,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                // transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                // "&:hover": {
-                //   transform: "translateY(-4px)",
-                //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                // },
-              }}
-            >
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{ fontWeight: 500, mb: 2, color: "#1976d2" }}
-              >
-                📎 Attachments
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Box>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  gutterBottom
-                >
-                  Upload Contract Copy / Work Order / Letter of Intent
-                  (Optional)
-                </Typography>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  sx={{ mt: 2, mb: 2 }}
-                >
-                  Choose File
-                  <input
-                    type="file"
-                    hidden
-                    onChange={handleFileChange}
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  />
-                </Button>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  sx={{ mt: 2, mb: 2, marginLeft: 24 }}
-                  onClick={handleFileUpload}
-                >
-                  Upload File
-                </Button>
-                {selectedFile && (
-                  <Box sx={{ mt: 2 }}>
-                    <Chip
-                      label={selectedFile.name}
-                      onDelete={() => setSelectedFile(null)}
-                      color="primary"
-                      variant="outlined"
-                      sx={{ maxWidth: "100%" }}
-                    />
-                    <Typography
-                      variant="caption"
-                      display="block"
-                      sx={{ mt: 1, color: "text.secondary" }}
-                    >
-                      Size: {(selectedFile.size / 1024).toFixed(2)} KB
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            </Card>
-
-            {/* Form Actions */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                gap: 3,
-                mt: 4,
-                flexWrap: "wrap",
-              }}
-            >
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                sx={{
-                  px: 6,
-                  py: 1.6,
-                  fontSize: "1.1rem",
-                  borderRadius: 3,
-                  fontWeight: 700,
-                  background: "linear-gradient(90deg, #1565c0, #42a5f5)",
-                  textTransform: "none",
-                  transition: "0.3s",
-                  "&:hover": {
-                    transform: "scale(1.05)",
-                    background: "linear-gradient(90deg, #0d47a1, #1e88e5)",
-                  },
-                }}
-              >
-                Submit Order
-              </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                onClick={handleReset}
-                sx={{
-                  px: 6,
-                  py: 1.6,
-                  fontSize: "1.1rem",
-                  borderRadius: 3,
-                  fontWeight: 700,
-                  borderWidth: 2,
-                  textTransform: "none",
-                  "&:hover": {
-                    transform: "scale(1.03)",
-                    background: "#f4f6fb",
-                  },
-                }}
-              >
-                Reset Form
-              </Button>
-            </Box>
-          </form>
-
-          {/* Success Snackbar */}
-          <Snackbar
-            open={submitSuccess}
-            autoHideDuration={6000}
-            onClose={handleCloseSnackbar}
-            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          <Paper
+            elevation={10}
+            sx={{
+              p: { xs: 2, md: 5 },
+              borderRadius: 2,
+              background: "rgba(255,255,255,0.85)",
+              backdropFilter: "blur(14px)",
+              // transition: "0.3s",
+              boxShadow: "0 12px 32px rgba(0,0,0,0.10)",
+              // "&:hover": { transform: "scale(1.01)" },
+            }}
           >
-            <Alert
-              onClose={handleCloseSnackbar}
-              severity="success"
-              sx={{ width: "100%" }}
-            >
-              Form submitted successfully! Check console for JSON output.
-            </Alert>
-          </Snackbar>
-
-          {/* Submitted Data Display */}
-          {submittedData && (
-            <Box sx={{ mt: 5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                📊 Submitted Data (JSON)
-              </Typography>
-
-              <Paper
+            <form onSubmit={handleSubmit(onSubmit)}>
+              {/* Order Details Section */}
+              <Card
                 sx={{
+                  mt: -5,
+                  mb: 3,
                   p: 3,
-                  background: "#0d1117",
-                  color: "#c9d1d9",
                   borderRadius: 4,
-                  maxHeight: 500,
-                  overflow: "auto",
-                  fontFamily: "monospace",
-                  fontSize: "0.95rem",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  // transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  // "&:hover": {
+                  //   transform: "translateY(-4px)",
+                  //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  // },
                 }}
               >
-                <pre>{JSON.stringify(submittedData, null, 2)}</pre>
-              </Paper>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                >
+                  📋 Order Details
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
 
-              <Button
-                variant="contained"
+
+{/* 
+                // defaultValues: {
+    //   projectTitle: "",
+    //   customerName: "",
+    //   customerAddress: "",
+    //   defenceOrCivil: "",
+    //   PoCoWoNo: "",
+    //   orderRxdDate: "",
+    //   qty: "",
+    //   valueWithoutGST: "",
+    //   valueWithGST: "",
+    //   tenderType: "",
+    //   deliverySchedule: "",
+    //   remarks: "",
+    //   JSON_competitors: "",
+    //   contractCopy: "", */}
+
+
+
+                <Grid container spacing={4}>
+
+                  {/* {projectTitle} */}
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="projectTitle"
+                      control={control}
+                      rules={{ required: "Project Title is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Project Title"
+                          fullWidth
+                          required
+                          error={!!errors.projectTitle}
+                          helperText={errors.projectTitle?.message}
+                          variant="outlined"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* {defenceOrCivil} */}
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="defenceOrCivil"
+                      control={control}
+                      rules={{ required: "Defence/Civil is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Defence/Civil"
+                          fullWidth
+                          required
+                          error={!!errors.defenceOrCivil}
+                          helperText={errors.defenceOrCivil?.message}
+                          variant="outlined"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* {orderRxdDate} */}
+                  <Grid item xs={12} sm={6}>
+                    <Controller
+                      name="orderRxdDate"
+                      control={control}
+                      rules={{ required: "Order Received Date is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Order Received Date"
+                          type="date"
+                          fullWidth
+                          required
+                          InputLabelProps={{ shrink: true }}
+                          error={!!errors.orderRxdDate}
+                          helperText={errors.orderRxdDate?.message}
+                          // sx={inputStyle()}
+                          inputProps={{
+                            max: today, // ✅ disables future dates, allows today & past
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Card>
+
+              {/* Customer Information Section */}
+              <Card
                 sx={{
-                  mt: 2,
-                  background: "#2e7d32",
-                  "&:hover": { background: "#1b5e20" },
+                  mt: -1,
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 4,
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  // transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  // "&:hover": {
+                  //   transform: "translateY(-4px)",
+                  //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  // },
                 }}
-                onClick={handleDownloadJSON}
               >
-                Download JSON
-              </Button>
-            </Box>
-          )}
-        </Paper></Container>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                >
+                  👤 Customer Information
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="customerName"
+                      control={control}
+                      rules={{ required: "Customer Name is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Customer Name"
+                          fullWidth
+                          required
+                          error={!!errors.customerName}
+                          helperText={errors.customerName?.message}
+                          variant="outlined"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="customerAddress"
+                      control={control}
+                      rules={{ required: "Customer Address is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Customer Address"
+                          multiline
+                          rows={3}
+                          fullWidth
+                          required
+                          error={!!errors.customerAddress}
+                          helperText={errors.customerAddress?.message}
+                          variant="outlined"
+                          placeholder="Enter complete customer address..."
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Card>
+
+              {/* Document Information Section */}
+              <Card
+                sx={{
+                  mt:-1,
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 4,
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  // transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  // "&:hover": {
+                  //   transform: "translateY(-4px)",
+                  //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  // },
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                >
+                  📄 Document Information
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Grid container spacing={3}>
+                  {/* {PoCoWoNo} */}
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="PoCoWoNo"
+                      control={control}
+                      rules={{
+                        required:
+                          "Purchase Order/Work Order Number is required",
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Purchase Order/Work Order Number"
+                          fullWidth
+                          required
+                          error={!!errors.PoCoWoNo}
+                          helperText={errors.PoCoWoNo?.message}
+                          variant="outlined"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* {qty} */}
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="qty"
+                      control={control}
+                      rules={{
+                        required:
+                          "Quantity",
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Quantity"
+                          fullWidth
+                          required
+                          error={!!errors.qty}
+                          helperText={errors.qty?.message}
+                          variant="outlined"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* {tenderType} */}
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="tenderType"
+                      control={control}
+                      rules={{ required: "Order Type is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          select
+                          label="Type of Bid"
+                          fullWidth
+                          required
+                          error={!!errors.tenderType}
+                          helperText={errors.tenderType?.message}
+                          variant="outlined"
+                        >
+                          {orderTypes.map((option) => (
+                            <MenuItem key={option} value={option}>
+                              {option}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      )}
+                    />
+                  </Grid> 
+                </Grid>
+              </Card>
+
+              {/* Financial Details Section */}
+              <Card
+                sx={{
+                  mt:-1,
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 4,
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  // transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  // "&:hover": {
+                  //   transform: "translateY(-4px)",
+                  //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  // },
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                >
+                  💰 Financial Details
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Grid container spacing={3}>
+                  {/* {valueWithoutGST} */}
+                  <Grid item xs={12} md={6}>
+                    <Tooltip
+                      title="Enter value in crore (e.g., 1.50 for 1.5 crore)"
+                      arrow
+                    >
+                      <Controller
+                        name="valueWithoutGST"
+                        control={control}
+                        rules={{
+                          required: "Value without GST is required",
+                          pattern: {
+                            value: /^[0-9]+(\.[0-9]{1,2})?$/,
+                            message:
+                              "Please enter a valid number with max 2 decimals",
+                          },
+                          min: {
+                            value: 0.01,
+                            message: "Value must be greater than 0",
+                          },
+                        }}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            label="Value without GST (in Crore)"
+                            // type="number"
+                            fullWidth
+                            required
+                            error={!!errors.valueWithoutGST}
+                            helperText={
+                              errors.valueWithoutGST?.message ||
+                              "Enter value in crore"
+                            }
+                            variant="outlined"
+                            inputProps={{
+                              step: "0.01",
+                              min: "0",
+                            }}
+                            InputProps={{
+                              startAdornment: (
+                                <Typography sx={{ mr: 1 }}>₹</Typography>
+                              ),
+                              endAdornment: (
+                                <Typography
+                                  sx={{
+                                    ml: 1,
+                                    fontSize: "0.875rem",
+                                    color: "text.secondary",
+                                  }}
+                                >
+                                  Cr
+                                </Typography>
+                              ),
+                            }}
+                          />
+                        )}
+                      />
+                    </Tooltip>
+                  </Grid>
+
+                  {/* {valueWithGST} */}
+                  <Grid item xs={12} md={6}>
+                    <Tooltip
+                      title="Enter value in crore (e.g., 1.77 for 1.77 crore)"
+                      arrow
+                    >
+                      <Controller
+                        name="valueWithGST"
+                        control={control}
+                        rules={{
+                          required: "Value with GST is required",
+                          pattern: {
+                            value: /^[0-9]+(\.[0-9]{1,2})?$/,
+                            message:
+                              "Please enter a valid number with max 2 decimals",
+                          },
+                          min: {
+                            value: 0.01,
+                            message: "Value must be greater than 0",
+                          },
+                        }}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            label="Value with GST (in Crore)"
+                            // type="number"
+                            fullWidth
+                            required
+                            error={!!errors.valueWithGST}
+                            helperText={
+                              errors.valueWithGST?.message ||
+                              "Enter value in crore"
+                            }
+                            variant="outlined"
+                            inputProps={{
+                              step: "0.01",
+                              min: "0",
+                            }}
+                            InputProps={{
+                              startAdornment: (
+                                <Typography sx={{ mr: 1 }}>₹</Typography>
+                              ),
+                              endAdornment: (
+                                <Typography
+                                  sx={{
+                                    ml: 1,
+                                    fontSize: "0.875rem",
+                                    color: "text.secondary",
+                                  }}
+                                >
+                                  Cr
+                                </Typography>
+                              ),
+                            }}
+                          />
+                        )}
+                      />
+                    </Tooltip>
+                  </Grid>
+                </Grid>
+              </Card>
+
+              {/* Competitors & Remarks Section */}
+              <Card
+                sx={{
+                  mt:-1,
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 4,
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  // transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  // "&:hover": {
+                  //   transform: "translateY(-4px)",
+                  //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  // },
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                >
+                  🏢 Competitors &amp; Remarks
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Grid container spacing={3}>
+                  <Grid item xs={6} md={6}>
+                    <Controller
+                      name="deliverySchedule"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Delivery Schedule"
+                          multiline
+                          rows={3}
+                          fullWidth
+                          variant="outlined"
+                          placeholder="Delivery Schedule to be entered"
+                          // helperText="List all competing companies for this order"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item xs={6} md={6}>
+                    <Controller
+                      name="remarks"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Remarks (Optional)"
+                          multiline
+                          rows={3}
+                          fullWidth
+                          variant="outlined"
+                          placeholder="Add any additional comments or notes about this order..."
+                          helperText="Any special notes or observations"
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={6}>
+                    <Controller
+                      name="JSON_competitors"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Competitors"
+                          multiline
+                          rows={3}
+                          fullWidth
+                          variant="outlined"
+                          placeholder="Enter competitor names separated by commas (e.g., Company A, Company B, Company C)..."
+                          helperText="List all competing companies for this order"
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Card>
+
+              {/* Attachments Section */}
+              <Card
+                sx={{
+                  mt:-1,
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 4,
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  // transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  // "&:hover": {
+                  //   transform: "translateY(-4px)",
+                  //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  // },
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ fontWeight: 500, mb: 2, color: "#1976d2" }}
+                >
+                  📎 Attachments
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    Upload Contract Copy / Work Order / Letter of Intent
+                    (Optional)
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    sx={{ mt: 2, mb: 2 }}
+                  >
+                    Choose File
+                    <input
+                      type="file"
+                      hidden
+                      onChange={handleFileChange}
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    />
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    sx={{ mt: 2, mb: 2, marginLeft: 24 }}
+                    onClick={handleFileUpload}
+                  >
+                    Upload File
+                  </Button>
+                  {selectedFile && (
+                    <Box sx={{ mt: 2 }}>
+                      <Chip
+                        label={selectedFile.name}
+                        onDelete={() => setSelectedFile(null)}
+                        color="primary"
+                        variant="outlined"
+                        sx={{ maxWidth: "100%" }}
+                      />
+                      <Typography
+                        variant="caption"
+                        display="block"
+                        sx={{ mt: 1, color: "text.secondary" }}
+                      >
+                        Size: {(selectedFile.size / 1024).toFixed(2)} KB
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              </Card>
+
+              {/* Form Actions */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 3,
+                  mt: 4,
+                  flexWrap: "wrap",
+                }}
+              >
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    px: 6,
+                    py: 1.6,
+                    fontSize: "1.1rem",
+                    borderRadius: 3,
+                    fontWeight: 700,
+                    maxWidth:180,
+                    background: "linear-gradient(90deg, #1565c0, #42a5f5)",
+                    textTransform: "none",
+                    transition: "0.3s",
+                    "&:hover": {
+                      transform: "scale(1.05)",
+                      background: "linear-gradient(90deg, #0d47a1, #1e88e5)",
+                    },
+                  }}
+                >
+                  Submit
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  onClick={handleReset}
+                  sx={{
+                    px: 6,
+                    py: 1.6,
+                    fontSize: "1.1rem",
+                    borderRadius: 3,
+                    maxWidth:180,
+                    fontWeight: 700,
+                    borderWidth: 2,
+                    textTransform: "none",
+                    "&:hover": {
+                      transform: "scale(1.03)",
+                      background: "#f4f6fb",
+                    },
+                  }}
+                >
+                  Reset
+                </Button>
+              </Box>
+            </form>
+
+            {/* Success Snackbar */}
+            <Snackbar
+              open={submitSuccess}
+              autoHideDuration={6000}
+              onClose={handleCloseSnackbar}
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+              <Alert
+                onClose={handleCloseSnackbar}
+                severity="success"
+                sx={{ width: "100%" }}
+              >
+                Form submitted successfully! Check console for JSON output.
+              </Alert>
+            </Snackbar>
+
+            {/* Submitted Data Display */}
+            {submittedData && (
+              <Box sx={{ mt: 5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  📊 Submitted Data (JSON)
+                </Typography>
+
+                <Paper
+                  sx={{
+                    p: 3,
+                    background: "#0d1117",
+                    color: "#c9d1d9",
+                    borderRadius: 4,
+                    maxHeight: 500,
+                    overflow: "auto",
+                    fontFamily: "monospace",
+                    fontSize: "0.95rem",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  <pre>{JSON.stringify(submittedData, null, 2)}</pre>
+                </Paper>
+
+                <Button
+                  variant="contained"
+                  sx={{
+                    mt: 2,
+                    background: "#2e7d32",
+                    "&:hover": { background: "#1b5e20" },
+                  }}
+                  onClick={handleDownloadJSON}
+                >
+                  Download JSON
+                </Button>
+              </Box>
+            )}
+          </Paper>
+        </Container>
       )}
 
       {/* ------------------------ VIEW TABLE ------------------------ */}
@@ -1045,7 +1162,6 @@ const lightTextFieldSx = {
   },
 };
 
-
 function ViewOrderRecievedData(props) {
   console.log("props viewOrderRecievedData", props);
 
@@ -1061,6 +1177,9 @@ function ViewOrderRecievedData(props) {
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
+  const [tempEditingRow, setTempEditingRow] = useState(null);
 
   // READ-ONLY VIEW DIALOG STATE
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -1070,17 +1189,22 @@ function ViewOrderRecievedData(props) {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
   const columnMenuOpen = Boolean(columnMenuAnchor);
 
+
+
   const [visibleColumns, setVisibleColumns] = useState({
-    contractName: true,
+    projectTitle: true,
     customerName: true,
     customerAddress: true,
-    orderReceivedDate: true,
-    purchaseOrder: true,
-    typeOfTender: true,
+    defenceOrCivil: true,
+    PoCoWoNo: true,
+    orderRxdDate: true,
+    qty: true,
     valueWithoutGST: true,
     valueWithGST: true,
-    JSON_competitors: true,
+    tenderType: true,
+    deliverySchedule: true,
     remarks: true,
+    JSON_competitors: true,
     contractCopy: true,
     dateCreated: true,
     actions: true,
@@ -1088,19 +1212,22 @@ function ViewOrderRecievedData(props) {
 
   // COLUMN DEFINITIONS
   const leadColumns = [
-    { id: "contractName", label: "Contract Name" },
+    { id: "actions", label: "Actions" },
+    { id: "projectTitle", label: "Project Title" },
     { id: "customerName", label: "Customer Name" },
     { id: "customerAddress", label: "Customer Address" },
-    { id: "orderReceivedDate", label: "Order Received Date" },
-    { id: "purchaseOrder", label: "Purchase Order No" },
-    { id: "typeOfTender", label: "Tender Type" },
+    { id: "defenceOrCivil", label: "Defence/Civil" },
+    { id: "PoCoWoNo", label: "Po/Co/Wo No." },
+    { id: "orderRxdDate", label: "Order Received Date" },
+    { id: "qty", label: "Purchase Order No" },
     { id: "valueWithoutGST", label: "Value in CR without GST" },
     { id: "valueWithGST", label: "Value in CR with GST" },
-    { id: "JSON_competitors", label: "Competitors" },
+    { id: "tenderType", label: "Tender Type" },
+    { id: "deliverySchedule", label: "Delivery Schedule" },
     { id: "remarks", label: "Remarks" },
+    { id: "JSON_competitors", label: "Competitors" },
     { id: "contractCopy", label: "Contract Copy/ Work Order/LOI" },
     { id: "dateCreated", label: "Created Date" },
-    { id: "actions", label: "Actions" },
   ];
 
   // COLUMN HANDLERS
@@ -1188,6 +1315,11 @@ function ViewOrderRecievedData(props) {
     setEditingRow(null);
   };
 
+  // ENTER EDIT MODE
+  const handleEnterEditMode = () => {
+    setIsEditMode(true);
+  };
+
   // SAVE EDITED VALUES
   const handleEditSave = () => {
     console.log("Saving updated row:", editingRow);
@@ -1196,6 +1328,43 @@ function ViewOrderRecievedData(props) {
 
     setEditDialogOpen(false);
   };
+
+  // CONFIRM AND SAVE TO BACKEND
+  const handleConfirmSave = async () => {
+    try {
+      console.log("Saving updated row:", editingRow);
+
+      // Mock API call - Replace with real API endpoint
+      const mockApiResponse = await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            success: true,
+            message: "Record updated successfully",
+            data: editingRow,
+          });
+        }, 800);
+      });
+
+      if (mockApiResponse.success) {
+        console.log("Backend Response:", mockApiResponse);
+        alert("Changes saved successfully!");
+        setConfirmSaveOpen(false);
+        setEditDialogOpen(false);
+        setIsEditMode(false);
+        setEditingRow(null);
+      }
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      alert("Failed to save changes. Please try again.");
+    }
+  };
+
+  // CANCEL EDIT MODE
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditingRow({ ...tempEditingRow });
+  };
+
   // DELETE ROW
   const handleDeleteClick = (id) => {
     if (!window.confirm("Are you sure you want to delete this entry?")) return;
@@ -1216,8 +1385,9 @@ function ViewOrderRecievedData(props) {
     fontWeight: 800,
     fontSize: 13,
     color: "#ecfeff",
-    background:
-      "linear-gradient(90deg, #0a47e0ff 0%, #1453b7ff 50%, #81a6daff 100%)",
+    background: "linear-gradient(90deg, #001F54, #034078)",
+    // background:
+    //   "linear-gradient(90deg, #0a47e0ff 0%, #1453b7ff 50%, #81a6daff 100%)",
     borderBottom: "none",
     whiteSpace: "nowrap",
   };
@@ -1238,8 +1408,27 @@ function ViewOrderRecievedData(props) {
   const actionHeaderStyle = {
     ...headerCellStyle,
     textAlign: "center",
+    minWidth: 140,
+    maxWidth: 150,
   };
 
+
+  
+  // defaultValues: {
+  //   projectTitle: "",
+  //   customerName: "",
+  //   customerAddress: "",
+  //   defenceOrCivil: "",
+  //   PoCoWoNo: "",
+  //   orderRxdDate: "",
+  //   qty: "",
+  //   valueWithoutGST: "",
+  //   valueWithGST: "",
+  //   tenderType: "",
+  //   deliverySchedule: "",
+  //   remarks: "",
+  //   JSON_competitors: "",
+  //   contractCopy: "",
   // ---------------- FILTER + SORT LOGIC ----------------
   const filteredSortedData =
     data &&
@@ -1248,10 +1437,10 @@ function ViewOrderRecievedData(props) {
         const q = searchTerm.toLowerCase();
         const matchesSearch =
           !q ||
-          row.tenderName?.toLowerCase().includes(q) ||
+          row.projectTitle?.toLowerCase().includes(q) ||
           row.customerName?.toLowerCase().includes(q) ||
-          row.tenderReferenceNo?.toLowerCase().includes(q) ||
-          row.bidOwner?.toLowerCase().includes(q) ||
+          row.orderRxdDate?.toLowerCase().includes(q) ||
+          row.PoCoWoNo?.toLowerCase().includes(q) ||
           row.customerAddress?.toLowerCase().includes(q);
 
         const matchesTenderType =
@@ -1269,21 +1458,29 @@ function ViewOrderRecievedData(props) {
         let bVal;
 
         switch (sortBy) {
-          case "tenderDate":
-            aVal = a.tenderDate || "";
-            bVal = b.tenderDate || "";
+          case "projectTitle":
+            aVal = a.projectTitle || "";
+            bVal = b.projectTitle || "";
             break;
-          case "rfpDueDate":
-            aVal = a.rfpDueDate || "";
-            bVal = b.rfpDueDate || "";
+          case "PoCoWoNo":
+            aVal = a.PoCoWoNo || "";
+            bVal = b.PoCoWoNo || "";
             break;
-          case "bidSubmittedOn":
-            aVal = a.bidSubmittedOn || "";
-            bVal = b.bidSubmittedOn || "";
+          case "orderRxdDate":
+            aVal = a.orderRxdDate || "";
+            bVal = b.orderRxdDate || "";
             break;
-          case "valueEMDInCrore":
-            aVal = parseFloat(a.valueEMDInCrore) || 0;
-            bVal = parseFloat(b.valueEMDInCrore) || 0;
+          case "valueWithoutGST":
+            aVal = parseFloat(a.valueWithoutGST) || 0;
+            bVal = parseFloat(b.valueWithoutGST) || 0;
+            break;
+            case "valueWithGST":
+            aVal = parseFloat(a.valueWithGST) || 0;
+            bVal = parseFloat(b.valueWithGST) || 0;
+            break;
+            case "qty":
+            aVal = parseFloat(a.qty) || 0;
+            bVal = parseFloat(b.qty) || 0;
             break;
           case "dateCreated":
           default:
@@ -1302,11 +1499,10 @@ function ViewOrderRecievedData(props) {
 
   return (
     <>
-
       {/* HEADER + CONTROLS */}
       <Box
         sx={{
-          mb: 3,
+          mb: 2,
           px: { xs: 1, sm: 0 },
         }}
       >
@@ -1342,13 +1538,13 @@ function ViewOrderRecievedData(props) {
               >
                 Order Received List
               </Typography>
-              <Typography
+              {/* <Typography
                 variant="body2"
                 sx={{ opacity: 0.85, mt: 0.5, maxWidth: 520 }}
               >
                 View, search, filter and manage all submitted tender leads in a
                 single, elegant dashboard.
-              </Typography>
+              </Typography> */}
             </Box>
 
             {/* SEARCH BOX */}
@@ -1388,74 +1584,78 @@ function ViewOrderRecievedData(props) {
               }}
             />
 
-              {/* select columns to view in table */}
-              <Tooltip title="Select columns to display">
-                <IconButton
-                  onClick={handleColumnMenuOpen}
+            {/* select columns to view in table */}
+            <Tooltip title="Select columns to display">
+              <IconButton
+                onClick={handleColumnMenuOpen}
+                sx={{
+                  borderRadius: 2.5,
+                  border: "2px solid #1e40af",
+                  backgroundColor: "rgba(30,64,175,0.08)",
+                  color: "#1e40af",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: "rgba(30,64,175,0.15)",
+                    transform: "scale(1.05)",
+                  },
+                  maxWidth: 50,
+                }}
+              >
+                <ViewColumnIcon />
+              </IconButton>
+            </Tooltip>
+
+            {/* COLUMN VISIBILITY MENU */}
+            <Menu
+              anchorEl={columnMenuAnchor}
+              open={columnMenuOpen}
+              onClose={handleColumnMenuClose}
+              PaperProps={{
+                sx: {
+                  borderRadius: 2,
+                  minWidth: 280,
+                  maxHeight: 400,
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+                },
+              }}
+            >
+              {leadColumns.map((col) => (
+                <Box
+                  key={col.id}
+                  onClick={() => handleColumnToggle(col.id)}
                   sx={{
-                    borderRadius: 2.5,
-                    border: "2px solid #1e40af",
-                    backgroundColor: "rgba(30,64,175,0.08)",
-                    color: "#1e40af",
-                    transition: "all 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    px: 2,
+                    py: 1,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
                     "&:hover": {
-                      backgroundColor: "rgba(30,64,175,0.15)",
-                      transform: "scale(1.05)",
+                      backgroundColor: "rgba(30,64,175,0.08)",
                     },
                   }}
                 >
-                  <ViewColumnIcon />
-                </IconButton>
-              </Tooltip>
-
-              {/* COLUMN VISIBILITY MENU */}
-              <Menu
-                anchorEl={columnMenuAnchor}
-                open={columnMenuOpen}
-                onClose={handleColumnMenuClose}
-                PaperProps={{
-                  sx: {
-                    borderRadius: 2,
-                    minWidth: 280,
-                    maxHeight: 400,
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-                  },
-                }}
-              >
-                {leadColumns.map((col) => (
-                  <Box
-                    key={col.id}
-                    onClick={() => handleColumnToggle(col.id)}
+                  <Checkbox
+                    checked={visibleColumns[col.id]}
+                    onChange={() => {}}
+                    size="small"
                     sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      px: 2,
-                      py: 1,
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                      "&:hover": {
-                        backgroundColor: "rgba(30,64,175,0.08)",
+                      color: "#1e40af",
+                      "&.Mui-checked": {
+                        color: "#1e40af",
                       },
                     }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: 13, color: "#0f172a" }}
                   >
-                    <Checkbox
-                      checked={visibleColumns[col.id]}
-                      onChange={() => {}}
-                      size="small"
-                      sx={{
-                        color: "#1e40af",
-                        "&.Mui-checked": {
-                          color: "#1e40af",
-                        },
-                      }}
-                    />
-                    <Typography variant="body2" sx={{ fontSize: 13, color: "#0f172a" }}>
-                      {col.label}
-                    </Typography>
-                  </Box>
-                ))}
-              </Menu>
+                    {col.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Menu>
           </Box>
 
           {/* FILTERS + SORT */}
@@ -1573,8 +1773,9 @@ function ViewOrderRecievedData(props) {
 
             {/* SORT ICON BUTTON */}
             <Tooltip
-              title={`Sort ${sortDirection === "asc" ? "Descending" : "Ascending"
-                }`}
+              title={`Sort ${
+                sortDirection === "asc" ? "Descending" : "Ascending"
+              }`}
             >
               <IconButton
                 onClick={toggleSortDirection}
@@ -1587,13 +1788,15 @@ function ViewOrderRecievedData(props) {
                   "&:hover": {
                     backgroundColor: "rgba(224,242,254,1)",
                   },
+                  maxWidth: 50,
                 }}
               >
                 {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
               </IconButton>
             </Tooltip>
 
-            <Button
+            {/* DOWNLOAD BUTTON */}
+            {/* <Button
               variant="contained"
               onClick={handleDownloadAllData}
               sx={{
@@ -1611,7 +1814,7 @@ function ViewOrderRecievedData(props) {
               }}
             >
               Download All Data
-            </Button>
+            </Button> */}
 
             {/* RESET BUTTON */}
             <Button
@@ -1637,6 +1840,7 @@ function ViewOrderRecievedData(props) {
                   color: "#0A3C7D",
                   boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
                 },
+                maxWidth: 130,
               }}
             >
               Reset
@@ -1645,13 +1849,12 @@ function ViewOrderRecievedData(props) {
         </Box>
       </Box>
 
-
       <Box
         sx={{
           width: "100%",
           maxWidth: "1800px",
           mx: "auto",
-          mt: 2,
+          mt: 0,
         }}
       >
         <TableContainer
@@ -1661,38 +1864,56 @@ function ViewOrderRecievedData(props) {
             boxShadow: 8,
             overflowX: "auto",
             overflowY: "auto",
-            maxHeight: "50vh",
-            minWidth: "100%",
+            maxHeight: "48vh",
+            // minWidth: "100%",
+            scrollbarGutter: "stable"
           }}
         >
-          <Table stickyHeader aria-label="lead submitted table" size="small">
+          <Table
+            stickyHeader
+            size="small"
+            sx={{
+              borderCollapse: "separate",
+              borderSpacing: 0,
+              "& th, & td": {
+                borderRight: "1px solid rgba(203,213,225,0.8)",
+              },
+              "& th:last-child, & td:last-child": {
+                borderRight: "none",
+              },
+            }}
+          >
             <TableHead>
               <TableRow>
-                {leadColumns.map(
-                  (col) =>
-                    visibleColumns[col.id] && (
-                      <TableCell
-                        key={col.id}
-                        sx={col.id === "actions" ? actionHeaderStyle : headerCellStyle}
-                      >
-                        {col.label}
-                      </TableCell>
-                    )
+                {/* <TableCell sx={actionHeaderStyle}>Actions</TableCell> */}
+                {leadColumns.map((col) =>
+                  visibleColumns[col.id] ? (
+                    <TableCell
+                      key={col.id}
+                      sx={{
+                        ...headerCellStyle,
+                        ...(col.id === "customerAddress" && {
+                          minWidth: 200,
+                        }),
+                      }}
+                    >
+                      {col.label}
+                    </TableCell>
+                  ) : null
                 )}
               </TableRow>
             </TableHead>
 
-
             {/* defaultValues: {
-      contractName: "",
+      projectTitle: "",
       customerName: "",
       customerAddress: "",
-      orderReceivedDate: "",
-      purchaseOrder: "",
-      typeOfTender: "",
+      defenceOrCivil: "",
+      PoCoWoNo: "",
+      tenderType: "",
       valueWithoutGST: "",
       valueWithGST: "",
-      JSON_competitors: "",
+      deliverySchedule: "",
       remarks: "",
       contractCopy: "",
       // operator details
@@ -1723,14 +1944,14 @@ function ViewOrderRecievedData(props) {
                         backgroundColor: "rgba(59,130,246,0.06)",
                         boxShadow: 1,
                         transform: "translateY(-1px)",
-                      },
+                      }, overflow: "hidden"
                     }}
                   >
                     {leadColumns.map((col) => {
                       if (!visibleColumns[col.id]) return null;
 
                       // RENDER CONTRACT NAME AS HEADER
-                      if (col.id === "contractName") {
+                      if (col.id === "projectTitle") {
                         return (
                           <TableCell
                             key={col.id}
@@ -1745,7 +1966,7 @@ function ViewOrderRecievedData(props) {
                               overflow: "hidden",
                             }}
                           >
-                            {row.contractName}
+                            {row.projectTitle}
                           </TableCell>
                         );
                       }
@@ -1792,6 +2013,7 @@ function ViewOrderRecievedData(props) {
                                     "&:hover": {
                                       backgroundColor: "rgba(59,130,246,0.25)",
                                     },
+                                    maxWidth: 40,
                                   }}
                                 >
                                   <EditRounded fontSize="small" />
@@ -1810,6 +2032,7 @@ function ViewOrderRecievedData(props) {
                                     "&:hover": {
                                       backgroundColor: "rgba(239,68,68,0.25)",
                                     },
+                                    maxWidth: 40,
                                   }}
                                 >
                                   <DeleteRounded fontSize="small" />
@@ -1841,7 +2064,13 @@ function ViewOrderRecievedData(props) {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={leadColumns.filter((c) => visibleColumns[c.id]).length} align="center" sx={{ py: 4 }}>
+                  <TableCell
+                    colSpan={
+                      leadColumns.filter((c) => visibleColumns[c.id]).length
+                    }
+                    align="center"
+                    sx={{ py: 4 }}
+                  >
                     <Typography variant="body1" sx={{ color: "#6b7280" }}>
                       No leads found.
                     </Typography>
@@ -1853,281 +2082,910 @@ function ViewOrderRecievedData(props) {
         </TableContainer>
       </Box>
 
-
-      {/* EDIT DIALOG */}
+      {/* EDIT DIALOG - VIEW MODE & EDIT MODE - PROFESSIONAL BLUE THEME */}
       <Dialog
         open={editDialogOpen}
         onClose={handleEditCancel}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 4,
+            borderRadius: 3,
             overflow: "hidden",
-            background:
-              "linear-gradient(135deg, #f8fbff 0%, #eef5ff 50%, #e3eeff 100%)",
-            color: "#0f172a",
-            boxShadow: "0 25px 60px rgba(59,130,246,0.25)",
+            background: "#ffffff",
+            boxShadow:
+              "0 25px 50px rgba(0,0,0,0.15), 0 10px 30px rgba(30,64,95,0.2)",
+            maxHeight: "80vh",
           },
         }}
       >
-        {/* ---------------- TITLE ---------------- */}
+        {/* HEADER */}
         <DialogTitle
           sx={{
             fontWeight: 800,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            px: 3,
-            py: 2,
-            color: "#0d47a1",
-            background: "linear-gradient(90deg,#e3f2fd,#f8fbff)",
+            pr: 2,
+            background: isEditMode
+              ? "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)" // ORANGE (Edit)
+              : "linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%)", // BLUE (View)
+            color: "#ffffff",
+            borderBottom: isEditMode
+              ? "3px solid #fb923c"
+              : "3px solid #60a5fa",
+            py: 2.5,
+            transition: "all 0.3s ease", // smooth color change
           }}
         >
-          Edit Lead Submission
-          <IconButton
-            onClick={handleEditCancel}
-            sx={{
-              color: "#1e40af",
-              "&:hover": { backgroundColor: "rgba(59,130,246,0.15)" },
-            }}
-          >
-            <CloseRounded />
-          </IconButton>
+          {/* title and heading */}
+          <Box display="flex" alignItems="center" gap={4}>
+            <Box
+              sx={{
+                fontSize: 28,
+                fontWeight: 800,
+              }}
+            >
+              📋
+            </Box>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 800, color: "#ffffff" }}
+              >
+                {editingRow?.tenderName || "Lead Details"}
+              </Typography>
+              {/* <Typography variant="caption" sx={{ color: "#bfdbfe", mt: 0.5 }}>
+                Reference: {editingRow?.tenderReferenceNo || "N/A"}
+              </Typography> */}
+            </Box>
+          </Box>
+
+          <Box display="flex" alignItems="center" gap={2}>
+            <Chip
+              label={isEditMode ? "EDIT MODE" : "VIEW MODE"}
+              size="small"
+              sx={{
+                fontWeight: 700,
+                fontSize: "0.75rem",
+                background: isEditMode ? "#fbbf24" : "#60a5fa",
+                color: isEditMode ? "#1f2937" : "#ffffff",
+                mr: 8,
+              }}
+            />
+            {/* This is for close the dialog box "x" */}
+            {/* <IconButton
+              onClick={handleEditCancel}
+              sx={{
+                color: "#ffffff",
+                mr: 8,
+                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+              }}
+            >
+              <CloseRounded />
+            </IconButton> */}
+          </Box>
         </DialogTitle>
 
-        {/* ---------------- CONTENT ---------------- */}
+        {/* // defaultValues: {
+    //   projectTitle: "",
+    //   customerName: "",
+    //   customerAddress: "",
+    //   defenceOrCivil: "",
+    //   PoCoWoNo: "",
+    //   orderRxdDate: "",
+    //   qty: "",
+    //   valueWithoutGST: "",
+    //   valueWithGST: "",
+    //   tenderType: "",
+    //   deliverySchedule: "",
+    //   remarks: "",
+    //   JSON_competitors: "",
+    //   contractCopy: "", */}
+
+        {/* CONTENT - TABULAR MATRIX FORMAT */}
         <DialogContent
-          dividers
           sx={{
-            background: "#f8fbff",
-            borderColor: "rgba(59,130,246,0.25)",
-            px: 3,
-            py: 2.5,
+            background: "#f8fafc",
+            p: 0,
+            maxHeight: "calc(90vh - 130px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+            "&::-webkit-scrollbar": {
+              width: "8px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "#e2e8f0",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#94a3b8",
+              borderRadius: "4px",
+            },
+            "@media (max-height: 800px)": {
+              maxHeight: "calc(85vh - 130px)",
+            },
           }}
         >
-          <Grid container spacing={2}>
-            {[
-              ["Tender Name", "tenderName"],
-              ["Customer Name", "customerName"],
-              ["Customer Address", "customerAddress", true],
-              ["Bid Owner", "bidOwner"],
-              ["Tender Date", "tenderDate", false, "date"],
-              ["RFP Received On", "rfpReceivedOn", false, "date"],
-              ["RFP Due Date", "rfpDueDate", false, "date"],
-              ["EMD Value (Cr)", "valueEMDInCrore"],
-              ["Tender Reference No", "tenderReferenceNo"],
-              ["Website", "website"],
-            ].map(([label, field, multiline, type], idx) => (
-              <Grid item xs={12} md={multiline ? 12 : 6} key={idx}>
-                <TextField
-                  label={label}
-                  type={type || "text"}
-                  value={editingRow?.[field] || ""}
-                  onChange={(e) => handleEditFieldChange(field, e.target.value)}
-                  fullWidth
-                  size="small"
-                  multiline={!!multiline}
-                  minRows={multiline ? 2 : undefined}
-                  InputLabelProps={
-                    type === "date" ? { shrink: true } : undefined
-                  }
-                  sx={lightTextFieldSx}
-                />
-              </Grid>
-            ))}
-
-            {/* Tender Type */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                select
-                label="Tender Type"
-                value={editingRow?.tenderType || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("tenderType", e.target.value)
-                }
-                fullWidth
-                size="small"
-                sx={lightTextFieldSx}
+          <Box sx={{ p: 1.5 }}>
+            {/* TENDER INFORMATION SECTION */}
+            <Box sx={{ mb: 3 }}>
+              
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
               >
-                {TENDER_TYPE_OPTIONS.map((opt) => (
-                  <MenuItem key={opt} value={opt}>
-                    {opt}
-                  </MenuItem>
+                {[
+                  { label: "Project Title Name", key: "projectTitle" },
+                  { label: "Customer Name", key: "customerName" },
+                  { label: "Tender Type", key: "tenderType" },
+                  // { label: "Tender Dated", key: "tenderDated", isDate: true },
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        type={field.isDate ? "date" : "text"}
+                        InputLabelProps={
+                          field.isDate ? { shrink: true } : undefined
+                        }
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
                 ))}
-              </TextField>
-            </Grid>
+              </Box>
+            </Box>
 
-            {/* Present Status */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                select
-                label="Present Status"
-                value={editingRow?.presentStatus || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("presentStatus", e.target.value)
-                }
-                fullWidth
-                size="small"
-                sx={lightTextFieldSx}
+            {/* CUSTOMER INFORMATION SECTION */}
+            <Box sx={{ mb: 3 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
               >
-                {STATUS_OPTIONS.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
-                  </MenuItem>
+                {[
+                  { label: "Defence/ Civil", key: "defenceOrCivil" },
+                  { label: "Po/Co/Wo No.", key: "PoCoWoNo" },
+                  { label: "Order Rxd Date", key: "orderRxdDate" },
+                  { label: "Quantity", key: "qty" },
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
                 ))}
-              </TextField>
-            </Grid>
-          </Grid>
+              </Box>
+
+              {/* Customer Address - Full Width */}
+              <Box
+                sx={{
+                  background: "#ffffff",
+                  border: "1px solid #e0e7ff",
+                  borderRadius: 2,
+                  p: 2,
+                  mt: 2,
+                  "&:hover": {
+                    borderColor: "#60a5fa",
+                    boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                  },
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {/* <Typography
+                  variant="caption"
+                  sx={{
+                    color: "#64748b",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    fontSize: "0.7rem",
+                  }}
+                >
+                  Customer Address
+                </Typography> */}
+                {isEditMode ? (
+                  <TextField
+                    value={editingRow?.customerAddress || ""}
+                    onChange={(e) =>
+                      handleEditFieldChange("customerAddress", e.target.value)
+                    }
+                    fullWidth
+                    size="small"
+                    multiline
+                    minRows={2}
+                    sx={{
+                      mt: 1,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1.5,
+                        background: "#ffffff",
+                        "& fieldset": {
+                          borderColor: "#60a5fa",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "#1e40af",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#1e40af",
+                          borderWidth: 2,
+                        },
+                      },
+                      "& .MuiOutlinedInput-input": {
+                        color: "#1e293b",
+                        fontWeight: 600,
+                      },
+                    }}
+                  />
+                ) : (
+                  <Typography
+                    sx={{
+                      mt: 1,
+                      color: "#1e293b",
+                      fontWeight: 600,
+                      fontSize: "0.95rem",
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {editingRow?.customerAddress || "-"}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+
+            {/* FINANCIAL DETAILS SECTION */}
+            <Box sx={{ mb: 3 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
+              >
+                {[
+                  // { label: "Value of EMD", key: "valueOfEMD" },
+                  {
+                    label: "Value Without GST",
+                    key: "valueWithoutGST",
+                  },
+                  {
+                    label: "Value With GST",
+                    key: "valueWithGST",
+                  },
+                  // {
+                  //   label: "Order Won Value (Cr, w/o GST)",
+                  //   key: "orderWonValueInCrWithoutGST",
+                  // },
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            {/* TIMELINE SECTION */}
+            <Box sx={{ mb: 3 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(3, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
+              >
+                {[
+                  {
+                    label: "Order Received Date",
+                    key: "defenceOrCivil",
+                    isDate: true,
+                  },
+                  // { label: "Sole / Consortium", key: "soleOrConsortium" },
+                  {
+                    label: "PO/WO No.",
+                    key: "PoCoWoNo",
+                  },
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        type={field.isDate ? "datetime-local" : "text"}
+                        InputLabelProps={
+                          field.isDate ? { shrink: true } : undefined
+                        }
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            {/* STATUS & RESULTS SECTION */}
+            <Box sx={{ mb: 3 }}>
+              {/* <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 800,
+                  color: "#1e3a5f",
+                  mb: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  fontSize: "0.95rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
+                Status & Results
+              </Typography> */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(3, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
+              >
+                {[
+                  {
+                    label: "Competitors",
+                    key: "deliverySchedule",
+                  },
+                  { label: "Remarks", key: "remarks" },
+                  // { label: "Present Status", key: "presentStatus" },
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            
+          </Box>
         </DialogContent>
 
-        {/* ---------------- ACTIONS ---------------- */}
+        {/* DIALOG ACTIONS */}
         <DialogActions
           sx={{
-            px: 3,
-            py: 2,
-            background: "#f1f5ff",
-            borderTop: "1px solid rgba(59,130,246,0.25)",
+            background: "#f8fafc",
+            borderTop: "1px solid #e0e7ff",
+            p: 2.5,
+            gap: 1.5,
+          }}
+        >
+          {!isEditMode ? (
+            <>
+              <Button
+                onClick={handleEditCancel}
+                sx={{
+                  color: "#64748b",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.5px",
+                  backgroundColor: "#e2e8ff",
+                  "&:hover": {
+                    backgroundColor: "#e2e8f0",
+                  },
+                }}
+              >
+                Close
+              </Button>
+              <Button
+                onClick={handleEnterEditMode}
+                variant="contained"
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.5px",
+                  px: 3,
+                  "&:hover": {
+                    background:
+                      "linear-gradient(135deg, #1e3a5f 0%, #162e4a 100%)",
+                    boxShadow: "0 8px 24px rgba(30,64,95,0.3)",
+                  },
+                  "&:active": {
+                    transform: "scale(0.98)",
+                  },
+                }}
+              >
+                ✏️ Edit Details
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={handleCancelEdit}
+                sx={{
+                  color: "#64748b",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.5px",
+                  "&:hover": {
+                    backgroundColor: "#e2e8f0",
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleEditSave}
+                variant="contained"
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.5px",
+                  px: 3,
+                  "&:hover": {
+                    background:
+                      "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                    boxShadow: "0 8px 24px rgba(16,185,129,0.3)",
+                  },
+                  "&:active": {
+                    transform: "scale(0.98)",
+                  },
+                }}
+              >
+                💾 Save Changes
+              </Button>
+            </>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* CONFIRMATION DIALOG */}
+      <Dialog
+        open={confirmSaveOpen}
+        onClose={() => setConfirmSaveOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: "#ffffff",
+            boxShadow: "0 25px 50px rgba(0,0,0,0.2)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            color: "#1e3a5f",
+            background: "#f8fafc",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            borderBottom: "2px solid #fbbf24",
+          }}
+        >
+          <Box sx={{ fontSize: 28 }}>⚠️</Box>
+          <Box>
+            <Typography sx={{ fontWeight: 800, color: "#1e3a5f" }}>
+              Confirm Update
+            </Typography>
+            <Typography variant="caption" sx={{ color: "#64748b" }}>
+              Please review before saving
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
+          <Typography sx={{ color: "#475569", lineHeight: 1.6 }}>
+            You are about to update this tender record with the following
+            changes. This action will be synced to the database immediately.
+          </Typography>
+          <Box
+            sx={{
+              mt: 2.5,
+              p: 2,
+              background: "#f0f9ff",
+              border: "1px solid #bfdbfe",
+              borderRadius: 2,
+              color: "#1e3a5f",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+            }}
+          >
+            📌 Make sure all fields are correct before confirming.
+          </Box>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            background: "#f8fafc",
+            borderTop: "1px solid #e0e7ff",
+            p: 2,
+            gap: 1,
           }}
         >
           <Button
-            onClick={handleEditCancel}
+            onClick={() => setConfirmSaveOpen(false)}
             sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 3,
-              fontWeight: 600,
-              color: "#1e40af",
+              color: "#64748b",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              "&:hover": { backgroundColor: "#e2e8f0" },
             }}
           >
             Cancel
           </Button>
-
           <Button
+            onClick={handleConfirmSave}
             variant="contained"
-            onClick={handleEditSave}
-            startIcon={<CheckRounded />}
             sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 4,
+              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              color: "#ffffff",
               fontWeight: 700,
-              background:
-                "linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#1d4ed8 100%)",
-              boxShadow: "0 10px 25px rgba(59,130,246,0.45)",
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              px: 3,
               "&:hover": {
-                background:
-                  "linear-gradient(135deg,#1d4ed8 0%,#2563eb 50%,#1e40af 100%)",
+                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
               },
             }}
           >
-            Save Changes
+            ✓ Yes, Save Changes
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* READ-ONLY VIEW DIALOG */}
-      <Dialog
-        open={viewDialogOpen}
-        onClose={() => setViewDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 4,
-            overflow: "hidden",
-            background:
-              "linear-gradient(135deg, #f8fbff 0%, #eef5ff 50%, #e3eeff 100%)",
-            color: "#0f172a",
-            boxShadow: "0 25px 60px rgba(59,130,246,0.25)",
-          },
-        }}
-      >
-        {/* ---------------- TITLE ---------------- */}
-        <DialogTitle
-          sx={{
-            fontWeight: 800,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            px: 3,
-            py: 2,
-            color: "#0d47a1",
-            background: "linear-gradient(90deg,#e3f2fd,#f8fbff)",
-          }}
-        >
-          Budgetary Quotation – View Only
-          <IconButton
-            onClick={() => setViewDialogOpen(false)}
-            sx={{
-              color: "#1e40af",
-              "&:hover": { backgroundColor: "rgba(59,130,246,0.15)" },
-            }}
-          >
-            <CloseRounded />
-          </IconButton>
-        </DialogTitle>
-
-        {/* ---------------- CONTENT ---------------- */}
-        <DialogContent
-          dividers
-          sx={{
-            background: "#f8fbff",
-            borderColor: "rgba(59,130,246,0.25)",
-            px: 3,
-            py: 2.5,
-          }}
-        >
-          {viewRow && (
-            <Grid container spacing={2}>
-              {Object.entries(viewRow).map(([key, value]) => (
-                <Grid item xs={12} sm={6} key={key}>
-                  <TextField
-                    label={key}
-                    value={value ?? ""}
-                    fullWidth
-                    size="small"
-                    InputProps={{ readOnly: true }}
-                    sx={lightReadOnlyFieldSx}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </DialogContent>
-
-        {/* ---------------- ACTIONS ---------------- */}
-        <DialogActions
-          sx={{
-            px: 3,
-            py: 2,
-            background: "#f1f5ff",
-            borderTop: "1px solid rgba(59,130,246,0.25)",
-          }}
-        >
-          <Button
-            variant="contained"
-            onClick={() => setViewDialogOpen(false)}
-            sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 4,
-              fontWeight: 700,
-              background:
-                "linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#1d4ed8 100%)",
-              boxShadow: "0 10px 25px rgba(59,130,246,0.45)",
-              "&:hover": {
-                background:
-                  "linear-gradient(135deg,#1d4ed8 0%,#2563eb 50%,#1e40af 100%)",
-              },
-            }}
-          >
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-     
     </>
   );
 }
@@ -2142,17 +3000,35 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
   const [loading, setLoading] = useState(false);
   const [excelData, setExcelData] = useState([]);
 
+// defaultValues: {
+  //   projectTitle: "",
+  //   customerName: "",
+  //   customerAddress: "",
+  //   defenceOrCivil: "",
+  //   PoCoWoNo: "",
+  //   orderRxdDate: "",
+  //   qty: "",
+  //   valueWithoutGST: "",
+  //   valueWithGST: "",
+  //   tenderType: "",
+  //   deliverySchedule: "",
+  //   remarks: "",
+  //   JSON_competitors: "",
+
   const DB_COLUMNS = [
-    "contractName",
+    "projectTitle",
     "customerName",
     "customerAddress",
-    "orderReceivedDate",
-    "purchaseOrder",
-    "typeOfTender",
+    "defenceOrCivil",
+    "PoCoWoNo",
+    "orderRxdDate",
+    "qty",
     "valueWithoutGST",
     "valueWithGST",
-    "JSON_competitors",
+    "tenderType",
+    "deliverySchedule",
     "remarks",
+    "JSON_competitors",
     "contractCopy",
     // user info
     "OperatorId",
@@ -2162,16 +3038,19 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
   ];
 
   const DB_COLUMNS_MATCH = [
-    "contractName",
+    "projectTitle",
     "customerName",
     "customerAddress",
-    "orderReceivedDate",
-    "purchaseOrder",
-    "typeOfTender",
+    "defenceOrCivil",
+    "PoCoWoNo",
+    "orderRxdDate",
+    "qty",
     "valueWithoutGST",
     "valueWithGST",
-    "JSON_competitors",
+    "tenderType",
+    "deliverySchedule",
     "remarks",
+    "JSON_competitors",
     "contractCopy",
   ];
 
@@ -2315,7 +3194,8 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
   return (
     <Box
       sx={{
-        minHeight: "65vh",
+        mb: 5,
+        minHeight: "70vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -2327,6 +3207,7 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
       <Paper
         elevation={8}
         sx={{
+          mb: 8,
           width: "100%",
           maxWidth: 720,
           p: 4,
@@ -2346,7 +3227,7 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
             mb: 1,
           }}
         >
-          Upload  Order Received Excel
+          Upload Order Received Data
         </Typography>
 
         <Typography
@@ -2361,11 +3242,11 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
           system
         </Typography>
 
-
         {/* UPLOAD BOX */}
         {excelData.length === 0 && (
           <Box
             sx={{
+              mb: 5,
               border: "2px dashed #93c5fd",
               borderRadius: 4,
               p: { xs: 4, sm: 6 }, // ⬅️ MORE INNER SPACE
@@ -2384,16 +3265,24 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
             {/* ICON */}
             <Box
               sx={{
-                fontSize: 58,
-                color: "#3b82f6",
-                mb: 1,
-                transition: "transform 0.25s ease",
-                "&:hover": {
-                  transform: "scale(1.1)",
+                mb: 4,
+                animation: "float 3s ease-in-out infinite",
+                "@keyframes float": {
+                  "0%": { transform: "translateY(0px)" },
+                  "50%": { transform: "translateY(-8px)" },
+                  "100%": { transform: "translateY(0px)" },
                 },
               }}
             >
-              ☁️
+              <CloudQueueRoundedIcon
+                sx={{
+                  fontSize: 64,
+                  background: "linear-gradient(135deg, #93c5fd, #3b82f6)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  filter: "drop-shadow(0 8px 16px rgba(59,130,246,0.35))",
+                }}
+              />
             </Box>
 
             <Typography

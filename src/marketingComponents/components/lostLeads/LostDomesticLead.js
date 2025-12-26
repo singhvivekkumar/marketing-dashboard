@@ -33,6 +33,12 @@ import * as XLSX from "xlsx";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import CloudQueueRoundedIcon from "@mui/icons-material/CloudQueueRounded";
+
+
 import {
   SearchRounded,
   NorthRounded,
@@ -40,8 +46,6 @@ import {
   RestartAltRounded,
   EditRounded,
   DeleteRounded,
-  CloseRounded,
-  CheckRounded,
 } from "@mui/icons-material";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import { useForm, Controller } from "react-hook-form";
@@ -182,9 +186,9 @@ const LostForm = () => {
       const url = URL.createObjectURL(dataBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `lost-form-${submittedData.serialNumber || "entry"}-${
-        Date.now()
-      }.json`;
+      link.download = `lost-form-${
+        submittedData.serialNumber || "entry"
+      }-${Date.now()}.json`;
       link.click();
       URL.revokeObjectURL(url);
     }
@@ -195,18 +199,43 @@ const LostForm = () => {
     <Container
       maxWidth="xl"
       sx={{
-        py: 5,
-        minHeight: "100vh",
+        mt: -7,
+        py: 1,
+        minHeight: "85vh",
         background: "linear-gradient(135deg, #e3eeff 0%, #f8fbff 100%)",
         borderRadius: 4,
       }}
     >
+      {/* Title */}
+      <Typography
+        variant="h4"
+        sx={{
+          fontWeight: 700,
+          background: "linear-gradient(45deg, #0d47a1, #42a5f5, #1e88e5)",
+          WebkitBackgroundClip: "text",
+          color: "transparent",
+        }}
+      >
+        Lost Domestic Lead
+      </Typography>
+
+      <Divider
+        flexItem
+        sx={{
+          background: "linear-gradient(135deg, #0d47a1 , #42a5f5, #1e88e5)",
+          height: "4px",
+          mt: 3,
+        }}
+      />
+
+
       {/* ------------------------ TABS ------------------------ */}
       <Tabs
         value={value}
         onChange={(e, v) => setValue(v)}
         centered
         sx={{
+          md: 4,
           mb: 4,
           "& .MuiTab-root": {
             fontWeight: 700,
@@ -224,667 +253,662 @@ const LostForm = () => {
           },
         }}
       >
-        <Tab label="Create Data" />
-        <Tab label="View Data" />
-        <Tab label="Bulk Upload" />
+        <Tab
+            icon={<AddCircleOutlineRoundedIcon />}
+            iconPosition="start"
+            label="Create Data"
+          />
+          <Tab
+            icon={<VisibilityOutlinedIcon />}
+            iconPosition="start"
+            label="View Data"
+          />
+          <Tab
+            icon={<CloudUploadOutlinedIcon />}
+            iconPosition="start"
+            label="Bulk Upload"
+          />
       </Tabs>
 
       {/* ------------------------ CREATE FORM ------------------------ */}
       {value === 0 && (
         <Container maxWidth="lg">
-        <Paper
-          elevation={10}
-          sx={{
-            p: { xs: 2, md: 5 },
-            borderRadius: 5,
-            background: "rgba(255,255,255,0.85)",
-            backdropFilter: "blur(14px)",
-            transition: "0.3s",
-            boxShadow: "0 12px 32px rgba(0,0,0,0.10)",
-            "&:hover": { transform: "scale(1.01)" },
-          }}
-        >
-          {/* Title */}
-          <Box sx={{ textAlign: "center", mb: 4 }}>
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 900,
-                background:
-                  "linear-gradient(45deg, #0d47a1, #42a5f5, #1e88e5)",
-                WebkitBackgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              Lost Form
-            </Typography>
-            <Typography
-              variant="subtitle1"
-              sx={{ opacity: 0.7, mt: 1, fontWeight: 500 }}
-            >
-              Capture key details for tenders that were lost, for future
-              analysis and learning.
-            </Typography>
-          </Box>
-
-          {/* ------------------- FORM START ------------------- */}
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {/* ---------------- SECTION: BASIC INFO ---------------- */}
-            <Card
-              sx={{
-                mb: 4,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                },
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
-              >
-                📋 Basic Tender Details
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={3}>
-                {/* tenderName */}
-                <Grid item xs={12} sm={4}>
-                  <Controller
-                    name="tenderName"
-                    control={control}
-                    rules={{ required: "Tender Name is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Tender Name"
-                        fullWidth
-                        required
-                        error={!!errors.tenderName}
-                        helperText={errors.tenderName?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                            "&:hover": { boxShadow: "0 0 10px #bbdefb" },
-                            "&.Mui-focused": {
-                              boxShadow: "0 0 15px #90caf9",
-                            },
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* tenderReferenceNo */}
-                <Grid item xs={12} sm={4}>
-                  <Controller
-                    name="tenderReferenceNo"
-                    control={control}
-                    rules={{ required: "Tender Reference No is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Tender Reference No"
-                        fullWidth
-                        required
-                        error={!!errors.tenderReferenceNo}
-                        helperText={errors.tenderReferenceNo?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                            "&:hover": { boxShadow: "0 0 10px #bbdefb" },
-                            "&.Mui-focused": {
-                              boxShadow: "0 0 15px #90caf9",
-                            },
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* customerName */}
-                <Grid item xs={12} sm={4}>
-                  <Controller
-                    name="customerName"
-                    control={control}
-                    rules={{ required: "Customer Name is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Customer Name"
-                        fullWidth
-                        required
-                        error={!!errors.customerName}
-                        helperText={errors.customerName?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                            "&:hover": { boxShadow: "0 0 10px #bbdefb" },
-                            "&.Mui-focused": {
-                              boxShadow: "0 0 15px #90caf9",
-                            },
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* customerAddress */}
-                <Grid item xs={12} sm={6}>
-                  <Controller
-                    name="customerAddress"
-                    control={control}
-                    rules={{ required: "Customer Address is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Customer Address"
-                        fullWidth
-                        required
-                        error={!!errors.customerAddress}
-                        helperText={errors.customerAddress?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                            "&:hover": { boxShadow: "0 0 10px #bbdefb" },
-                            "&.Mui-focused": {
-                              boxShadow: "0 0 15px #90caf9",
-                            },
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* tenderType */}
-                <Grid item xs={12} sm={3}>
-                  <Controller
-                    name="tenderType"
-                    control={control}
-                    rules={{ required: "Tender Type is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        select
-                        label="Tender Type"
-                        fullWidth
-                        required
-                        error={!!errors.tenderType}
-                        helperText={errors.tenderType?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                            minWidth: 200,
-                          },
-                        }}
-                      >
-                        {tenderTypes.map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {option}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    )}
-                  />
-                </Grid>
-
-                {/* documentType */}
-                <Grid item xs={12} sm={3}>
-                  <Controller
-                    name="documentType"
-                    control={control}
-                    rules={{ required: "Document Type is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        select
-                        fullWidth
-                        label="Document Type"
-                        InputLabelProps={{ shrink: true }}
-                        error={!!errors.documentType}
-                        helperText={errors.documentType?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                            minWidth: 200,
-                          },
-                        }}
-                      >
-                        {documentTypeOptions.map((item) => (
-                          <MenuItem key={item} value={item}>
-                            {item}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </Card>
-
-            {/* ---------------- SECTION: FINANCIAL ---------------- */}
-            <Card
-              sx={{
-                mb: 4,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                },
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
-              >
-                💰 Financial Information
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={3}>
-                {/* valueInCrWithoutGST */}
-                <Grid item xs={12} sm={4}>
-                  <Controller
-                    name="valueInCrWithoutGST"
-                    control={control}
-                    rules={{
-                      required: "Value without GST is required",
-                      pattern: {
-                        value: /^[0-9]+(\.[0-9]+)?$/,
-                        message: "Please enter a valid number",
-                      },
-                    }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Value in CR without GST"
-                        type="number"
-                        fullWidth
-                        required
-                        error={!!errors.valueInCrWithoutGST}
-                        helperText={errors.valueInCrWithoutGST?.message}
-                        InputProps={{
-                          startAdornment: (
-                            <Typography sx={{ mr: 1 }}>₹</Typography>
-                          ),
-                        }}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* valueInCrWithGST */}
-                <Grid item xs={12} sm={4}>
-                  <Controller
-                    name="valueInCrWithGST"
-                    control={control}
-                    rules={{
-                      required: "Value with GST is required",
-                      pattern: {
-                        value: /^[0-9]+(\.[0-9]+)?$/,
-                        message: "Please enter a valid number",
-                      },
-                    }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Value in CR with GST"
-                        type="number"
-                        fullWidth
-                        required
-                        error={!!errors.valueInCrWithGST}
-                        helperText={errors.valueInCrWithGST?.message}
-                        InputProps={{
-                          startAdornment: (
-                            <Typography sx={{ mr: 1 }}>₹</Typography>
-                          ),
-                        }}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </Card>
-
-            {/* ---------------- SECTION: LOSS & COMPETITORS ---------------- */}
-            <Card
-              sx={{
-                mb: 4,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                },
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
-              >
-                📝 Loss Details & Competitors
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={3}>
-                {/* reasonForLossing */}
-                <Grid item xs={12} sm={6}>
-                  <Controller
-                    name="reasonForLossing"
-                    control={control}
-                    rules={{ required: "Reason for Lossing is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Reason for Losing"
-                        fullWidth
-                        required
-                        error={!!errors.reasonForLossing}
-                        helperText={errors.reasonForLossing?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* yearWeLost */}
-                <Grid item xs={12} sm={3}>
-                  <Controller
-                    name="yearWeLost"
-                    control={control}
-                    rules={{ required: "Year we Lost is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Year we Lost"
-                        fullWidth
-                        required
-                        error={!!errors.yearWeLost}
-                        helperText={errors.yearWeLost?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* partners */}
-                <Grid item xs={12} sm={3}>
-                  <Controller
-                    name="partners"
-                    control={control}
-                    rules={{ required: "Partners is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Partners"
-                        fullWidth
-                        required
-                        error={!!errors.partners}
-                        helperText={errors.partners?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* competitors */}
-                <Grid item xs={12}>
-                  <Controller
-                    name="competitors"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        label="Competitors (Optional)"
-                        multiline
-                        rows={3}
-                        fullWidth
-                        variant="outlined"
-                        placeholder="Enter competitor names separated by commas (e.g., Company A, Company B)"
-                        helperText="List all competing companies for this tender"
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </Card>
-
-            {/* ---------------- SECTION: SCORES ---------------- */}
-            <Card
-              sx={{
-                mb: 2,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                },
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
-              >
-                📊 Technical & Commercial
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={3}>
-                {/* technicalScore */}
-                <Grid item xs={12} md={4}>
-                  <Controller
-                    name="technicalScore"
-                    control={control}
-                    rules={{ required: "Technical Score is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Technical Score"
-                        InputLabelProps={{ shrink: true }}
-                        error={!!errors.technicalScore}
-                        helperText={errors.technicalScore?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* quotedPrice */}
-                <Grid item xs={12} md={4}>
-                  <Controller
-                    name="quotedPrice"
-                    control={control}
-                    rules={{ required: "Quoted Price is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Quoted Price"
-                        InputLabelProps={{ shrink: true }}
-                        error={!!errors.quotedPrice}
-                        helperText={errors.quotedPrice?.message}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 3,
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </Card>
-
-            {/* ---------------- BUTTONS ---------------- */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                gap: 3,
-                mt: 4,
-                flexWrap: "wrap",
-              }}
-            >
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                sx={{
-                  px: 6,
-                  py: 1.6,
-                  fontSize: "1.1rem",
-                  borderRadius: 3,
-                  fontWeight: 700,
-                  background: "linear-gradient(90deg, #1565c0, #42a5f5)",
-                  textTransform: "none",
-                  transition: "0.3s",
-                  "&:hover": {
-                    transform: "scale(1.05)",
-                    background: "linear-gradient(90deg, #0d47a1, #1e88e5)",
-                  },
-                }}
-              >
-                🚀 Submit Lost Form
-              </Button>
-
-              <Button
-                variant="outlined"
-                size="large"
-                onClick={handleReset}
-                sx={{
-                  px: 6,
-                  py: 1.6,
-                  fontSize: "1.1rem",
-                  borderRadius: 3,
-                  fontWeight: 700,
-                  borderWidth: 2,
-                  textTransform: "none",
-                  "&:hover": {
-                    transform: "scale(1.03)",
-                    background: "#f4f6fb",
-                  },
-                }}
-              >
-                Reset
-              </Button>
-            </Box>
-          </form>
-
-          {/* ---------------- SUCCESS SNACKBAR ---------------- */}
-          <Snackbar
-            open={submitSuccess}
-            autoHideDuration={6000}
-            onClose={handleCloseSnackbar}
-            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          <Paper
+            elevation={10}
+            sx={{
+              p: { xs: 2, md: 5 },
+              borderRadius: 5,
+              background: "rgba(255,255,255,0.85)",
+              backdropFilter: "blur(14px)",
+              transition: "0.3s",
+              boxShadow: "0 12px 32px rgba(0,0,0,0.10)",
+              "&:hover": { transform: "scale(1.01)" },
+            }}
           >
-            <Alert severity="success" sx={{ fontSize: "1rem" }}>
-              🎉 Lost form submitted successfully!
-            </Alert>
-          </Snackbar>
 
-          {/* ---------------- JSON OUTPUT ---------------- */}
-          {submittedData && (
-            <Box sx={{ mt: 5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                📊 Submitted Data (JSON)
-              </Typography>
-
-              <Paper
+            {/* ------------------- FORM START ------------------- */}
+            <form onSubmit={handleSubmit(onSubmit)}>
+              {/* ---------------- SECTION: BASIC INFO ---------------- */}
+              <Card
                 sx={{
+                  mt:-5,
+                  mb: 3,
                   p: 3,
-                  background: "#0d1117",
-                  color: "#c9d1d9",
                   borderRadius: 4,
-                  maxHeight: 500,
-                  overflow: "auto",
-                  fontFamily: "monospace",
-                  fontSize: "0.95rem",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  },
                 }}
               >
-                <pre>{JSON.stringify(submittedData, null, 2)}</pre>
-              </Paper>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                >
+                  📋 Basic Tender Details
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
 
-              <Button
-                variant="contained"
+                <Grid container spacing={3}>
+                  {/* tenderName */}
+                  <Grid item xs={12} sm={4}>
+                    <Controller
+                      name="tenderName"
+                      control={control}
+                      rules={{ required: "Tender Name is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Tender Name"
+                          fullWidth
+                          required
+                          error={!!errors.tenderName}
+                          helperText={errors.tenderName?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                              "&:hover": { boxShadow: "0 0 10px #bbdefb" },
+                              "&.Mui-focused": {
+                                boxShadow: "0 0 15px #90caf9",
+                              },
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* tenderReferenceNo */}
+                  <Grid item xs={12} sm={4}>
+                    <Controller
+                      name="tenderReferenceNo"
+                      control={control}
+                      rules={{ required: "Tender Reference No is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Tender Reference No"
+                          fullWidth
+                          required
+                          error={!!errors.tenderReferenceNo}
+                          helperText={errors.tenderReferenceNo?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                              "&:hover": { boxShadow: "0 0 10px #bbdefb" },
+                              "&.Mui-focused": {
+                                boxShadow: "0 0 15px #90caf9",
+                              },
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* customerName */}
+                  <Grid item xs={12} sm={4}>
+                    <Controller
+                      name="customerName"
+                      control={control}
+                      rules={{ required: "Customer Name is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Customer Name"
+                          fullWidth
+                          required
+                          error={!!errors.customerName}
+                          helperText={errors.customerName?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                              "&:hover": { boxShadow: "0 0 10px #bbdefb" },
+                              "&.Mui-focused": {
+                                boxShadow: "0 0 15px #90caf9",
+                              },
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* customerAddress */}
+                  <Grid item xs={12} sm={6}>
+                    <Controller
+                      name="customerAddress"
+                      control={control}
+                      rules={{ required: "Customer Address is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Customer Address"
+                          fullWidth
+                          required
+                          error={!!errors.customerAddress}
+                          helperText={errors.customerAddress?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                              "&:hover": { boxShadow: "0 0 10px #bbdefb" },
+                              "&.Mui-focused": {
+                                boxShadow: "0 0 15px #90caf9",
+                              },
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* tenderType */}
+                  <Grid item xs={12} sm={3}>
+                    <Controller
+                      name="tenderType"
+                      control={control}
+                      rules={{ required: "Tender Type is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          select
+                          label="Tender Type"
+                          fullWidth
+                          required
+                          error={!!errors.tenderType}
+                          helperText={errors.tenderType?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                              minWidth: 200,
+                            },
+                          }}
+                        >
+                          {tenderTypes.map((option) => (
+                            <MenuItem key={option} value={option}>
+                              {option}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      )}
+                    />
+                  </Grid>
+
+                  {/* documentType */}
+                  <Grid item xs={12} sm={3}>
+                    <Controller
+                      name="documentType"
+                      control={control}
+                      rules={{ required: "Document Type is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          select
+                          fullWidth
+                          label="Document Type"
+                          InputLabelProps={{ shrink: true }}
+                          error={!!errors.documentType}
+                          helperText={errors.documentType?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                              minWidth: 200,
+                            },
+                          }}
+                        >
+                          {documentTypeOptions.map((item) => (
+                            <MenuItem key={item} value={item}>
+                              {item}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Card>
+
+              {/* ---------------- SECTION: FINANCIAL ---------------- */}
+              <Card
                 sx={{
-                  mt: 2,
-                  background: "#2e7d32",
-                  "&:hover": { background: "#1b5e20" },
+                  mt:-1,
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 4,
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  },
                 }}
-                onClick={handleDownloadJSON}
               >
-                Download JSON
-              </Button>
-            </Box>
-          )}
-        </Paper></Container>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                >
+                  💰 Financial Information
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Grid container spacing={3}>
+                  {/* valueInCrWithoutGST */}
+                  <Grid item xs={12} sm={4}>
+                    <Controller
+                      name="valueInCrWithoutGST"
+                      control={control}
+                      rules={{
+                        required: "Value without GST is required",
+                        pattern: {
+                          value: /^[0-9]+(\.[0-9]+)?$/,
+                          message: "Please enter a valid number",
+                        },
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Value in CR without GST"
+                          type="number"
+                          fullWidth
+                          required
+                          error={!!errors.valueInCrWithoutGST}
+                          helperText={errors.valueInCrWithoutGST?.message}
+                          InputProps={{
+                            startAdornment: (
+                              <Typography sx={{ mr: 1 }}>₹</Typography>
+                            ),
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* valueInCrWithGST */}
+                  <Grid item xs={12} sm={4}>
+                    <Controller
+                      name="valueInCrWithGST"
+                      control={control}
+                      rules={{
+                        required: "Value with GST is required",
+                        pattern: {
+                          value: /^[0-9]+(\.[0-9]+)?$/,
+                          message: "Please enter a valid number",
+                        },
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Value in CR with GST"
+                          type="number"
+                          fullWidth
+                          required
+                          error={!!errors.valueInCrWithGST}
+                          helperText={errors.valueInCrWithGST?.message}
+                          InputProps={{
+                            startAdornment: (
+                              <Typography sx={{ mr: 1 }}>₹</Typography>
+                            ),
+                          }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Card>
+
+              {/* ---------------- SECTION: LOSS & COMPETITORS ---------------- */}
+              <Card
+                sx={{
+                  mt:-1,
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 4,
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  },
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                >
+                  📝 Loss Details & Competitors
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Grid container spacing={3}>
+                  {/* reasonForLossing */}
+                  <Grid item xs={12} sm={6}>
+                    <Controller
+                      name="reasonForLossing"
+                      control={control}
+                      rules={{ required: "Reason for Lossing is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Reason for Losing"
+                          fullWidth
+                          required
+                          error={!!errors.reasonForLossing}
+                          helperText={errors.reasonForLossing?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* yearWeLost */}
+                  <Grid item xs={12} sm={3}>
+                    <Controller
+                      name="yearWeLost"
+                      control={control}
+                      rules={{ required: "Year we Lost is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Year we Lost"
+                          fullWidth
+                          required
+                          error={!!errors.yearWeLost}
+                          helperText={errors.yearWeLost?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* partners */}
+                  <Grid item xs={12} sm={3}>
+                    <Controller
+                      name="partners"
+                      control={control}
+                      rules={{ required: "Partners is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Partners"
+                          fullWidth
+                          required
+                          error={!!errors.partners}
+                          helperText={errors.partners?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* competitors */}
+                  <Grid item xs={12}>
+                    <Controller
+                      name="competitors"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Competitors (Optional)"
+                          multiline
+                          rows={3}
+                          fullWidth
+                          variant="outlined"
+                          placeholder="Enter competitor names separated by commas (e.g., Company A, Company B)"
+                          helperText="List all competing companies for this tender"
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Card>
+
+              {/* ---------------- SECTION: SCORES ---------------- */}
+              <Card
+                sx={{
+                  mt:-1,
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 4,
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  },
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                >
+                  📊 Technical & Commercial
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Grid container spacing={3}>
+                  {/* technicalScore */}
+                  <Grid item xs={12} md={4}>
+                    <Controller
+                      name="technicalScore"
+                      control={control}
+                      rules={{ required: "Technical Score is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="Technical Score"
+                          InputLabelProps={{ shrink: true }}
+                          error={!!errors.technicalScore}
+                          helperText={errors.technicalScore?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* quotedPrice */}
+                  <Grid item xs={12} md={4}>
+                    <Controller
+                      name="quotedPrice"
+                      control={control}
+                      rules={{ required: "Quoted Price is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="Quoted Price"
+                          InputLabelProps={{ shrink: true }}
+                          error={!!errors.quotedPrice}
+                          helperText={errors.quotedPrice?.message}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 3,
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Card>
+
+              {/* ---------------- BUTTONS ---------------- */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 3,
+                  mt: 4,
+                  flexWrap: "wrap",
+                }}
+              >
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    px: 6,
+                    py: 1.6,
+                    fontSize: "1.1rem",
+                    borderRadius: 3,
+                    fontWeight: 700,
+                    maxWidth:180,
+                    background: "linear-gradient(90deg, #1565c0, #42a5f5)",
+                    textTransform: "none",
+                    transition: "0.3s",
+                    "&:hover": {
+                      transform: "scale(1.05)",
+                      background: "linear-gradient(90deg, #0d47a1, #1e88e5)",
+                    },
+                  }}
+                >
+                  Submit
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="large"
+                  onClick={handleReset}
+                  sx={{
+                    px: 6,
+                    py: 1.6,
+                    fontSize: "1.1rem",
+                    borderRadius: 3,
+                    fontWeight: 700,
+                    maxWidth:180,
+                    borderWidth: 2,
+                    textTransform: "none",
+                    "&:hover": {
+                      transform: "scale(1.03)",
+                      background: "#f4f6fb",
+                    },
+                  }}
+                >
+                  Reset
+                </Button>
+              </Box>
+            </form>
+
+            {/* ---------------- SUCCESS SNACKBAR ---------------- */}
+            <Snackbar
+              open={submitSuccess}
+              autoHideDuration={6000}
+              onClose={handleCloseSnackbar}
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+              <Alert severity="success" sx={{ fontSize: "1rem" }}>
+                🎉 Lost form submitted successfully!
+              </Alert>
+            </Snackbar>
+
+            {/* ---------------- JSON OUTPUT ---------------- */}
+            {submittedData && (
+              <Box sx={{ mt: 5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  📊 Submitted Data (JSON)
+                </Typography>
+
+                <Paper
+                  sx={{
+                    p: 3,
+                    background: "#0d1117",
+                    color: "#c9d1d9",
+                    borderRadius: 4,
+                    maxHeight: 500,
+                    overflow: "auto",
+                    fontFamily: "monospace",
+                    fontSize: "0.95rem",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  <pre>{JSON.stringify(submittedData, null, 2)}</pre>
+                </Paper>
+
+                <Button
+                  variant="contained"
+                  sx={{
+                    mt: 2,
+                    background: "#2e7d32",
+                    "&:hover": { background: "#1b5e20" },
+                  }}
+                  onClick={handleDownloadJSON}
+                >
+                  Download JSON
+                </Button>
+              </Box>
+            )}
+          </Paper>
+        </Container>
       )}
 
       {/* ------------------------ VIEW DATA ------------------------ */}
       {value === 1 && orderData && <ViewLostData ViewData={orderData} />}
 
-
       {/* ------------------------ BULK UPLOAD ------------------------ */}
       {value === 2 && (
         <ExcelUploadAndValidate user={user} ServerIp={ServerIp} />
       )}
-
     </Container>
   );
 };
@@ -904,6 +928,9 @@ function ViewLostData(props) {
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
+  const [tempEditingRow, setTempEditingRow] = useState(null);
 
   // COLUMN VISIBILITY STATE
   const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
@@ -930,6 +957,7 @@ function ViewLostData(props) {
 
   // COLUMN DEFINITIONS
   const leadColumns = [
+    { id: "actions", label: "Actions" },
     { id: "tenderName", label: "Tender Name" },
     { id: "tenderReferenceNo", label: "Tender Reference No" },
     { id: "customerName", label: "Customer Name" },
@@ -945,7 +973,7 @@ function ViewLostData(props) {
     { id: "technicalScores", label: "Technical Score" },
     { id: "quotedPrices", label: "Quoted Price" },
     { id: "dateCreated", label: "Created Date" },
-    { id: "actions", label: "Actions" },
+    
   ];
 
   // COLUMN HANDLERS
@@ -1000,6 +1028,47 @@ function ViewLostData(props) {
     setEditingRow(null);
   };
 
+   // ENTER EDIT MODE
+   const handleEnterEditMode = () => {
+    setIsEditMode(true);
+  };
+
+   // CONFIRM AND SAVE TO BACKEND
+   const handleConfirmSave = async () => {
+    try {
+      console.log("Saving updated row:", editingRow);
+
+      // Mock API call - Replace with real API endpoint
+      const mockApiResponse = await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            success: true,
+            message: "Record updated successfully",
+            data: editingRow,
+          });
+        }, 800);
+      });
+
+      if (mockApiResponse.success) {
+        console.log("Backend Response:", mockApiResponse);
+        alert("Changes saved successfully!");
+        setConfirmSaveOpen(false);
+        setEditDialogOpen(false);
+        setIsEditMode(false);
+        setEditingRow(null);
+      }
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      alert("Failed to save changes. Please try again.");
+    }
+  };
+
+  // CANCEL EDIT MODE
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditingRow({ ...tempEditingRow });
+  };
+
   const handleEditSave = () => {
     console.log("Saving updated lost row:", editingRow);
     // TODO: update to backend as needed
@@ -1012,6 +1081,44 @@ function ViewLostData(props) {
     console.log("Deleting lost row with ID:", id);
     // TODO: delete logic here
   };
+
+  //  // DOUBLE CLICK → OPEN READ-ONLY VIEW
+  //  const handleRowDoubleClick = (row) => {
+  //   setViewRow(row);
+  //   setViewDialogOpen(true);
+  // };
+
+  // ===== TABLE STYLES =====
+  const headerCellStyle = {
+    fontWeight: 800,
+    fontSize: 13,
+    color: "#ecfeff",
+    background:"linear-gradient(90deg, #001F54, #034078)",
+      // "linear-gradient(90deg, #0a47e0ff 0%, #1453b7ff 50%, #81a6daff 100%)",
+    borderBottom: "none",
+    whiteSpace: "nowrap",
+  };
+
+  const bodyCellStyle = {
+    fontSize: 13,
+    color: "#111827",
+    whiteSpace: "nowrap",
+    textOverflow: "ellipsis",
+    overflow: "hidden",
+  };
+
+  const ellipsisCell = {
+    ...bodyCellStyle,
+    maxWidth: 180,
+  };
+
+  const actionHeaderStyle = {
+    ...headerCellStyle,
+    textAlign: "center",
+    minWidth: 140,
+    maxWidth: 150
+  };
+
 
   const yearsList = ["all", "2021", "2022", "2023", "2024", "2025"];
 
@@ -1054,15 +1161,15 @@ function ViewLostData(props) {
                   gap: 1,
                 }}
               >
-                User Profile Created List
+                Lost Domestic Leads List
               </Typography>
-              <Typography
+              {/* <Typography
                 variant="body2"
                 sx={{ opacity: 0.85, mt: 0.5, maxWidth: 520 }}
               >
                 View, search, filter and manage all lost tender entries in a
                 single, elegant dashboard.
-              </Typography>
+              </Typography> */}
             </Box>
 
             {/* SEARCH BOX */}
@@ -1102,75 +1209,83 @@ function ViewLostData(props) {
               }}
             />
 
-              {/* select columns to view in table */}
-              <Tooltip title="Select columns to display">
-                <IconButton
-                  onClick={handleColumnMenuOpen}
+            {/* select columns to view in table */}
+            <Tooltip title="Select columns to display">
+              <IconButton
+                onClick={handleColumnMenuOpen}
+                sx={{
+                  borderRadius: 2.5,
+                  border: "2px solid #1e40af",
+                  backgroundColor: "rgba(30,64,175,0.08)",
+                  color: "#1e40af",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: "rgba(30,64,175,0.15)",
+                    transform: "scale(1.05)",
+                  },
+                  maxWidth: 50,
+                }}
+              >
+                <ViewColumnIcon />
+              </IconButton>
+            </Tooltip>
+
+            {/* COLUMN VISIBILITY MENU */}
+            <Menu
+              anchorEl={columnMenuAnchor}
+              open={columnMenuOpen}
+              onClose={handleColumnMenuClose}
+              PaperProps={{
+                sx: {
+                  borderRadius: 2,
+                  minWidth: 280,
+                  maxHeight: 400,
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+                },
+              }}
+            >
+              {leadColumns.map((col) => (
+                <Box
+                  key={col.id}
+                  onClick={() => handleColumnToggle(col.id)}
                   sx={{
-                    borderRadius: 2.5,
-                    border: "2px solid #1e40af",
-                    backgroundColor: "rgba(30,64,175,0.08)",
-                    color: "#1e40af",
-                    transition: "all 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    px: 2,
+                    py: 1,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
                     "&:hover": {
-                      backgroundColor: "rgba(30,64,175,0.15)",
-                      transform: "scale(1.05)",
+                      backgroundColor: "rgba(30,64,175,0.08)",
                     },
                   }}
                 >
-                  <ViewColumnIcon />
-                </IconButton>
-              </Tooltip>
-
-              {/* COLUMN VISIBILITY MENU */}
-              <Menu
-                anchorEl={columnMenuAnchor}
-                open={columnMenuOpen}
-                onClose={handleColumnMenuClose}
-                PaperProps={{
-                  sx: {
-                    borderRadius: 2,
-                    minWidth: 280,
-                    maxHeight: 400,
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-                  },
-                }}
-              >
-                {leadColumns.map((col) => (
-                  <Box
-                    key={col.id}
-                    onClick={() => handleColumnToggle(col.id)}
+                  <Checkbox
+                    checked={visibleColumns[col.id]}
+                    onChange={() => {}}
+                    size="small"
                     sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      px: 2,
-                      py: 1,
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                      "&:hover": {
-                        backgroundColor: "rgba(30,64,175,0.08)",
+                      color: "#1e40af",
+                      "&.Mui-checked": {
+                        color: "#1e40af",
                       },
                     }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: 13, color: "#0f172a" }}
                   >
-                    <Checkbox
-                      checked={visibleColumns[col.id]}
-                      onChange={() => {}}
-                      size="small"
-                      sx={{
-                        color: "#1e40af",
-                        "&.Mui-checked": {
-                          color: "#1e40af",
-                        },
-                      }}
-                    />
-                    <Typography variant="body2" sx={{ fontSize: 13, color: "#0f172a" }}>
-                      {col.label}
-                    </Typography>
-                  </Box>
-                ))}
-              </Menu>
+                    {col.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Menu>
+
           </Box>
+
+
+          
 
           {/* FILTERS + SORT */}
           <Box
@@ -1302,6 +1417,7 @@ function ViewLostData(props) {
                   "&:hover": {
                     backgroundColor: "rgba(224,242,254,1)",
                   },
+                  maxWidth: 50
                 }}
               >
                 {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
@@ -1325,6 +1441,7 @@ function ViewLostData(props) {
                 backgroundColor: "rgba(255,255,255,0.85)",
                 backdropFilter: "blur(6px)",
                 boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                maxWidth: 130,
                 transition: "0.2s ease",
                 "&:hover": {
                   backgroundColor: "#d0eaff",
@@ -1360,7 +1477,20 @@ function ViewLostData(props) {
             minWidth: "100%",
           }}
         >
-          <Table stickyHeader aria-label="lost tenders table" size="small">
+          <Table
+            stickyHeader
+            size="small"
+            sx={{
+              borderCollapse: "separate",
+              borderSpacing: 0,
+              "& th, & td": {
+                borderRight: "1px solid rgba(203,213,225,0.8)",
+              },
+              "& th:last-child, & td:last-child": {
+                borderRight: "none",
+              },
+            }}
+          >
             <TableHead>
               <TableRow>
                 {leadColumns.map(
@@ -1370,11 +1500,12 @@ function ViewLostData(props) {
                         key={col.id}
                         align={col.id === "actions" ? "center" : "left"}
                         sx={{
+                          ...headerCellStyle,
                           fontWeight: 800,
                           fontSize: 13,
                           color: "#f9fafb",
-                          background:
-                            "linear-gradient(90deg,#0ea5e9 0%,#2563eb 50%,#4f46e5 100%)",
+                          // background:
+                          //   "linear-gradient(90deg,#0ea5e9 0%,#2563eb 50%,#4f46e5 100%)",
                           borderBottom: "none",
                           whiteSpace: "nowrap",
                           ...(col.id === "customerAddress"
@@ -1464,6 +1595,56 @@ function ViewLostData(props) {
                       {leadColumns.map((col) => {
                         if (!visibleColumns[col.id]) return null;
 
+                        // RENDER ACTIONS
+                        if (col.id === "actions") {
+                          return (
+                            <TableCell key={col.id} align="center">
+                              <Stack
+                                direction="row"
+                                spacing={1}
+                                justifyContent="center"
+                                alignItems="center"
+                              >
+                                <Tooltip title="Edit">
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => handleEditClick(row, e)}
+                                    sx={{
+                                      borderRadius: 2,
+                                      backgroundColor: "rgba(59,130,246,0.12)",
+                                      "&:hover": {
+                                        backgroundColor:
+                                          "rgba(59,130,246,0.25)",
+                                      },
+                                      maxWidth: 40
+                                    }}
+                                  >
+                                    <EditRounded fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) =>
+                                      handleDeleteClick(row.id, e)
+                                    }
+                                    sx={{
+                                      borderRadius: 2,
+                                      backgroundColor: "rgba(239,68,68,0.12)",
+                                      "&:hover": {
+                                        backgroundColor: "rgba(239,68,68,0.25)",
+                                      },
+                                      maxWidth: 40
+                                    }}
+                                  >
+                                    <DeleteRounded fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Stack>
+                            </TableCell>
+                          );
+                        }
+
                         // RENDER TENDER NAME AS HEADER
                         if (col.id === "tenderName") {
                           return (
@@ -1507,7 +1688,11 @@ function ViewLostData(props) {
                         // RENDER TENDER TYPE & DOCUMENT TYPE AS CHIPS
                         if (col.id === "tenderType") {
                           return (
-                            <TableCell key={col.id} align="left" sx={{ fontSize: 13 }}>
+                            <TableCell
+                              key={col.id}
+                              align="left"
+                              sx={{ fontSize: 13 }}
+                            >
                               <Chip
                                 size="small"
                                 label={row.tenderType || "-"}
@@ -1525,7 +1710,11 @@ function ViewLostData(props) {
 
                         if (col.id === "documentType") {
                           return (
-                            <TableCell key={col.id} align="left" sx={{ fontSize: 13 }}>
+                            <TableCell
+                              key={col.id}
+                              align="left"
+                              sx={{ fontSize: 13 }}
+                            >
                               <Chip
                                 size="small"
                                 label={row.documentType || "-"}
@@ -1541,50 +1730,7 @@ function ViewLostData(props) {
                           );
                         }
 
-                        // RENDER ACTIONS
-                        if (col.id === "actions") {
-                          return (
-                            <TableCell key={col.id} align="center">
-                              <Stack
-                                direction="row"
-                                spacing={1}
-                                justifyContent="center"
-                                alignItems="center"
-                              >
-                                <Tooltip title="Edit">
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => handleEditClick(row, e)}
-                                    sx={{
-                                      borderRadius: 2,
-                                      backgroundColor: "rgba(59,130,246,0.12)",
-                                      "&:hover": {
-                                        backgroundColor: "rgba(59,130,246,0.25)",
-                                      },
-                                    }}
-                                  >
-                                    <EditRounded fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => handleDeleteClick(row.id, e)}
-                                    sx={{
-                                      borderRadius: 2,
-                                      backgroundColor: "rgba(239,68,68,0.12)",
-                                      "&:hover": {
-                                        backgroundColor: "rgba(239,68,68,0.25)",
-                                      },
-                                    }}
-                                  >
-                                    <DeleteRounded fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </Stack>
-                            </TableCell>
-                          );
-                        }
+                        
 
                         // RENDER OTHER COLUMNS
                         return (
@@ -1607,7 +1753,13 @@ function ViewLostData(props) {
                   ))}
               {(!props.ViewData.data || props.ViewData.data.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={leadColumns.filter((c) => visibleColumns[c.id]).length} align="center" sx={{ py: 4 }}>
+                  <TableCell
+                    colSpan={
+                      leadColumns.filter((c) => visibleColumns[c.id]).length
+                    }
+                    align="center"
+                    sx={{ py: 4 }}
+                  >
                     <Typography variant="body1" sx={{ color: "#6b7280" }}>
                       No lost tenders found.
                     </Typography>
@@ -1619,22 +1771,24 @@ function ViewLostData(props) {
         </TableContainer>
       </Box>
 
-      {/* EDIT DIALOG */}
-      <Dialog
+     {/* EDIT DIALOG - VIEW MODE & EDIT MODE - PROFESSIONAL BLUE THEME */}
+     <Dialog
         open={editDialogOpen}
         onClose={handleEditCancel}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 4,
+            borderRadius: 3,
             overflow: "hidden",
-            background:
-              "linear-gradient(135deg,#020617 0%,#0f172a 40%,#1d4ed8 100%)",
-            color: "#e5e7eb",
+            background: "#ffffff",
+            boxShadow:
+              "0 25px 50px rgba(0,0,0,0.15), 0 10px 30px rgba(30,64,95,0.2)",
+            maxHeight: "80vh",
           },
         }}
       >
+        {/* HEADER */}
         <DialogTitle
           sx={{
             fontWeight: 800,
@@ -1642,368 +1796,1075 @@ function ViewLostData(props) {
             alignItems: "center",
             justifyContent: "space-between",
             pr: 2,
-          }}
-        >
-          Edit Lost Entry
-          <IconButton
-            onClick={handleEditCancel}
-            sx={{
-              color: "#9ca3af",
-              "&:hover": { color: "#f9fafb", backgroundColor: "transparent" },
+            background: isEditMode
+            ? "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)" // ORANGE (Edit)
+            : "linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%)", // BLUE (View)
+            color: "#ffffff",
+            borderBottom: isEditMode
+            ? "3px solid #fb923c"
+            : "3px solid #60a5fa",
+            py: 2.5,
+            transition: "all 0.3s ease", // smooth color change
             }}
-          >
-            <CloseRounded />
-          </IconButton>
+        >
+          {/* title and heading */}
+          <Box display="flex" alignItems="center" gap={4}>
+            <Box
+              sx={{
+                fontSize: 28,
+                fontWeight: 800,
+              }}
+            >
+              📋
+            </Box>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 800, color: "#ffffff" }}
+              >
+                {editingRow?.tenderName || "Lead Details"}
+              </Typography>
+              {/* <Typography variant="caption" sx={{ color: "#bfdbfe", mt: 0.5 }}>
+                Reference: {editingRow?.tenderReferenceNo || "N/A"}
+              </Typography> */}
+            </Box>
+          </Box>
+
+          <Box display="flex" alignItems="center" gap={2}>
+            <Chip
+              label={isEditMode ? "EDIT MODE" : "VIEW MODE"}
+              size="small"
+              sx={{
+                fontWeight: 700,
+                fontSize: "0.75rem",
+                background: isEditMode ? "#fbbf24" : "#60a5fa",
+                color: isEditMode ? "#1f2937" : "#ffffff",
+                mr: 8,
+              }}
+            />
+            {/* This is for close the dialog box "x" */}
+            {/* <IconButton
+              onClick={handleEditCancel}
+              sx={{
+                color: "#ffffff",
+                mr: 8,
+                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+              }}
+            >
+              <CloseRounded />
+            </IconButton> */}
+          </Box>
         </DialogTitle>
 
+        {/* defaultValues: {
+      tenderName: "",
+      tenderReferenceNo: "",
+      customerName: "",
+      customerAddress: "",
+      tenderType: "",
+      documentType: "",
+      valueInCrWithoutGST: "",
+      valueInCrWithGST: "",
+      reasonForLossing: "",
+      yearWeLost: "",
+      partners: "",
+      competitors: "",
+      technicalScore: "",
+      quotedPrice: "",
+    }, */}
+
+        {/* CONTENT - TABULAR MATRIX FORMAT */}
         <DialogContent
-          dividers
           sx={{
-            borderColor: "rgba(148,163,184,0.4)",
-            background: "rgba(15,23,42,0.85)",
+            background: "#f8fafc",
+            p: 0,
+            maxHeight: "calc(90vh - 130px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+            "&::-webkit-scrollbar": {
+              width: "8px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "#e2e8f0",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#94a3b8",
+              borderRadius: "4px",
+            },
+            "@media (max-height: 800px)": {
+              maxHeight: "calc(85vh - 130px)",
+            },
           }}
         >
-          <Grid container spacing={2} sx={{ mt: 0.5 }}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Tender Name"
-                value={editingRow?.tenderName || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("tenderName", e.target.value)
-                }
-                fullWidth
-                size="small"
+          <Box sx={{ p: 1.5 }}>
+            {/* TENDER INFORMATION SECTION */}
+            <Box sx={{ mb: 3 }}>
+              {/* <Typography
+                variant="subtitle1"
                 sx={{
+                  fontWeight: 800,
+                  color: "#1e3a5f",
                   mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
-                  },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  fontSize: "0.95rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
                 }}
-              />
-            </Grid>
+              >
+                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
+                Tender Information
+              </Typography> */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
+              >
+                {[
+                  { label: "Tender Name", key: "tenderName" },
+                  { label: "Tender Reference No", key: "tenderReferenceNo" },
+                  { label: "Document Type", key: "documentType" },
+                  { label: "Tender Type", key: "tenderType", isDate: true },
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        type={field.isDate ? "date" : "text"}
+                        InputLabelProps={
+                          field.isDate ? { shrink: true } : undefined
+                        }
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Tender Reference No"
-                value={editingRow?.tenderReferenceNo || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("tenderReferenceNo", e.target.value)
-                }
-                fullWidth
-                size="small"
+            {/* CUSTOMER INFORMATION SECTION */}
+            <Box sx={{ mb: 3 }}>
+              {/* <Typography
+                variant="subtitle1"
                 sx={{
+                  fontWeight: 800,
+                  color: "#1e3a5f",
                   mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
-                  },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  fontSize: "0.95rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
                 }}
-              />
-            </Grid>
+              >
+                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
+                Customer Information
+              </Typography> */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
+              >
+                {[
+                  { label: "Customer Name", key: "customerName" },
+                  // { label: "Lead Owner", key: "leadOwner" },
+                  // { label: "Civil / Defence", key: "civilOrDefence" },
+                  // { label: "Business Domain", key: "businessDomain" },
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Customer Name"
-                value={editingRow?.customerName || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("customerName", e.target.value)
-                }
-                fullWidth
-                size="small"
+              {/* Customer Address - Full Width */}
+              <Box
                 sx={{
-                  mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
+                  background: "#ffffff",
+                  border: "1px solid #e0e7ff",
+                  borderRadius: 2,
+                  p: 2,
+                  mt: 2,
+                  "&:hover": {
+                    borderColor: "#60a5fa",
+                    boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
                   },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
+                  transition: "all 0.2s ease",
                 }}
-              />
-            </Grid>
+              >
+                {/* <Typography
+                  variant="caption"
+                  sx={{
+                    color: "#64748b",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    fontSize: "0.7rem",
+                  }}
+                >
+                  Customer Address
+                </Typography> */}
+                {isEditMode ? (
+                  <TextField
+                    value={editingRow?.customerAddress || ""}
+                    onChange={(e) =>
+                      handleEditFieldChange("customerAddress", e.target.value)
+                    }
+                    fullWidth
+                    size="small"
+                    multiline
+                    minRows={2}
+                    sx={{
+                      mt: 1,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 1.5,
+                        background: "#ffffff",
+                        "& fieldset": {
+                          borderColor: "#60a5fa",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "#1e40af",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#1e40af",
+                          borderWidth: 2,
+                        },
+                      },
+                      "& .MuiOutlinedInput-input": {
+                        color: "#1e293b",
+                        fontWeight: 600,
+                      },
+                    }}
+                  />
+                ) : (
+                  <Typography
+                    sx={{
+                      mt: 1,
+                      color: "#1e293b",
+                      fontWeight: 600,
+                      fontSize: "0.95rem",
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {editingRow?.customerAddress || "-"}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
 
-            <Grid item xs={12}>
-              <TextField
-                label="Customer Address"
-                value={editingRow?.customerAddress || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("customerAddress", e.target.value)
-                }
-                fullWidth
-                size="small"
-                multiline
-                minRows={2}
+            {/* FINANCIAL DETAILS SECTION */}
+            <Box sx={{ mb: 3 }}>
+              {/* <Typography
+                variant="subtitle1"
                 sx={{
+                  fontWeight: 800,
+                  color: "#1e3a5f",
                   mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
-                  },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  fontSize: "0.95rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
                 }}
-              />
-            </Grid>
+              >
+                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
+                Financial Details
+              </Typography> */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
+              >
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Tender Type"
-                value={editingRow?.tenderType || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("tenderType", e.target.value)
-                }
-                fullWidth
-                size="small"
-                sx={{
-                  mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
+                {[
+                  // { label: "Value of EMD", key: "valueOfEMD" },
+                  {
+                    label: "Value in Crore without GST",
+                    key: "valueInCrWithoutGST",
                   },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
-                }}
-              />
-            </Grid>
+                  {
+                    label: "Value in Crore with GST",
+                    key: "valueInCrWithGST",
+                  },
+                  // {
+                  //   label: "Order Won Value (Cr, w/o GST)",
+                  //   key: "orderWonValueInCrWithoutGST",
+                  // },
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Document Type"
-                value={editingRow?.documentType || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("documentType", e.target.value)
-                }
-                fullWidth
-                size="small"
+            {/* TIMELINE SECTION */}
+            <Box sx={{ mb: 3 }}>
+              {/* <Typography
+                variant="subtitle1"
                 sx={{
+                  fontWeight: 800,
+                  color: "#1e3a5f",
                   mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
-                  },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  fontSize: "0.95rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
                 }}
-              />
-            </Grid>
+              >
+                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
+                Timeline
+              </Typography> */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(3, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
+              >
+                {[
+                  {
+                    label: "Year We Lost",
+                    key: "yearWeLost",
+                    isDate: true,
+                  },
+                  // { label: "Sole / Consortium", key: "soleOrConsortium" },
+                  // {
+                  //   label: "Pre-Bid Meeting Date & Time",
+                  //   key: "prebidMeetingDateTime",
+                  // },
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        type={field.isDate ? "datetime-local" : "text"}
+                        InputLabelProps={
+                          field.isDate ? { shrink: true } : undefined
+                        }
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Value in CR (w/o GST)"
-                value={editingRow?.valueInCrWithoutGST || ""}
-                onChange={(e) =>
-                  handleEditFieldChange(
-                    "valueInCrWithoutGST",
-                    e.target.value
-                  )
-                }
-                fullWidth
-                size="small"
+            {/* STATUS & RESULTS SECTION */}
+            <Box sx={{ mb: 3 }}>
+              {/* <Typography
+                variant="subtitle1"
                 sx={{
+                  fontWeight: 800,
+                  color: "#1e3a5f",
                   mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
-                  },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  fontSize: "0.95rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
                 }}
-              />
-            </Grid>
+              >
+                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
+                Status & Results
+              </Typography> */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(3, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
+              >
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Value in CR (with GST)"
-                value={editingRow?.valueWithGST || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("valueWithGST", e.target.value)
-                }
-                fullWidth
-                size="small"
-                sx={{
-                  mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
+                {[
+                  {
+                    label: "Competitor",
+                    key: "competitors",
                   },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
-                }}
-              />
-            </Grid>
+                  {
+                    label: "Partners",
+                    key: "partners",
+                  },
+                  { label: "Remarks", key: "reasonForLossing" },
+                  // { label: "Present Status", key: "presentStatus" },
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
 
-            <Grid item xs={12}>
-              <TextField
-                label="Reason for Losing"
-                value={editingRow?.reasonLosing || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("reasonLosing", e.target.value)
-                }
-                fullWidth
-                size="small"
-                multiline
-                minRows={2}
+            {/* ADDITIONAL INFORMATION SECTION */}
+            {/* <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="subtitle1"
                 sx={{
+                  fontWeight: 800,
+                  color: "#1e3a5f",
                   mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
-                  },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  fontSize: "0.95rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
                 }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <TextField
-                label="Year we Lost"
-                value={editingRow?.year || ""}
-                onChange={(e) => handleEditFieldChange("year", e.target.value)}
-                fullWidth
-                size="small"
+              >
+                <Box sx={{ width: 4, height: 20, background: "#1e40af", borderRadius: 1 }} />
+                Additional Information
+              </Typography>
+              <Box
                 sx={{
-                  mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(3, 1fr)",
                   },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
+                  gap: 1.5,
                 }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <TextField
-                label="Partners"
-                value={editingRow?.partner || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("partner", e.target.value)
-                }
-                fullWidth
-                size="small"
-                sx={{
-                  mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
+              >
+                {[
+                  { label: "Competitors Info", key: "competitorsInfo" },
+                  {
+                    label: "Reason for Losing/Participating",
+                    key: "reasonForLossingOpp",
                   },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <TextField
-                label="Competitors"
-                value={editingRow?.competitors || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("competitors", e.target.value)
-                }
-                fullWidth
-                size="small"
-                sx={{
-                  mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
+                  {
+                    label: "Corrigendums Date / File",
+                    key: "corrigendumsDateFile",
                   },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Technical Score"
-                value={editingRow?.technicalScores || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("technicalScores", e.target.value)
-                }
-                fullWidth
-                size="small"
-                sx={{
-                  mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
-                  },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Quoted Price"
-                value={editingRow?.quotedPrices || ""}
-                onChange={(e) =>
-                  handleEditFieldChange("quotedPrices", e.target.value)
-                }
-                fullWidth
-                size="small"
-                sx={{
-                  mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    color: "#e5e7eb",
-                    backgroundColor: "rgba(15,23,42,0.85)",
-                  },
-                  "& .MuiInputLabel-root": { color: "#9ca3af" },
-                }}
-              />
-            </Grid>
-          </Grid>
+                ].map((field) => (
+                  <Box
+                    key={field.key}
+                    sx={{
+                      background: "#ffffff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: 2,
+                      p: 2,
+                      "&:hover": {
+                        borderColor: "#60a5fa",
+                        boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      {field.label}
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        value={editingRow?.[field.key] || ""}
+                        onChange={(e) =>
+                          handleEditFieldChange(field.key, e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        multiline
+                        minRows={2}
+                        sx={{
+                          mt: 1,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 1.5,
+                            background: "#ffffff",
+                            "& fieldset": {
+                              borderColor: "#60a5fa",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "#1e40af",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#1e40af",
+                              borderWidth: 2,
+                            },
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: "#1e293b",
+                            fontWeight: 600,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          color: "#1e293b",
+                          fontWeight: 600,
+                          fontSize: "0.95rem",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {editingRow?.[field.key] || "-"}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box> */}
+            
+          </Box>
         </DialogContent>
 
+
+        {/* DIALOG ACTIONS */}
         <DialogActions
           sx={{
-            px: 3,
-            py: 2,
-            borderTop: "1px solid rgba(148,163,184,0.4)",
-            background: "rgba(15,23,42,0.95)",
+            background: "#f8fafc",
+            borderTop: "1px solid #e0e7ff",
+            p: 2.5,
+            gap: 1.5,
+          }}
+        >
+          {!isEditMode ? (
+            <>
+              <Button
+                onClick={handleEditCancel}
+                sx={{
+                  color: "#64748b",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  fontSize: "0.85rem",
+                  maxwidth: 120,
+                  letterSpacing: "0.5px",
+                  backgroundColor: "#e2e8ff",
+                  "&:hover": {
+                    backgroundColor: "#e2e8f0",
+                  },
+                }}
+              >
+                Close
+              </Button>
+              <Button
+                onClick={handleEnterEditMode}
+                variant="contained"
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.5px",
+                  px: 3,
+                  "&:hover": {
+                    background:
+                      "linear-gradient(135deg, #1e3a5f 0%, #162e4a 100%)",
+                    boxShadow: "0 8px 24px rgba(30,64,95,0.3)",
+                  },
+                  "&:active": {
+                    transform: "scale(0.98)",
+                  },
+                }}
+              >
+                ✏️ Edit Details
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={handleCancelEdit}
+                sx={{
+                  color: "#64748b",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.5px",
+                  "&:hover": {
+                    backgroundColor: "#e2e8f0",
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleEditSave}
+                variant="contained"
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.5px",
+                  px: 3,
+                  "&:hover": {
+                    background:
+                      "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                    boxShadow: "0 8px 24px rgba(16,185,129,0.3)",
+                  },
+                  "&:active": {
+                    transform: "scale(0.98)",
+                  },
+                }}
+              >
+                💾 Save Changes
+              </Button>
+            </>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* CONFIRMATION DIALOG */}
+      <Dialog
+        open={confirmSaveOpen}
+        onClose={() => setConfirmSaveOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: "#ffffff",
+            boxShadow: "0 25px 50px rgba(0,0,0,0.2)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            color: "#1e3a5f",
+            background: "#f8fafc",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            borderBottom: "2px solid #fbbf24",
+          }}
+        >
+          <Box sx={{ fontSize: 28 }}>⚠️</Box>
+          <Box>
+            <Typography sx={{ fontWeight: 800, color: "#1e3a5f" }}>
+              Confirm Update
+            </Typography>
+            <Typography variant="caption" sx={{ color: "#64748b" }}>
+              Please review before saving
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
+          <Typography sx={{ color: "#475569", lineHeight: 1.6 }}>
+            You are about to update this tender record with the following
+            changes. This action will be synced to the database immediately.
+          </Typography>
+          <Box
+            sx={{
+              mt: 2.5,
+              p: 2,
+              background: "#f0f9ff",
+              border: "1px solid #bfdbfe",
+              borderRadius: 2,
+              color: "#1e3a5f",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+            }}
+          >
+            📌 Make sure all fields are correct before confirming.
+          </Box>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            background: "#f8fafc",
+            borderTop: "1px solid #e0e7ff",
+            p: 2,
+            gap: 1,
           }}
         >
           <Button
-            onClick={handleEditCancel}
+            onClick={() => setConfirmSaveOpen(false)}
             sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 2.5,
-              color: "#e5e7eb",
+              color: "#64748b",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              "&:hover": { backgroundColor: "#e2e8f0" },
             }}
           >
             Cancel
           </Button>
           <Button
+            onClick={handleConfirmSave}
             variant="contained"
-            onClick={handleEditSave}
-            startIcon={<CheckRounded />}
             sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 3,
+              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              color: "#ffffff",
               fontWeight: 700,
-              background:
-                "linear-gradient(135deg,#22c55e 0%,#16a34a 40%,#22c55e 100%)",
-              boxShadow:
-                "0 10px 25px rgba(22,163,74,0.45), 0 0 0 1px rgba(21,128,61,0.4)",
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              px: 3,
               "&:hover": {
-                background:
-                  "linear-gradient(135deg,#16a34a 0%,#15803d 40%,#16a34a 100%)",
+                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
               },
             }}
           >
-            Save Changes
+            ✓ Yes, Save Changes
           </Button>
         </DialogActions>
       </Dialog>
@@ -2199,188 +3060,199 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
 
   return (
     <Box
+    sx={{
+      mb: 5,
+      minHeight: "70vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "linear-gradient(135deg, #eef5ff 0%, #f8fbff 100%)",
+      borderRadius: 4,
+      p: 3,
+    }}
+  >
+    <Paper
+      elevation={8}
       sx={{
-        minHeight: "50vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "linear-gradient(135deg, #eef5ff 0%, #f8fbff 100%)",
+        mb:8,
+        width: "100%",
+        maxWidth: 720,
+        p: 4,
         borderRadius: 4,
-        p: 3,
+        background: "rgba(255,255,255,0.9)",
+        backdropFilter: "blur(12px)",
+        boxShadow: "0 20px 45px rgba(0,0,0,0.12)",
       }}
     >
-      <Paper
-        elevation={8}
+      {/* TITLE */}
+      <Typography
+        variant="h5"
         sx={{
-          width: "100%",
-          maxWidth: 720,
-          p: 4,
-          borderRadius: 4,
-          background: "rgba(255,255,255,0.9)",
-          backdropFilter: "blur(12px)",
-          boxShadow: "0 20px 45px rgba(0,0,0,0.12)",
+          fontWeight: 800,
+          textAlign: "center",
+          color: "#0d47a1",
+          mb: 1,
         }}
       >
-        {/* TITLE */}
-        <Typography
-          variant="h5"
+        Upload Export Leads Data
+      </Typography>
+
+      <Typography
+        variant="body2"
+        sx={{
+          textAlign: "center",
+          color: "#64748b",
+          mb: 3,
+        }}
+      >
+        Upload Excel file (.xlsx / .xls) to bulk insert records into the
+        system
+      </Typography>
+
+      {/* UPLOAD BOX */}
+      {excelData.length === 0 && (
+        <Box
           sx={{
-            fontWeight: 800,
+            mb:5,
+            border: "2px dashed #93c5fd",
+            borderRadius: 4,
+            p: { xs: 4, sm: 6 }, // ⬅️ MORE INNER SPACE
+            minHeight: 280, // ⬅️ INCREASED HEIGHT
+
             textAlign: "center",
-            color: "#0d47a1",
-            mb: 1,
+            background: "linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)",
+            transition: "all 0.25s ease",
+            "&:hover": {
+              background: "linear-gradient(180deg, #eef5ff 0%, #e0f2fe 100%)",
+              borderColor: "#3b82f6",
+              boxShadow: "0 10px 30px rgba(59,130,246,0.15)",
+            },
           }}
         >
-          Upload Lost Bid Data
-        </Typography>
-
-        <Typography
-          variant="body2"
-          sx={{
-            textAlign: "center",
-            color: "#64748b",
-            mb: 3,
-          }}
-        >
-          Upload Excel file (.xlsx / .xls) to bulk insert records into the
-          system
-        </Typography>
-
-        {/* UPLOAD BOX */}
-        {excelData.length === 0 && (
+          {/* ICON */}
           <Box
             sx={{
-              border: "2px dashed #93c5fd",
-              borderRadius: 4,
-              p: { xs: 4, sm: 6 }, // ⬅️ MORE INNER SPACE
-              minHeight: 280, // ⬅️ INCREASED HEIGHT
-
-              textAlign: "center",
-              background: "linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)",
-              transition: "all 0.25s ease",
-              "&:hover": {
-                background: "linear-gradient(180deg, #eef5ff 0%, #e0f2fe 100%)",
-                borderColor: "#3b82f6",
-                boxShadow: "0 10px 30px rgba(59,130,246,0.15)",
+              mb: 4,
+              animation: "float 3s ease-in-out infinite",
+              "@keyframes float": {
+                "0%": { transform: "translateY(0px)" },
+                "50%": { transform: "translateY(-8px)" },
+                "100%": { transform: "translateY(0px)" },
               },
             }}
           >
-            {/* ICON */}
-            <Box
+            <CloudQueueRoundedIcon
               sx={{
-                fontSize: 58,
-                color: "#3b82f6",
-                mb: 1,
-                transition: "transform 0.25s ease",
-                "&:hover": {
-                  transform: "scale(1.1)",
-                },
+                fontSize: 64,
+                background: "linear-gradient(135deg, #93c5fd, #3b82f6)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                filter: "drop-shadow(0 8px 16px rgba(59,130,246,0.35))",
               }}
-            >
-              ☁️
-            </Box>
-
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 700, color: "#0f172a", mb: 0.5 }}
-            >
-              Drag & drop your file here
-            </Typography>
-
-            <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
-              or click to browse (.xlsx or .xls)
-            </Typography>
-
-            {/* BROWSE FILE BUTTON */}
-            <Button
-              variant="contained"
-              component="label"
-              sx={{
-                borderRadius: 999,
-                px: 4,
-                py: 1.2,
-                fontWeight: 700,
-                fontSize: 14,
-                textTransform: "none",
-                color: "#ffffff",
-
-                background:
-                  "linear-gradient(135deg, #42a5f5 0%, #2563eb 50%, #1e40af 100%)",
-                boxShadow: "0 8px 22px rgba(37,99,235,0.35)",
-
-                transition: "all 0.25s ease",
-
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #1d4ed8 100%)",
-                  boxShadow: "0 14px 32px rgba(37,99,235,0.45)",
-                  transform: "translateY(-2px) scale(1.03)",
-                },
-
-                "&:active": {
-                  transform: "scale(0.96)",
-                  boxShadow: "0 6px 14px rgba(37,99,235,0.35)",
-                },
-              }}
-            >
-              📁 Browse File
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                hidden
-                onChange={handleFileUpload}
-              />
-            </Button>
+            />
           </Box>
-        )}
 
-        {/* STATUS MESSAGES */}
-        {error && (
-          <Alert severity="error" sx={{ mt: 3 }}>
-            {error}
-          </Alert>
-        )}
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 700, color: "#0f172a", mb: 0.5 }}
+          >
+            Drag & drop your file here
+          </Typography>
 
-        {success && (
-          <Alert severity="success" sx={{ mt: 3 }}>
-            {success}
-          </Alert>
-        )}
+          <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
+            or click to browse (.xlsx or .xls)
+          </Typography>
 
-        {/* PUSH BUTTON (UNCHANGED LOGIC) */}
-        {excelData.length > 0 && (
-          <Box
+          {/* BROWSE FILE BUTTON */}
+          <Button
+            variant="contained"
+            component="label"
             sx={{
-              mt: 4,
-              display: "flex",
-              justifyContent: "center",
+              borderRadius: 999,
+              px: 4,
+              py: 1.2,
+              fontWeight: 700,
+              fontSize: 14,
+              textTransform: "none",
+              color: "#ffffff",
+
+              background:
+                "linear-gradient(135deg, #42a5f5 0%, #2563eb 50%, #1e40af 100%)",
+              boxShadow: "0 8px 22px rgba(37,99,235,0.35)",
+
+              transition: "all 0.25s ease",
+
+              "&:hover": {
+                background:
+                  "linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #1d4ed8 100%)",
+                boxShadow: "0 14px 32px rgba(37,99,235,0.45)",
+                transform: "translateY(-2px) scale(1.03)",
+              },
+
+              "&:active": {
+                transform: "scale(0.96)",
+                boxShadow: "0 6px 14px rgba(37,99,235,0.35)",
+              },
             }}
           >
-            <Button
-              variant="contained"
-              color="success"
-              size="large"
-              onClick={handleUploadToServer}
-              disabled={loading}
-              sx={{
-                px: 5,
-                py: 1.4,
-                borderRadius: 999,
-                fontWeight: 700,
-                textTransform: "none",
-                boxShadow: "0 8px 20px rgba(22,163,74,0.35)",
-              }}
-            >
-              {loading ? (
-                <CircularProgress size={26} sx={{ color: "#fff" }} />
-              ) : (
-                "Push Data to Database"
-              )}
-            </Button>
-          </Box>
-        )}
-      </Paper>
-    </Box>
+            📁 Browse File
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              hidden
+              onChange={handleFileUpload}
+            />
+          </Button>
+        </Box>
+      )}
+
+      {/* STATUS MESSAGES */}
+      {error && (
+        <Alert severity="error" sx={{ mt: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {success && (
+        <Alert severity="success" sx={{ mt: 3 }}>
+          {success}
+        </Alert>
+      )}
+
+      {/* PUSH BUTTON (UNCHANGED LOGIC) */}
+      {excelData.length > 0 && (
+        <Box
+          sx={{
+            mt: 4,
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <Button
+            variant="contained"
+            color="success"
+            size="large"
+            onClick={handleUploadToServer}
+            disabled={loading}
+            sx={{
+              px: 5,
+              py: 1.4,
+              borderRadius: 999,
+              fontWeight: 700,
+              textTransform: "none",
+              boxShadow: "0 8px 20px rgba(22,163,74,0.35)",
+            }}
+          >
+            {loading ? (
+              <CircularProgress size={26} sx={{ color: "#fff" }} />
+            ) : (
+              "Push Data to Database"
+            )}
+          </Button>
+        </Box>
+      )}
+    </Paper>
+  </Box>
   );
 }
 
