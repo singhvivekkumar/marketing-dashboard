@@ -33,7 +33,7 @@ import {
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import * as XLSX from "xlsx";
-
+import dayjs from "dayjs";
 import {
   SearchRounded,
   NorthRounded,
@@ -66,8 +66,10 @@ const BudgetaryQuotationForm = () => {
   const [documentFile, setDocumentFile] = useState(null);
   const [uploadedDocument, setUploadedDocument] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadFileData, setuploadFileData] = useState();
 
   const API = "/getBudgetaryQuoatation";
+  const API_ENDPOINT = "/budgetary-quotation/upload-document";
   let user = JSON.parse(localStorage.getItem("user"));
   console.log(" user object ", user);
 
@@ -77,6 +79,12 @@ const BudgetaryQuotationForm = () => {
     console.log("Loading mock data for testing...");
     setOrderData(mockBudgetaryQuotationData);
     SetServerIp("http://localhost:5000"); // For when API is ready
+    axios
+      .get(ServerIp + API)
+      .then((response) => {
+        setOrderData(response.data);
+      })
+      .catch((error) => console.log(error.message));
 
     // ===== FOR PRODUCTION - UNCOMMENT BELOW & COMMENT ABOVE =====
     /*
@@ -159,6 +167,10 @@ const BudgetaryQuotationForm = () => {
       OperatorName: user.username || "Vivek Kumar Singh",
       OperatorRole: user.userRole || "Lead Owner",
       OperatorSBU: "Software SBU",
+
+      fileName: uploadFileData?.fileName,
+      filePath: uploadFileData?.filePath,
+      hardDiskFileName: uploadFileData?.hardDiskFileName,
     };
 
     console.log("Frontend Form Data:", JSON.stringify(formattedData, null, 2));
@@ -207,6 +219,70 @@ const BudgetaryQuotationForm = () => {
   };
 
   const handleUploadDocument = async () => {
+    if (!documentFile) {
+      alert("Please select a document first");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append("document", documentFile);
+
+      const originalFileName = documentFile.name;
+      const newFileName = user.id + "$" + originalFileName;
+
+      const updatedFile = new File([documentFile], newFileName, {
+        type: documentFile.type,
+      });
+
+      console.log("updated file by File class: ", updatedFile);
+
+      formData.append("video", updatedFile);
+
+      let todayDate = dayjs();
+      todayDate = todayDate.format("DD-MM-YYYY hh:mm:ss a");
+
+      fetch(ServerIp + API_ENDPOINT, {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // console.log("res :8081/pdfupload", data);
+          // console.log(newFileName);
+          setUploadedDocument({
+            filename: originalFileName,
+            filePath: data.path,
+            originalName: data.fileName,
+            uploadedAt: todayDate,
+          });
+          setuploadFileData({
+            fileName: originalFileName,
+            filePath: data.path,
+            hardDiskFileName: data.fileName,
+            createdDate: todayDate,
+          });
+          alert(`✅ Document uploaded successfully!\nFilename: ${originalFileName}`);
+          setDocumentFile(null); // Clear selected file
+        })
+        .catch((error) => console.error(error));
+
+
+
+      // Mock API call - In production, this would be your real upload endpoint
+      // Simulating backend response with server-generated filename
+
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      alert("❌ Failed to upload document. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleUploadDocument1 = async () => {
     if (!documentFile) {
       alert("Please select a document first");
       return;
@@ -3250,13 +3326,13 @@ function ViewBudgetaryQuotationData(props) {
                   <Box
                     sx={{
                       display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(4, 1fr)",
-                  },
-                  gap: 1.5,
+                      gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(2, 1fr)",
+                        md: "repeat(2, 1fr)",
+                        lg: "repeat(4, 1fr)",
+                      },
+                      gap: 1.5,
                       background: "#ffffff",
                       border: "1px solid #e0e7ff",
                       borderRadius: 2,
@@ -3269,7 +3345,7 @@ function ViewBudgetaryQuotationData(props) {
                     }}
                   >
                     <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                      
+
                       <Typography
                         sx={{
                           color: "#1e3a5f",
@@ -3297,30 +3373,30 @@ function ViewBudgetaryQuotationData(props) {
                       }}
                     >
                       <Button
-                          component="span"
-                          variant="contained"
-                          size="small"
-                          startIcon={<CloudUploadOutlinedIcon />}
-                          sx={{
+                        component="span"
+                        variant="contained"
+                        size="small"
+                        startIcon={<CloudUploadOutlinedIcon />}
+                        sx={{
+                          background:
+                            "linear-gradient(135deg, #1565c0, #42a5f5)",
+                          color: "#ffffff",
+                          fontWeight: 600,
+                          textTransform: "none",
+                          borderRadius: 2,
+                          width: "75%",
+                          py: 1.2,
+                          transition: "0.3s",
+                          "&:hover": {
+                            transform: "translateY(-2px)",
                             background:
-                              "linear-gradient(135deg, #1565c0, #42a5f5)",
-                            color: "#ffffff",
-                            fontWeight: 600,
-                            textTransform: "none",
-                            borderRadius: 2,
-                            width: "75%",
-                            py: 1.2,
-                            transition: "0.3s",
-                            "&:hover": {
-                              transform: "translateY(-2px)",
-                              background:
-                                "linear-gradient(135deg, #0d47a1, #1e88e5)",
-                              boxShadow: "0 4px 12px rgba(13, 71, 161, 0.3)",
-                            },
-                          }}
-                        >
-                          Select Document
-                        </Button>
+                              "linear-gradient(135deg, #0d47a1, #1e88e5)",
+                            boxShadow: "0 4px 12px rgba(13, 71, 161, 0.3)",
+                          },
+                        }}
+                      >
+                        Select Document
+                      </Button>
                     </label>
 
                     {/* Selected File Display */}
