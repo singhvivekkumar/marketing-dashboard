@@ -14,6 +14,7 @@ import { MarketingOrderReceivedDomExpRouter } from './src/routes/MarketingOrderR
 import { TpcrFormRouter } from './src/routes/TpcrFormRouter.js';
 import { CpdsFormRouter } from './src/routes/CpdsFormRouter.js';
 import { InHouseRdRouter } from './src/routes/InHouseRdRouter.js';
+import { OrderReceivedDocumentRouter } from './src/routes/orderReceivedDocument.routes.js';
 
 dotenv.config();
 
@@ -63,6 +64,7 @@ LostFormRouter(app);
 TpcrFormRouter(app);
 CpdsFormRouter(app);
 InHouseRdRouter(app);
+OrderReceivedDocumentRouter(app);
 
 // 404 handler
 app.use((req, res) => {

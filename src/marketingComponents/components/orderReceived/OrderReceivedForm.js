@@ -73,6 +73,7 @@ const STATUS_OPTIONS = [
 
 const TENDER_TYPE_OPTIONS = ["ST", "MT", "LT"];
 
+
 const OrederReceivedForm = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
@@ -84,10 +85,92 @@ const OrederReceivedForm = () => {
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [presentDate, setPrsentDate] = useState(new Date());
   const [ServerIp, SetServerIp] = useState("");
-  const [SaveDataHardDiskURL, SetSaveDataHardDiskURL] = useState("");
   const [value, setValue] = useState(0);
+  // document upload states for multiple documents
+  const [documents, setDocuments] = useState([
+    { documentType: "", file: null, uploaded: false },
+  ]);
+  // to map document ids after upload to leadId from backend; 
+  // store document ids to update lead document mapping later
+  const [documentIds, setDocumentIds] = useState([]);
 
   const orderTypes = ["ST", "MT"];
+
+  const UPLOAD_ENDPOINT = `http://localhost:5000/uploadDocument`;
+
+  const DOCUMENT_TYPES = [
+    "RFP",
+    "EOC",
+    "Contract Copy",
+    "Corrigendum"
+  ];
+
+  // =============================================
+  const handleDocumentTypeChange = (index, value) => {
+    console.log("Selected Document Type:", value);
+    const updated = [...documents];
+    updated[index].documentType = value;
+    setDocuments(updated);
+  };
+
+  const handleFileChangeDropdown = (index, file) => {
+    const updated = [...documents];
+    updated[index].file = file;
+    setDocuments(updated);
+  };
+
+  const handleUpload = async (index) => {
+    const doc = documents[index];
+
+    if (!doc.documentType || !doc.file) {
+      alert("Please select document type and file");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", doc.file);
+    formData.append("documentType", doc.documentType);
+    formData.append("uploadedBy", "M001");
+
+    // 🔗 API call here
+    // await uploadLeadDocument(formData);
+    fetch(UPLOAD_ENDPOINT, {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Document upload response:", data);
+        const updated = [...documentIds];
+        updated[index] = data.documentId;
+        setDocumentIds(updated);
+        // Handle success (e.g., show a message, update state)
+      })
+      .catch((error) => console.error("Error uploading document:", error));
+
+    const updated = [...documents];
+    updated[index].uploaded = true;
+
+    // Add new empty row if less than 4
+    if (updated.length < 4) {
+      updated.push({ documentType: "", file: null, uploaded: false });
+    }
+
+    setDocuments(updated);
+  };
+
+  const handleClear = (index) => {
+    const updated = [...documents];
+    updated.splice(index, 1);
+
+    if (updated.length === 0) {
+      updated.push({ documentType: "", file: null, uploaded: false });
+    }
+
+    setDocuments(updated);
+  };
+
+  // =============================================
 
   const API = "/getOrderReceived";
   const API2 = "/pdfupload";
@@ -200,9 +283,9 @@ const OrederReceivedForm = () => {
       attachment: selectedFile ? selectedFile.name : "",
       submittedAt: new Date().toISOString(),
       // new fields
-      OperatorId: user.id || "291536",
-      OperatorName: user.username || "Vivek Kumar Singh",
-      OperatorRole: user.userRole || "Lead Owner",
+      // OperatorId: user.id || "291536",
+      // OperatorName: user.username || "Vivek Kumar Singh",
+      // OperatorRole: user.userRole || "Lead Owner",
       OperatorSBU: "Software SBU",
       submittedAt: new Date().toISOString(),
 
@@ -217,10 +300,23 @@ const OrederReceivedForm = () => {
     console.log("Form Data:", JSON.stringify(formattedData, null, 2));
 
     axios
-      .post(ServerIp + API, formattedData)
+      .post("http://localhost:5000" + API, formattedData)
       .then((response) => {
         // console.log("formattedData after ")
         console.log("Server Response:", response.data);
+        documentIds.forEach((docId, index) => {
+          if (docId) {
+            // Map document to lead using documentIds[index] and response.data.leadId
+            console.log(
+              `Mapping document ID ${documentIds[index]} to lead ID ${response.data.id}`
+            );
+            // 🔗 API call to map document to lead can be made here
+            axios.put(`http://localhost:5000/updateDocument`, {
+              documentId: documentIds[index],
+              leadId: response.data.id,
+            })
+          }
+        })
         setSubmittedData(formattedData);
         setSubmitSuccess(true);
       })
@@ -268,7 +364,7 @@ const OrederReceivedForm = () => {
         let NewTodayDate = TodayDate.format("DD-MM-YYYY hh:mm:ss a");
         setPrsentDate(NewTodayDate);
 
-        fetch(SaveDataHardDiskURL, {
+        fetch(UPLOAD_ENDPOINT, {
           method: "POST",
           body: formData,
         })
@@ -429,7 +525,7 @@ const OrederReceivedForm = () => {
                 <Divider sx={{ mb: 3 }} />
 
 
-{/* 
+                {/* 
                 // defaultValues: {
     //   projectTitle: "",
     //   customerName: "",
@@ -589,7 +685,7 @@ const OrederReceivedForm = () => {
               {/* Document Information Section */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -683,14 +779,14 @@ const OrederReceivedForm = () => {
                         </TextField>
                       )}
                     />
-                  </Grid> 
+                  </Grid>
                 </Grid>
               </Card>
 
               {/* Financial Details Section */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -838,7 +934,7 @@ const OrederReceivedForm = () => {
               {/* Competitors & Remarks Section */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -874,7 +970,7 @@ const OrederReceivedForm = () => {
                           fullWidth
                           variant="outlined"
                           placeholder="Delivery Schedule to be entered"
-                          // helperText="List all competing companies for this order"
+                        // helperText="List all competing companies for this order"
                         />
                       )}
                     />
@@ -922,7 +1018,7 @@ const OrederReceivedForm = () => {
               {/* Attachments Section */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -954,6 +1050,8 @@ const OrederReceivedForm = () => {
                     Upload Contract Copy / Work Order / Letter of Intent
                     (Optional)
                   </Typography>
+                  {/*  this is for single file upload */}
+                  {/*
                   <Button
                     variant="outlined"
                     component="label"
@@ -975,6 +1073,7 @@ const OrederReceivedForm = () => {
                   >
                     Upload File
                   </Button>
+
                   {selectedFile && (
                     <Box sx={{ mt: 2 }}>
                       <Chip
@@ -993,6 +1092,105 @@ const OrederReceivedForm = () => {
                       </Typography>
                     </Box>
                   )}
+                    */}
+
+
+                  {/* ================= this is for multiple file upload ================= */}
+
+                  {documents.map((doc, index) => (
+                    <Grid container spacing={2} key={index} alignItems="center" sx={{ mb: 2 }}>
+
+                      {/* Document Type */}
+                      <Grid item xs={4}>
+                        <TextField
+                          select
+                          label="Document Type"
+                          fullWidth
+                          value={doc.documentType}
+                          onChange={(e) =>
+                            handleDocumentTypeChange(index, e.target.value)
+                          }
+                          disabled={doc.uploaded}
+                          sx={{
+                            minWidth: 180,
+                            p: 0,
+                            m: 0,
+                            backgroundColor: "rgba(240,248,255,0.9)",
+                            borderRadius: 2.5,
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2.5,
+                              color: "#0f172a",
+                              "& fieldset": {
+                                borderColor: "rgba(148,163,184,0.5)",
+                              },
+                              "&:hover fieldset": {
+                                borderColor: "rgba(100,116,139,0.8)",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#3b82f6",
+                              },
+                            },
+                            "& .MuiInputLabel-root": { color: "#475569" },
+                          }}
+                        >
+                          {DOCUMENT_TYPES.map((type) => (
+                            <MenuItem key={type} value={type} >
+                              {type}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
+
+                      {/* File Picker */}
+                      <Grid item xs={4}>
+                        <Button
+                          variant="outlined"
+                          component="label"
+                          fullWidth
+                          disabled={doc.uploaded}
+                          sx={{
+
+                          }}
+                        >
+                          {doc.file ? doc.file.name : "Choose File"}
+                          <input
+                            type="file"
+                            hidden
+                            onChange={(e) =>
+                              handleFileChangeDropdown(index, e.target.files[0])
+                            }
+                          />
+                        </Button>
+                      </Grid>
+
+                      {/* Upload Button */}
+                      <Grid item xs={2}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          fullWidth
+                          disabled={doc.uploaded}
+                          onClick={() => handleUpload(index)}
+                        >
+                          Upload
+                        </Button>
+                      </Grid>
+
+                      {/* Clear Button */}
+                      <Grid item xs={2}>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          fullWidth
+                          onClick={() => handleClear(index)}
+                        >
+                          Clear
+                        </Button>
+                      </Grid>
+
+                    </Grid>
+                  ))}
+
                 </Box>
               </Card>
 
@@ -1016,7 +1214,7 @@ const OrederReceivedForm = () => {
                     fontSize: "1.1rem",
                     borderRadius: 3,
                     fontWeight: 700,
-                    maxWidth:180,
+                    maxWidth: 180,
                     background: "linear-gradient(90deg, #1565c0, #42a5f5)",
                     textTransform: "none",
                     transition: "0.3s",
@@ -1037,7 +1235,7 @@ const OrederReceivedForm = () => {
                     py: 1.6,
                     fontSize: "1.1rem",
                     borderRadius: 3,
-                    maxWidth:180,
+                    maxWidth: 180,
                     fontWeight: 700,
                     borderWidth: 2,
                     textTransform: "none",
@@ -1206,6 +1404,8 @@ function ViewOrderRecievedData(props) {
     remarks: true,
     JSON_competitors: true,
     contractCopy: true,
+    workOrder: true,
+    letterOfIntent: true,
     dateCreated: true,
     actions: true,
   });
@@ -1226,7 +1426,9 @@ function ViewOrderRecievedData(props) {
     { id: "deliverySchedule", label: "Delivery Schedule" },
     { id: "remarks", label: "Remarks" },
     { id: "JSON_competitors", label: "Competitors" },
-    { id: "contractCopy", label: "Contract Copy/ Work Order/LOI" },
+    { id: "contractCopy", label: "Contract Copy" },
+    { id: "workOrder", label: "Work Order" },
+    { id: "letterOfIntent", label: "LOI" },
     { id: "dateCreated", label: "Created Date" },
   ];
 
@@ -1413,7 +1615,7 @@ function ViewOrderRecievedData(props) {
   };
 
 
-  
+
   // defaultValues: {
   //   projectTitle: "",
   //   customerName: "",
@@ -1429,6 +1631,7 @@ function ViewOrderRecievedData(props) {
   //   remarks: "",
   //   JSON_competitors: "",
   //   contractCopy: "",
+
   // ---------------- FILTER + SORT LOGIC ----------------
   const filteredSortedData =
     data &&
@@ -1474,11 +1677,11 @@ function ViewOrderRecievedData(props) {
             aVal = parseFloat(a.valueWithoutGST) || 0;
             bVal = parseFloat(b.valueWithoutGST) || 0;
             break;
-            case "valueWithGST":
+          case "valueWithGST":
             aVal = parseFloat(a.valueWithGST) || 0;
             bVal = parseFloat(b.valueWithGST) || 0;
             break;
-            case "qty":
+          case "qty":
             aVal = parseFloat(a.qty) || 0;
             bVal = parseFloat(b.qty) || 0;
             break;
@@ -1638,7 +1841,7 @@ function ViewOrderRecievedData(props) {
                 >
                   <Checkbox
                     checked={visibleColumns[col.id]}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     size="small"
                     sx={{
                       color: "#1e40af",
@@ -1773,9 +1976,8 @@ function ViewOrderRecievedData(props) {
 
             {/* SORT ICON BUTTON */}
             <Tooltip
-              title={`Sort ${
-                sortDirection === "asc" ? "Descending" : "Ascending"
-              }`}
+              title={`Sort ${sortDirection === "asc" ? "Descending" : "Ascending"
+                }`}
             >
               <IconButton
                 onClick={toggleSortDirection}
@@ -2209,7 +2411,7 @@ function ViewOrderRecievedData(props) {
           <Box sx={{ p: 1.5 }}>
             {/* TENDER INFORMATION SECTION */}
             <Box sx={{ mb: 3 }}>
-              
+
               <Box
                 sx={{
                   display: "grid",
@@ -2789,7 +2991,7 @@ function ViewOrderRecievedData(props) {
               </Box>
             </Box>
 
-            
+
           </Box>
         </DialogContent>
 
@@ -3000,7 +3202,7 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
   const [loading, setLoading] = useState(false);
   const [excelData, setExcelData] = useState([]);
 
-// defaultValues: {
+  // defaultValues: {
   //   projectTitle: "",
   //   customerName: "",
   //   customerAddress: "",

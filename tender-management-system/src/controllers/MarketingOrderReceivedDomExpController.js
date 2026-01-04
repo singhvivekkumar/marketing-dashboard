@@ -96,7 +96,7 @@ export const CreateGetOrderReceivedData = (req, res) => {
     customerName: req.body.customerName,
     customerAddress: req.body.customerAddress,
     orderReceicedDate: req.body.orderReceivedDate,
-    purchaseOrder: req.body.purchaseOrder,
+    purchaseOrder: req.body.PoCoWoNo,
     typeOfTender: req.body.typeOfTender,
 
     valueWithoutGST: req.body.valueWithoutGST,
@@ -118,7 +118,6 @@ export const CreateGetOrderReceivedData = (req, res) => {
 
   MarketingOrderReceivedDomExp.create(OrderReceivedReqData)
     .then((data) => {
-      // res.send(data);
       console.log("Success");
       res.send(data);
     })

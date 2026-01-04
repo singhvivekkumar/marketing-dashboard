@@ -13,6 +13,7 @@ import { LostFormModel} from './lost_form_model.js';
 import { TPCRFormModel } from './tpcr_form_model.js';
 import { CPDSFormModel } from './cpds_form_model.js';
 import { InHouseRDModel } from './inhouserd_model.js';
+import { OrderReceivedDocumentModel } from './order_received_document_model.js';
 
 
 // const Sequelize = require("sequelize");
@@ -45,5 +46,6 @@ db.LostFormModel=LostFormModel(sequelize,Sequelize);
 db.TPCRFormModel=TPCRFormModel(sequelize,Sequelize);
 db.CPDSFormModel=CPDSFormModel(sequelize,Sequelize);
 db.InHouseRDModel= InHouseRDModel(sequelize,Sequelize);
+db.OrderReceivedDocumentModel= OrderReceivedDocumentModel(sequelize,Sequelize);
 
 export default db
