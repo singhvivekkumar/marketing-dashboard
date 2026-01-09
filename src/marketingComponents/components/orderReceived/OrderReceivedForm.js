@@ -527,20 +527,20 @@ const OrederReceivedForm = () => {
 
                 {/* 
                 // defaultValues: {
-    //   projectTitle: "",
-    //   customerName: "",
-    //   customerAddress: "",
-    //   defenceOrCivil: "",
-    //   PoCoWoNo: "",
-    //   orderRxdDate: "",
-    //   qty: "",
-    //   valueWithoutGST: "",
-    //   valueWithGST: "",
-    //   tenderType: "",
-    //   deliverySchedule: "",
-    //   remarks: "",
-    //   JSON_competitors: "",
-    //   contractCopy: "", */}
+                //   projectTitle: "",
+                //   customerName: "",
+                //   customerAddress: "",
+                //   defenceOrCivil: "",
+                //   PoCoWoNo: "",
+                //   orderRxdDate: "",
+                //   qty: "",
+                //   valueWithoutGST: "",
+                //   valueWithGST: "",
+                //   tenderType: "",
+                //   deliverySchedule: "",
+                //   remarks: "",
+                //   JSON_competitors: "",
+                //   contractCopy: "", */}
 
 
 
@@ -1363,7 +1363,23 @@ const lightTextFieldSx = {
 function ViewOrderRecievedData(props) {
   console.log("props viewOrderRecievedData", props);
 
-  const data = props.ViewData?.data || [];
+  const [tableData, setTableData] = useState(props.ViewData?.data || []);
+
+  useEffect(() => {
+    // console.log("Data received in ViewOrderRecievedData:", tableData);
+    tableData.map( async (item) => {
+      console.log("Item:", item);
+      const docResponse = await fetch(`http://localhost:5000//leads/${item.id}/documents`);
+      const docData = await docResponse.json();
+      if(docData.success) {
+        console.log("Documents for item", item.id, ":", docData.data);
+      } else {
+        console.error("Failed to fetch documents for item", item.id);
+      }
+    });
+  }, [tableData]);
+
+  // ---------------- STATE VARIABLES ----------------
   const [searchTerm, setSearchTerm] = useState("");
   const [tenderTypeFilter, setTenderTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -1427,7 +1443,6 @@ function ViewOrderRecievedData(props) {
     { id: "remarks", label: "Remarks" },
     { id: "JSON_competitors", label: "Competitors" },
     { id: "contractCopy", label: "Contract Copy" },
-    { id: "workOrder", label: "Work Order" },
     { id: "letterOfIntent", label: "LOI" },
     { id: "dateCreated", label: "Created Date" },
   ];
@@ -1634,8 +1649,8 @@ function ViewOrderRecievedData(props) {
 
   // ---------------- FILTER + SORT LOGIC ----------------
   const filteredSortedData =
-    data &&
-    data
+    tableData &&
+    tableData
       .filter((row) => {
         const q = searchTerm.toLowerCase();
         const matchesSearch =
