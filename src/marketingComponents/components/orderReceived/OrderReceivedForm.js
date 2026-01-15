@@ -8,6 +8,8 @@ import TableRow from "@mui/material/TableRow";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import * as XLSX from "xlsx";
+import * as FileSaver from "file-saver";
+
 import {
   Container,
   Paper,
@@ -40,8 +42,9 @@ import {
   // TableHead,
   // TableRow,
   CircularProgress,
+  Link,
 } from "@mui/material";
-import * as FileSaver from "file-saver";
+
 import {
   SearchRounded,
   NorthRounded,
@@ -50,16 +53,18 @@ import {
   EditRounded,
   DeleteRounded,
   CloseRounded,
-  CheckRounded,
 } from "@mui/icons-material";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, set } from "react-hook-form";
 import axios from "axios";
 import dayjs from "dayjs";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import CloudQueueRoundedIcon from "@mui/icons-material/CloudQueueRounded";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { PdfViewerDialog } from "../budgetaryQuotation/pdfViewerDialog";
 
 const STATUS_OPTIONS = [
   "Draft",
@@ -73,11 +78,11 @@ const STATUS_OPTIONS = [
 
 const TENDER_TYPE_OPTIONS = ["ST", "MT", "LT"];
 
-
 const OrederReceivedForm = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
   // form here we have started file uploading logic
   const [browsefile, setbrowsefile] = useState(null);
   const [uploadFileData, setuploadFileData] = useState();
@@ -85,24 +90,44 @@ const OrederReceivedForm = () => {
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [presentDate, setPrsentDate] = useState(new Date());
   const [ServerIp, SetServerIp] = useState("");
+  const [SaveDataHardDiskURL, SetSaveDataHardDiskURL] = useState("");
   const [value, setValue] = useState(0);
   // document upload states for multiple documents
-  const [documents, setDocuments] = useState([
-    { documentType: "", file: null, uploaded: false },
-  ]);
-  // to map document ids after upload to leadId from backend; 
+  // const [documents, setDocuments] = useState([
+  //   { documentType: "", file: null, uploaded: false },
+  // ]);
+  // to map document ids after upload to leadId from backend;
   // store document ids to update lead document mapping later
   const [documentIds, setDocumentIds] = useState([]);
 
+  //upload file states
+
+  const [newFiles, setNewFiles] = useState([]); // State for new batch uploads
+
+  const createEmptyRow = () => ({
+    documentType: "",
+    file: null,
+    uploaded: false,
+  });
+
+  const [documents, setDocuments] = useState([createEmptyRow()]); // ✅ minimum one row
+
+  const [snack, setSnack] = useState({
+    open: false,
+    msg: "",
+    severity: "success",
+  });
+
   const orderTypes = ["ST", "MT"];
 
-  const UPLOAD_ENDPOINT = `http://localhost:5000/uploadDocument`;
+  const API = "/getOrderReceived";
+
+  const UPLOAD_ENDPOINT = `/uploadDocument`;
+  const UPDATE_ENDPOINT = `/updateDocument`;
 
   const DOCUMENT_TYPES = [
-    "RFP",
-    "EOC",
-    "Contract Copy",
-    "Corrigendum"
+    { id: "contractCopy", label: "Contract Copy" },
+    { id: "letterOfIntent", label: "Letter of Intent" },
   ];
 
   // =============================================
@@ -134,7 +159,7 @@ const OrederReceivedForm = () => {
 
     // 🔗 API call here
     // await uploadLeadDocument(formData);
-    fetch(UPLOAD_ENDPOINT, {
+    fetch(ServerIp + UPLOAD_ENDPOINT, {
       method: "POST",
       body: formData,
     })
@@ -171,9 +196,6 @@ const OrederReceivedForm = () => {
   };
 
   // =============================================
-
-  const API = "/getOrderReceived";
-  const API2 = "/pdfupload";
 
   let user = JSON.parse(localStorage.getItem("user"));
   console.log(" user object ", user);
@@ -227,7 +249,7 @@ const OrederReceivedForm = () => {
         axios
           .get(response.data.project[0].ServerIP[0].NodeServerIP + API)
           .then((response) => {
-            console.log(" error while getting API : ", response);
+            console.log(" Response while hitting the API : ", response);
             setOrderData(response.data);
           })
           .catch((error) => console.log(error.message));
@@ -246,7 +268,6 @@ const OrederReceivedForm = () => {
   const onSubmit = (data) => {
     // Convert string numbers to actual numbers with 2 decimal precision
 
-
     // defaultValues: {
     //   projectTitle: "",
     //   customerName: "",
@@ -263,8 +284,6 @@ const OrederReceivedForm = () => {
     //   JSON_competitors: "",
     //   contractCopy: "",
 
-
-
     console.log(data);
     const formattedData = {
       projectTitle: data.projectTitle,
@@ -280,18 +299,19 @@ const OrederReceivedForm = () => {
       deliverySchedule: data.deliverySchedule,
       remarks: data.remarks,
       JSON_competitors: data.JSON_competitors,
-      attachment: selectedFile ? selectedFile.name : "",
+      attachment: selectedFiles.map((f) => f.name),
+
       submittedAt: new Date().toISOString(),
       // new fields
-      // OperatorId: user.id || "291536",
-      // OperatorName: user.username || "Vivek Kumar Singh",
-      // OperatorRole: user.userRole || "Lead Owner",
+      OperatorId: user.id || "291536",
+      OperatorName: user.username || "Vivek Kumar Singh",
+      OperatorRole: user.userRole || "Lead Owner",
       OperatorSBU: "Software SBU",
-      submittedAt: new Date().toISOString(),
 
-      fileName: uploadFileData?.fileName,
-      filePath: uploadFileData?.filePath,
-      hardDiskFileName: uploadFileData?.hardDiskFileName,
+      // contractCopy: uploadFileData?.map((f) => f.originalName),
+      // FileName: uploadFileData?.map((f) => f.savedName),
+      // FilePath: uploadFileData?.map((f) => f.filePath),
+      // HardDiskFileName: uploadFileData?.map((f) => f.savedName),
 
       Dom_or_Export: "1",
     };
@@ -300,7 +320,7 @@ const OrederReceivedForm = () => {
     console.log("Form Data:", JSON.stringify(formattedData, null, 2));
 
     axios
-      .post("http://localhost:5000" + API, formattedData)
+      .post(ServerIp + API, formattedData)
       .then((response) => {
         // console.log("formattedData after ")
         console.log("Server Response:", response.data);
@@ -311,12 +331,12 @@ const OrederReceivedForm = () => {
               `Mapping document ID ${documentIds[index]} to lead ID ${response.data.id}`
             );
             // 🔗 API call to map document to lead can be made here
-            axios.put(`http://localhost:5000/updateDocument`, {
+            axios.put(ServerIp + UPDATE_ENDPOINT, {
               documentId: documentIds[index],
               leadId: response.data.id,
-            })
+            });
           }
-        })
+        });
         setSubmittedData(formattedData);
         setSubmitSuccess(true);
       })
@@ -330,70 +350,79 @@ const OrederReceivedForm = () => {
   //   }
   // };
 
-  const handleFileChange = (event) => {
-    if (event.target.files[0].type.includes("pdf")) {
-      setbrowsefile(event.target.files[0]);
-      setSelectedFile(event.target.files[0]);
-      // console.log(event.target.files[0]);
-      setIsButtonDisabled(true);
-    } else {
-      setIsButtonDisabled(false);
-      alert("Please Select pdf only");
-    }
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    // const validFiles = files.filter(
+    //   (file) => file.type.includes("pdf") || file.type.includes("image")
+    // );
+
+    const validFiles = files.filter(
+      (file) =>
+        file.type.includes("pdf") ||
+        file.type.includes("image") ||
+        file.type.includes("sheet") ||
+        file.type.includes("word")
+    );
+
+    setSelectedFiles((prev) => [...prev, ...validFiles]);
+    console.log(" how many selected : ", selectedFiles);
   };
 
-  const handleFileUpload = (event) => {
-    event.preventDefault();
+  const handleFileUpload = async () => {
+    console.log(" how many selected from upload : ", selectedFiles);
+    if (selectedFiles.length === 0) {
+      alert("Please select files");
+      return;
+    }
 
-    if (browsefile && (user != null || user.id !== undefined)) {
-      if (browsefile.type.includes("pdf")) {
-        const formData = new FormData();
+    const formData = new FormData();
+    selectedFiles.forEach((file) => formData.append("files", file));
 
-        const originalFileName = browsefile.name;
-        const newFileName = user.id + "$" + originalFileName;
+    console.log("formData send to backend : ", formData);
 
-        const updatedFile = new File([browsefile], newFileName, {
-          type: browsefile.type,
-        });
+    try {
+      const res = await fetch(ServerIp + "/orderFileUpload", {
+        method: "POST",
+        body: formData,
+      });
 
-        console.log("updated file by File class: ", updatedFile);
-
-        formData.append("video", updatedFile);
-
-        let TodayDate = dayjs();
-        let NewTodayDate = TodayDate.format("DD-MM-YYYY hh:mm:ss a");
-        setPrsentDate(NewTodayDate);
-
-        fetch(UPLOAD_ENDPOINT, {
-          method: "POST",
-          body: formData,
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            // console.log("res :8081/pdfupload", data);
-            // console.log(newFileName);
-            setuploadFileData({
-              fileName: originalFileName,
-              filePath: data.path,
-              hardDiskFileName: data.fileName,
-              createdDate: presentDate,
-            });
-          })
-          .catch((error) => console.error(error));
-      }
-    } else {
-      alert("Please Select pdf only or Server is Down");
+      const data = await res.json();
+      console.log("Uploaded files: ", data);
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed");
     }
   };
 
   const handleReset = () => {
     reset();
     setSubmittedData(null);
-    setSelectedFile(null);
+    setSelectedFiles([]);
   };
 
   const handleCloseSnackbar = () => {
     setSubmitSuccess(false);
+  };
+
+  //upload file handles
+  const showSnack = (msg, severity = "success") => {
+    setSnack({ open: true, msg, severity });
+  };
+
+  const handleAddDocument = () => {
+    setDocuments((prev) => [...prev, createEmptyRow()]);
+    showSnack("New document row added!", "info");
+  };
+
+  const handleRemoveDocument = (index) => {
+    if (documents.length === 1) {
+      showSnack("At least one document row is required.", "warning");
+      return;
+    }
+
+    setDocuments((prev) => prev.filter((_, i) => i !== index));
+    showSnack("Document row removed.", "info");
   };
 
   const today = new Date().toLocaleDateString("en-CA");
@@ -415,7 +444,7 @@ const OrederReceivedForm = () => {
     <Container
       maxWidth="xl"
       sx={{
-        mt: -7,
+        mt: 0,
         py: 1,
         minHeight: "85vh",
         background: "linear-gradient(135deg, #e3eeff 0%, #f8fbff 100%)",
@@ -524,9 +553,8 @@ const OrederReceivedForm = () => {
                 </Typography>
                 <Divider sx={{ mb: 3 }} />
 
-
                 {/* 
-                // defaultValues: {
+                //   defaultValues: {
                 //   projectTitle: "",
                 //   customerName: "",
                 //   customerAddress: "",
@@ -542,10 +570,7 @@ const OrederReceivedForm = () => {
                 //   JSON_competitors: "",
                 //   contractCopy: "", */}
 
-
-
                 <Grid container spacing={4}>
-
                   {/* {projectTitle} */}
                   <Grid item xs={12} md={6}>
                     <Controller
@@ -709,7 +734,7 @@ const OrederReceivedForm = () => {
 
                 <Grid container spacing={3}>
                   {/* {PoCoWoNo} */}
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={4}>
                     <Controller
                       name="PoCoWoNo"
                       control={control}
@@ -732,13 +757,12 @@ const OrederReceivedForm = () => {
                   </Grid>
 
                   {/* {qty} */}
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={4}>
                     <Controller
                       name="qty"
                       control={control}
                       rules={{
-                        required:
-                          "Quantity",
+                        required: "Quantity",
                       }}
                       render={({ field }) => (
                         <TextField
@@ -755,7 +779,7 @@ const OrederReceivedForm = () => {
                   </Grid>
 
                   {/* {tenderType} */}
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={4}>
                     <Controller
                       name="tenderType"
                       control={control}
@@ -970,7 +994,7 @@ const OrederReceivedForm = () => {
                           fullWidth
                           variant="outlined"
                           placeholder="Delivery Schedule to be entered"
-                        // helperText="List all competing companies for this order"
+                          // helperText="List all competing companies for this order"
                         />
                       )}
                     />
@@ -1016,183 +1040,410 @@ const OrederReceivedForm = () => {
               </Card>
 
               {/* Attachments Section */}
-              <Card
+              {/* <Box
                 sx={{
-                  mt: -1,
-                  mb: 3,
-                  p: 3,
-                  borderRadius: 4,
-                  background: "rgba(250,250,255,0.8)",
-                  backdropFilter: "blur(10px)",
-                  // transition: "0.3s",
-                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                  // "&:hover": {
-                  //   transform: "translateY(-4px)",
-                  //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                  // },
+                  minHeight: "100vh",
+                  p: { xs: 2, sm: 4 },
+                  background:
+                    "linear-gradient(135deg, rgba(234,246,253,1), rgba(207,233,247,1), rgba(182,223,245,1))",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "flex-start",
                 }}
-              >
-                <Typography
-                  variant="h6"
-                  gutterBottom
-                  sx={{ fontWeight: 500, mb: 2, color: "#1976d2" }}
+              > */}
+              <Box sx={{ width: "100%", maxWidth: 1800 }}>
+                {/* ===================== Attachments Section ===================== */}
+                <Card
+                  sx={{
+                    mt: 1,
+                    mb: 3,
+                    p: { xs: 2, sm: 3, md: 3.5 },
+                    borderRadius: 4,
+                    // background:
+                    //   "linear-gradient(135deg, rgba(255,255,255,0.85), rgba(245,250,255,0.75))",
+                    backdropFilter: "blur(18px)",
+                    border: "1px solid rgba(148,163,184,0.25)",
+                    boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
+                    overflow: "hidden",
+                    position: "relative",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      inset: 0,
+                      // background:
+                      //   "radial-gradient(circle at top right, rgba(59,130,246,0.14), transparent 55%)",
+                      pointerEvents: "none",
+                    },
+                  }}
                 >
-                  📎 Attachments
-                </Typography>
-                <Divider sx={{ mb: 3 }} />
+                  {/* Header */}
+                  <Box sx={{ position: "relative", zIndex: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: { xs: "flex-start", sm: "center" },
+                        justifyContent: "space-between",
+                        flexDirection: { xs: "column", sm: "row" },
+                        gap: 1.5,
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          variant="h6"
+                          gutterBottom
+                          sx={{
+                            fontWeight: 800,
+                            letterSpacing: 0.3,
+                            color: "#0f172a",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mb: 0.5,
+                          }}
+                        >
+                          📎 Attachments
+                        </Typography>
 
-                <Box>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    Upload Contract Copy / Work Order / Letter of Intent
-                    (Optional)
-                  </Typography>
-                  {/*  this is for single file upload */}
-                  {/*
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    sx={{ mt: 2, mb: 2 }}
-                  >
-                    Choose File
-                    <input
-                      type="file"
-                      hidden
-                      onChange={handleFileChange}
-                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    />
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    sx={{ mt: 2, mb: 2, marginLeft: 24 }}
-                    onClick={handleFileUpload}
-                  >
-                    Upload File
-                  </Button>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "rgba(30,41,59,0.75)" }}
+                        >
+                          Upload Contract Copy / Letter of Intent (Optional)
+                        </Typography>
+                      </Box>
 
-                  {selectedFile && (
-                    <Box sx={{ mt: 2 }}>
-                      <Chip
-                        label={selectedFile.name}
-                        onDelete={() => setSelectedFile(null)}
-                        color="primary"
-                        variant="outlined"
-                        sx={{ maxWidth: "100%" }}
-                      />
-                      <Typography
-                        variant="caption"
-                        display="block"
-                        sx={{ mt: 1, color: "text.secondary" }}
+                      {/* ✅ Add Document Button */}
+                      <Button
+                        onClick={handleAddDocument}
+                        variant="contained"
+                        startIcon={<AddCircleOutlineIcon />}
+                        sx={{
+                          borderRadius: 2.5,
+                          textTransform: "none",
+                          fontWeight: 800,
+                          maxWidth: 180,
+                          px: 2.4,
+                          py: 1.15,
+                          boxShadow: "0 12px 26px rgba(59,130,246,0.22)",
+                          background:
+                            "linear-gradient(135deg, #2563eb, #60a5fa)",
+                          "&:hover": {
+                            boxShadow: "0 18px 34px rgba(59,130,246,0.28)",
+                            // transform: "translateY(-1px)",
+                          },
+                        }}
                       >
-                        Size: {(selectedFile.size / 1024).toFixed(2)} KB
-                      </Typography>
+                        Add Document
+                      </Button>
                     </Box>
-                  )}
-                    */}
 
+                    <Divider sx={{ mt: 2.5, mb: 2, opacity: 0.5 }} />
 
-                  {/* ================= this is for multiple file upload ================= */}
-
-                  {documents.map((doc, index) => (
-                    <Grid container spacing={2} key={index} alignItems="center" sx={{ mb: 2 }}>
-
-                      {/* Document Type */}
-                      <Grid item xs={4}>
-                        <TextField
-                          select
-                          label="Document Type"
-                          fullWidth
-                          value={doc.documentType}
-                          onChange={(e) =>
-                            handleDocumentTypeChange(index, e.target.value)
-                          }
-                          disabled={doc.uploaded}
+                    {/* Documents List */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                      }}
+                    >
+                      {documents.map((doc, index) => (
+                        <Paper
+                          key={index}
+                          elevation={0}
                           sx={{
-                            minWidth: 180,
-                            p: 0,
-                            m: 0,
-                            backgroundColor: "rgba(240,248,255,0.9)",
-                            borderRadius: 2.5,
-                            "& .MuiOutlinedInput-root": {
-                              borderRadius: 2.5,
-                              color: "#0f172a",
-                              "& fieldset": {
-                                borderColor: "rgba(148,163,184,0.5)",
-                              },
-                              "&:hover fieldset": {
-                                borderColor: "rgba(100,116,139,0.8)",
-                              },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "#3b82f6",
-                              },
+                            // p: { xs: 1.5, sm: 2 },
+                            p: 2,
+                            borderRadius: 3,
+                            border: "1px solid rgba(148,163,184,0.25)",
+                            background: "rgba(255,255,255,0.7)",
+                            boxShadow: "0 6px 18px rgba(15,23,42,0.05)",
+                            transition: "0.25s ease",
+                            // position: "relative",
+                            "&:hover": {
+                              boxShadow: "0 10px 30px rgba(15,23,42,0.08)",
+                              transform: "translateY(-2px)",
                             },
-                            "& .MuiInputLabel-root": { color: "#475569" },
                           }}
                         >
-                          {DOCUMENT_TYPES.map((type) => (
-                            <MenuItem key={type} value={type} >
-                              {type}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </Grid>
+                          {/* ✅ Remove Button (Top Right) */}
+                          {/* <Box
+                              sx={{ position: "absolute", top: 10, right: 10,}}
+                            >
+                              <Tooltip title="Remove this document row">
+                                <span>
+                                  <IconButton
+                                    onClick={() => handleRemoveDocument(index)}
+                                    disabled={documents.length === 1}
+                                    sx={{
+                                      borderRadius: 2,
+                                      background: "rgba(239,68,68,0.08)",
+                                      "&:hover": {
+                                        background: "rgba(239,68,68,0.16)",
+                                      },
+                                    }}
+                                  >
+                                    <DeleteOutlineIcon
+                                      sx={{
+                                        color:
+                                          documents.length === 1
+                                            ? "rgba(148,163,184,0.9)"
+                                            : "#ef4444",
+                                      }}
+                                    />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            </Box> */}
 
-                      {/* File Picker */}
-                      <Grid item xs={4}>
-                        <Button
-                          variant="outlined"
-                          component="label"
-                          fullWidth
-                          disabled={doc.uploaded}
-                          sx={{
+                          <Grid container spacing={2} alignItems="center">
+                            {/* Document Type */}
+                            <Grid item xs={12} md={3}>
+                              <TextField
+                                select
+                                label="Document Type"
+                                fullWidth
+                                size="small"
+                                value={doc.documentType}
+                                onChange={(e) =>
+                                  handleDocumentTypeChange(
+                                    index,
+                                    e.target.value
+                                  )
+                                }
+                                disabled={doc.uploaded}
+                                sx={{
+                                  // minWidth:200,
+                                  "& .MuiOutlinedInput-root": {
+                                    borderRadius: 2.5,
+                                    height: "45px",
+                                    backgroundColor: "rgba(241,248,255,0.95)",
+                                    "& fieldset": {
+                                      borderColor: "rgba(148,163,184,0.35)",
+                                    },
+                                    "&:hover fieldset": {
+                                      borderColor: "rgba(59,130,246,0.65)",
+                                    },
+                                    "&.Mui-focused fieldset": {
+                                      borderColor: "#3b82f6",
+                                      borderWidth: "2px",
+                                    },
+                                  },
+                                  "& .MuiInputLabel-root": {
+                                    color: "#334155",
+                                  },
+                                }}
+                              >
+                                {DOCUMENT_TYPES.map((docType) => (
+                                  <MenuItem key={docType.id} value={docType.id}>
+                                    {docType.label}
+                                  </MenuItem>
+                                ))}
+                              </TextField>
+                            </Grid>
 
-                          }}
-                        >
-                          {doc.file ? doc.file.name : "Choose File"}
-                          <input
-                            type="file"
-                            hidden
-                            onChange={(e) =>
-                              handleFileChangeDropdown(index, e.target.files[0])
-                            }
-                          />
-                        </Button>
-                      </Grid>
+                            {/* Choose File */}
+                            <Grid item xs={12} md={4}>
+                              <Button
+                                variant="outlined"
+                                component="label"
+                                fullWidth
+                                disabled={doc.uploaded}
+                                sx={{
+                                  borderRadius: 2.5,
+                                  height: "45px",
+                                  // py: 1.45,
+                                  // minWidth:250,
+                                  textTransform: "none",
+                                  fontWeight: 650,
+                                  borderColor: "rgba(59,130,246,0.35)",
+                                  color: "#0f172a",
+                                  background: "rgba(255,255,255,0.85)",
+                                  "&:hover": {
+                                    borderColor: "#3b82f6",
+                                    background: "rgba(239,246,255,0.8)",
+                                  },
+                                  overflow: "hidden", // Prevents long filenames from breaking UI
+                                  whiteSpace: "nowrap",
+                                  textOverflow: "ellipsis",
+                                  display: "block",
+                                }}
+                              >
+                                {doc.file ? doc.file.name : "Choose File"}
+                                <input
+                                  type="file"
+                                  hidden
+                                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                  onChange={(e) =>
+                                    handleFileChangeDropdown(
+                                      index,
+                                      e.target.files?.[0]
+                                    )
+                                  }
+                                />
+                              </Button>
 
-                      {/* Upload Button */}
-                      <Grid item xs={2}>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          fullWidth
-                          disabled={doc.uploaded}
-                          onClick={() => handleUpload(index)}
-                        >
-                          Upload
-                        </Button>
-                      </Grid>
+                              {/* {doc.file && (
+                                <Box
+                                  sx={{
+                                    // mt: 1,
+                                    display: "flex",
+                                    // gap: 1,
+                                    // flexWrap: "wrap",
+                                    // alignItems: "center",
+                                    gap: 0.5,
+                                    mt: 0.5,
+                                    position: "absolute",
+                                    bottom: -18,
+                                  }}
+                                >
+                                  <Chip
+                                    label={`Size: ${(
+                                      doc.file.size / 1024
+                                    ).toFixed(2)} KB`}
+                                    size="small"
+                                    sx={{
+                                      // borderRadius: 2,
+                                      background: "rgba(59,130,246,0.10)",
+                                      color: "#1e3a8a",
+                                      // fontWeight: 700,
+                                      height: 16,
+                                      fontSize: "0.65rem",
+                                      borderRadius: 1,
+                                    }}
+                                  />
 
-                      {/* Clear Button */}
-                      <Grid item xs={2}>
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          fullWidth
-                          onClick={() => handleClear(index)}
-                        >
-                          Clear
-                        </Button>
-                      </Grid>
+                                  {doc.uploaded && (
+                                    <Chip
+                                      label="Uploaded"
+                                      size="small"
+                                      color="success"
+                                      sx={{
+                                        // borderRadius: 2,
+                                        background: "rgba(34,197,94,0.12)",
+                                        // color: "#166534",
+                                        // fontWeight: 800,
+                                        height: 16,
+                                        fontSize: "0.65rem",
+                                        borderRadius: 1,
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              )} */}
+                            </Grid>
 
-                    </Grid>
-                  ))}
+                            {/* Upload Button */}
+                            <Grid item xs={4} md={2}>
+                              <Button
+                                variant="contained"
+                                fullWidth
+                                disabled={
+                                  doc.uploaded || !doc.file || !doc.documentType
+                                }
+                                onClick={() => handleUpload(index)}
+                                sx={{
+                                  borderRadius: 2.5,
+                                  height: "45px",
+                                  // maxWidth: 100,
+                                  // py: 1.45,
+                                  textTransform: "none",
+                                  fontWeight: 800,
+                                  boxShadow:
+                                    "0 10px 20px rgba(59,130,246,0.22)",
+                                  background:
+                                    "linear-gradient(135deg, #2563eb, #60a5fa)",
+                                  "&:hover": {
+                                    boxShadow:
+                                      "0 14px 26px rgba(59,130,246,0.30)",
+                                    transform: "translateY(-1px)",
+                                  },
+                                }}
+                              >
+                                Upload
+                              </Button>
+                            </Grid>
 
-                </Box>
-              </Card>
+                            {/* Clear Button */}
+                            <Grid item xs={4} md={2}>
+                              <Button
+                                variant="outlined"
+                                // color="error"
+                                fullWidth
+                                onClick={() => handleClear(index)}
+                                sx={{
+                                  borderRadius: 2.5,
+                                  // py: 1.45,
+                                  textTransform: "none",
+                                  height: "45px",
+                                  fontWeight: 800,
+                                  borderColor: "rgba(239,68,68,0.45)",
+                                  background: "rgba(255,255,255,0.85)",
+                                  "&:hover": {
+                                    borderColor: "#ef4444",
+                                    background: "rgba(254,242,242,0.9)",
+                                  },
+                                }}
+                              >
+                                Clear
+                              </Button>
+                            </Grid>
+                            <Grid
+                              item
+                              xs={4}
+                              md={1}
+                              sx={{ textAlign: "center" }}
+                            >
+                              <Tooltip title="Remove this document row">
+                                <span>
+                                  <IconButton
+                                    onClick={() => handleRemoveDocument(index)}
+                                    disabled={documents.length === 1}
+                                    sx={{
+                                      borderRadius: 2,
+                                      background: "rgba(239,68,68,0.08)",
+                                      "&:hover": {
+                                        background: "rgba(239,68,68,0.16)",
+                                      },
+                                      p: 1.2, // Padding to match visual weight of buttons
+                                    }}
+                                  >
+                                    <DeleteOutlineIcon
+                                      sx={{
+                                        color:
+                                          documents.length === 1
+                                            ? "rgba(148,163,184,0.9)"
+                                            : "#ef4444",
+                                      }}
+                                    />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            </Grid>
+                          </Grid>
+                        </Paper>
+                      ))}
+                    </Box>
+                  </Box>
+                </Card>
+
+                {/* Snackbar */}
+                <Snackbar
+                  open={snack.open}
+                  autoHideDuration={2500}
+                  onClose={() => setSnack((s) => ({ ...s, open: false }))}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                >
+                  <Alert
+                    severity={snack.severity}
+                    variant="filled"
+                    onClose={() => setSnack((s) => ({ ...s, open: false }))}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    {snack.msg}
+                  </Alert>
+                </Snackbar>
+              </Box>
 
               {/* Form Actions */}
               <Box
@@ -1308,7 +1559,12 @@ const OrederReceivedForm = () => {
 
       {/* ------------------------ VIEW TABLE ------------------------ */}
       {value === 1 && (
-        <ViewOrderRecievedData ViewData={orderData}></ViewOrderRecievedData>
+        <ViewOrderRecievedData
+          ViewData={orderData}
+          setOrderData={setOrderData}
+          ServerIp={ServerIp}
+        />
+        // <h1>Rakshitha </h1>
       )}
 
       {/* ------------------------ BULK UPLOAD ------------------------ */}
@@ -1363,26 +1619,65 @@ const lightTextFieldSx = {
 function ViewOrderRecievedData(props) {
   console.log("props viewOrderRecievedData", props);
 
-  const [tableData, setTableData] = useState(props.ViewData?.data || []);
+  // Store data in local state for updates
+  const [tableData, setTableData] = useState(props.ViewData.data || []);
 
+  // Extract ServerIp from props
+  const ServerIp = props.ServerIp || "";
+
+  // Sync with parent data when it changes
   useEffect(() => {
-    // console.log("Data received in ViewOrderRecievedData:", tableData);
-    tableData.map( async (item) => {
-      console.log("Item:", item);
-      const docResponse = await fetch(`http://localhost:5000//leads/${item.id}/documents`);
-      const docData = await docResponse.json();
-      if(docData.success) {
-        console.log("Documents for item", item.id, ":", docData.data);
-      } else {
-        console.error("Failed to fetch documents for item", item.id);
-      }
+    const tableArray = props.ViewData.data;
+    tableArray.sort((a, b) => {
+      return a.id - b.id;
     });
-  }, [tableData]);
 
-  // ---------------- STATE VARIABLES ----------------
+    // setTableData(props.ViewData.data);
+    // API for all
+    const fetchDocuments = async () => {
+      const updatedTableArray = await Promise.all(
+        tableArray.map(async (item) => {
+          try {
+            const response = await axios.get(
+              `${ServerIp}/getOrderReceived/${item.id}/documents`
+            );
+            const documentsArray = response.data;
+            const contractCopyDoc = documentsArray.find(
+              (doc) => doc.documentType === "contractCopy"
+            );
+            const letterOfIntentDoc = documentsArray.find(
+              (doc) => doc.documentType === "letterOfIntent"
+            );
+
+            return {
+              ...item,
+              contractCopy: contractCopyDoc ? { ...contractCopyDoc } : null, // Use spread to copy and handle null case
+              letterOfIntent: letterOfIntentDoc
+                ? { ...letterOfIntentDoc }
+                : null, //Use spread to copy and handle null
+            };
+          } catch (error) {
+            console.error(
+              "Error fetching documents for item ID:",
+              item.id,
+              error
+            );
+            return item; // Return original item if there's an error
+          }
+        })
+      );
+
+      setTableData(updatedTableArray);
+    };
+
+    fetchDocuments();
+  }, []);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [tenderTypeFilter, setTenderTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  // const [yearFilter, setYearFilter] = useState(null);
+  const [yearFilter, setYearFilter] = useState(dayjs());
 
   const [sortBy, setSortBy] = useState("dateCreated");
   const [sortDirection, setSortDirection] = useState("desc");
@@ -1391,9 +1686,21 @@ function ViewOrderRecievedData(props) {
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
+
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [idDeleteOpen, setIdDeleteOpen] = useState(null);
+
   const [isEditMode, setIsEditMode] = useState(false);
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const [tempEditingRow, setTempEditingRow] = useState(null);
+
+  const [dialogOpenedFrom, setDialogOpenedFrom] = useState("rowClick"); // "rowClick" or "editIcon"
+
+  const [docEditRows, setDocEditRows] = useState([]); // existing docs for editing
+  const [docSaving, setDocSaving] = useState(false);
+
+  //Multiple upload States
+  const [newFiles, setNewFiles] = useState([]);
 
   // READ-ONLY VIEW DIALOG STATE
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -1403,7 +1710,44 @@ function ViewOrderRecievedData(props) {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
   const columnMenuOpen = Boolean(columnMenuAnchor);
 
+  // to map document ids after upload to leadId from backend;
+  // store document ids to update lead document mapping later
+  const [allDocumentIds, setAllDocumentIds] = useState([]);
 
+  // document upload states for multiple documents
+  // const [documents, setDocuments] = useState([
+  //   { documentType: "", file: null, uploaded: false },
+  // ]);
+
+  const [open, setOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [titleName, setTitleName] = useState("");
+
+  const createEmptyRow = () => ({
+    documentType: "",
+    file: null,
+    uploaded: false,
+  });
+
+  const [documents, setDocuments] = useState([createEmptyRow()]); // ✅ minimum one row
+
+  const [snack, setSnack] = useState({
+    open: false,
+    msg: "",
+    severity: "success",
+  });
+
+  const UPLOAD_ENDPOINT = `/uploadDocument`;
+  const UPDATE_ENDPOINT = `/updateDocument`;
+
+  // to map document ids after upload to leadId from backend;
+  // store document ids to update lead document mapping later
+  const [documentIds, setDocumentIds] = useState([]);
+
+  const DOCUMENT_TYPES = [
+    { id: "contractCopy", label: "Contract Copy" },
+    { id: "letterOfIntent", label: "Letter of Intent" },
+  ];
 
   const [visibleColumns, setVisibleColumns] = useState({
     projectTitle: true,
@@ -1420,7 +1764,6 @@ function ViewOrderRecievedData(props) {
     remarks: true,
     JSON_competitors: true,
     contractCopy: true,
-    workOrder: true,
     letterOfIntent: true,
     dateCreated: true,
     actions: true,
@@ -1443,7 +1786,8 @@ function ViewOrderRecievedData(props) {
     { id: "remarks", label: "Remarks" },
     { id: "JSON_competitors", label: "Competitors" },
     { id: "contractCopy", label: "Contract Copy" },
-    { id: "letterOfIntent", label: "LOI" },
+    { id: "letterOfIntent", label: "Letter Of Intent" },
+    // { id: "attachments", label: "Attachments" },
     { id: "dateCreated", label: "Created Date" },
   ];
 
@@ -1483,6 +1827,104 @@ function ViewOrderRecievedData(props) {
     setStatusFilter("all");
     setSortBy("dateCreated");
     setSortDirection("desc");
+    setYearFilter(null);
+  };
+
+  //File Upload
+
+  //upload file handles
+  const showSnack = (msg, severity = "success") => {
+    setSnack({ open: true, msg, severity });
+  };
+
+  const handleAddDocument = () => {
+    setDocuments((prev) => [...prev, createEmptyRow()]);
+    showSnack("New document row added!", "info");
+  };
+
+  const handleRemoveDocument = (index) => {
+    if (documents.length === 1) {
+      showSnack("At least one document row is required.", "warning");
+      return;
+    }
+
+    setDocuments((prev) => prev.filter((_, i) => i !== index));
+    showSnack("Document row removed.", "info");
+  };
+
+  //Batch File Upload
+
+  // 1. Handle selection of multiple files
+  const handleMultipleFileSelect = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setNewFiles((prev) => [...prev, ...selectedFiles]);
+  };
+
+  // 2. Remove a file from the selection list before uploading
+  const removeFileFromSelection = (index) => {
+    setNewFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // 3. Upload all selected files
+  const handleBatchUpload = async () => {
+    if (newFiles.length === 0) return alert("Please select files first");
+
+    try {
+      setDocSaving(true);
+      const formData = new FormData();
+
+      // Append all files to the "files" key
+      newFiles.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      const res = await axios.post(
+        `${ServerIp}/documents/upload-multiple/${editingRow.id}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      alert("✅ Files uploaded successfully");
+      setNewFiles([]); // Clear selection
+      // Refresh your list here if necessary
+    } catch (err) {
+      console.error(err);
+      alert("❌ Upload failed");
+    } finally {
+      setDocSaving(false);
+    }
+  };
+
+  // DELETE ROW
+  const handleDeleteRow = async (id) => {
+    // if (!window.confirm("Are you sure you want to delete this entry?")) return;
+
+    console.log("Deleting row with ID:", id);
+    const deleteData = {
+      id: id,
+    };
+    console.log(
+      "api for delete in domestic lead : ",
+      `${ServerIp}/getOrderReceived`
+    );
+    // TODO: delete logic here
+    try {
+      await axios.delete(`${ServerIp}/getOrderReceived`, {
+        data: deleteData, // Send the data in the request body
+        headers: {
+          "Content-Type": "application/json", // VERY IMPORTANT: Set the Content-Type
+        },
+      });
+      // Show success notification
+      setTableData(
+        tableData.filter((item) => item.id !== id) // Create a new array excluding the item with the given id
+      );
+      setConfirmDeleteOpen(false);
+      alert("✅ Deleted successfully!");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      alert("❌ Failed to Delete. Please try again.");
+    }
   };
 
   // DOWNLOAD ALL DATA AS EXCEL
@@ -1510,15 +1952,144 @@ function ViewOrderRecievedData(props) {
     console.log(" work new book : ", workbook);
   };
 
-  // Row Selection
-  const handleRowSelect = (row) => {
-    setSelectedRow(row);
+  // // Row Selection
+  // const handleRowSelect = (row) => {
+  //   setSelectedRow(row);
+  // };
+
+  // OPEN DIALOG FROM ROW CLICK (VIEW MODE ONLY)
+  const handleRowClick = (row) => {
+    setTempEditingRow({ ...row }); // Store original data
+    setEditingRow({ ...row }); // Set for viewing
+    setIsEditMode(false); // Start in VIEW mode
+    setDialogOpenedFrom("rowClick"); // Mark as opened from row click
+    setEditDialogOpen(true);
+    console.log(" editingRow data : ", editingRow);
+
+    const initDocs = [];
+
+    if (row?.contractCopy) {
+      initDocs.push({
+        documentId: row.contractCopy.documentId,
+        documentType: "contractCopy",
+        originalFileName: row.contractCopy.originalFileName,
+        storedFileName: row.contractCopy.storedFileName,
+        file: null, // replacement file
+      });
+    }
+    if (row?.letterOfIntent) {
+      initDocs.push({
+        documentId: row.letterOfIntent.documentId,
+        documentType: "letterOfIntent",
+        originalFileName: row.letterOfIntent.originalFileName,
+        storedFileName: row.letterOfIntent.storedFileName,
+        file: null,
+      });
+    }
+
+    setDocEditRows(initDocs.length ? initDocs : []);
   };
 
   // OPEN EDIT DIALOG
   const handleEditClick = (row) => {
-    setEditingRow({ ...row });
+    setTempEditingRow({ ...row }); // Store original data
+    setEditingRow({ ...row }); // Set for editing
+    setIsEditMode(false); // Start in VIEW mode but with edit option
+    setDialogOpenedFrom("editIcon"); // Mark as opened from edit icon
     setEditDialogOpen(true);
+
+    const initDocs = [];
+
+    if (row?.contractCopy) {
+      initDocs.push({
+        documentId: row.contractCopy.documentId,
+        documentType: "contractCopy",
+        originalFileName: row.contractCopy.originalFileName,
+        storedFileName: row.contractCopy.storedFileName,
+        file: null, // replacement file
+      });
+    }
+    if (row?.letterOfIntent) {
+      initDocs.push({
+        documentId: row.letterOfIntent.documentId,
+        documentType: "letterOfIntent",
+        originalFileName: row.letterOfIntent.originalFileName,
+        storedFileName: row.letterOfIntent.storedFileName,
+        file: null,
+      });
+    }
+
+    setDocEditRows(initDocs.length ? initDocs : []);
+  };
+
+  //UPDATE FILES (EDIT DIALOG)
+
+  const handleReplaceFileSelect = (index, file) => {
+    setDocEditRows((prev) => {
+      const updated = [...prev];
+      updated[index].file = file;
+      return updated;
+    });
+  };
+
+  const handleUpdateExistingDocument = async (docRow) => {
+    if (!docRow?.documentId) return;
+
+    if (!docRow.file) {
+      alert("Please choose a replacement file first");
+      return;
+    }
+
+    try {
+      setDocSaving(true);
+
+      const formData = new FormData();
+      formData.append("file", docRow.file);
+
+      const res = await axios.put(
+        `${ServerIp}/documents/${docRow.documentId}/replace`,
+        //`${ServerIp}/updateReplaceDocument`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      alert("✅ Document updated successfully");
+
+      // ✅ update UI values after replacement
+      const updatedDoc = res.data?.doc;
+
+      setDocEditRows((prev) =>
+        prev.map((d) =>
+          d.documentId === docRow.documentId
+            ? {
+                ...d,
+                originalFileName: updatedDoc.originalFileName,
+                storedFileName: updatedDoc.storedFileName,
+                file: null,
+              }
+            : d
+        )
+      );
+
+      // ✅ also update editingRow so view section shows updated file
+      setEditingRow((prev) => {
+        if (!prev) return prev;
+        const key = docRow.documentType; // contractCopy / letterOfIntent
+        return {
+          ...prev,
+          [key]: {
+            ...prev[key],
+            originalFileName: updatedDoc.originalFileName,
+            storedFileName: updatedDoc.storedFileName,
+          },
+        };
+      });
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to update document");
+    } finally {
+      setDocSaving(false);
+    }
   };
 
   // UPDATE FIELD WHILE EDITING
@@ -1539,40 +2110,68 @@ function ViewOrderRecievedData(props) {
 
   // SAVE EDITED VALUES
   const handleEditSave = () => {
+    setConfirmSaveOpen(true);
     console.log("Saving updated row:", editingRow);
-
-    // TODO: update in backend or props function
-
-    setEditDialogOpen(false);
   };
 
   // CONFIRM AND SAVE TO BACKEND
   const handleConfirmSave = async () => {
     try {
-      console.log("Saving updated row:", editingRow);
+      console.log("Confirmed - Updating row:", editingRow);
 
-      // Mock API call - Replace with real API endpoint
-      const mockApiResponse = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            success: true,
-            message: "Record updated successfully",
-            data: editingRow,
-          });
-        }, 800);
-      });
+      // Call real update API
+      const updatePayload = {
+        id: editingRow.id, // Include ID for update
+        ...editingRow, // Rest of data to edit
+      };
 
-      if (mockApiResponse.success) {
-        console.log("Backend Response:", mockApiResponse);
-        alert("Changes saved successfully!");
+      // Replace with your actual API endpoint
+      // const API_ENDPOINT = `/getBudgetaryQuotation/${updatePayload?.id}`;
+
+      const response = await axios.put(
+        `${ServerIp}/getOrderReceived`,
+        updatePayload
+      );
+
+      console.log("res from server : ", response);
+
+      if (response.data.success || response.status === 200) {
+        documentIds.forEach((docId, index) => {
+          if (docId) {
+            // Map document to lead using documentIds[index] and response.data.leadId
+            console.log(
+              `Mapping document ID ${documentIds[index]} to lead ID ${response.data.id}`
+            );
+            // 🔗 API call to map document to lead can be made here
+            axios.put(ServerIp + UPDATE_ENDPOINT, {
+              documentId: documentIds[index],
+              leadId: response.data.id,
+            });
+          }
+        });
+
+        // Update the local table data with the new values
+        const updatedTableData = tableData.map((row) =>
+          row.id === editingRow.id ? editingRow : row
+        );
+        setTableData(updatedTableData);
+
+        // Notify parent component about update if callback provided
+        if (props.onDataUpdate) {
+          props.onDataUpdate(updatedTableData);
+        }
+
+        // Show success notification
+        alert("✅ Changes saved successfully!");
         setConfirmSaveOpen(false);
         setEditDialogOpen(false);
         setIsEditMode(false);
         setEditingRow(null);
+        setTempEditingRow(null);
       }
     } catch (error) {
       console.error("Error saving changes:", error);
-      alert("Failed to save changes. Please try again.");
+      alert("❌ Failed to save changes. Please try again.");
     }
   };
 
@@ -1582,13 +2181,11 @@ function ViewOrderRecievedData(props) {
     setEditingRow({ ...tempEditingRow });
   };
 
-  // DELETE ROW
+  // Delete VALUES - SHOW CONFIRMATION DIALOG
   const handleDeleteClick = (id) => {
-    if (!window.confirm("Are you sure you want to delete this entry?")) return;
-
-    console.log("Deleting row with ID:", id);
-
-    // TODO: delete logic here
+    console.log("Saving updated row:", editingRow);
+    setIdDeleteOpen(id);
+    setConfirmDeleteOpen(true); // Open confirmation dialog
   };
 
   // DOUBLE CLICK → OPEN READ-ONLY VIEW
@@ -1596,6 +2193,201 @@ function ViewOrderRecievedData(props) {
     setViewRow(row);
     setViewDialogOpen(true);
   };
+
+  // const handleGetDocumentIds = async (rowId) => {
+  //   try {
+  //     console.log("row.id : ", rowId);
+  //     await axios
+  //       .get(ServerIp + `/getOrderReceived/${rowId}/documents`)
+  //       .then((response) => {
+  //         console.log(
+  //           " response by getOrderReceived/documents : ",
+  //           response.data
+  //         );
+  //         // setAllDocumentIds(response.data);
+  //         response.data.forEach( (doc, index) => {
+  //           // if (doc.documentType === "contractCopy") setContractCopy(doc)
+  //           // if (doc.documentType === "letterOfIntent") setLetterOfIntent(doc)
+  //         })
+  //       })
+  //       .catch((error) => console.log(error.message));
+  //   } catch (error) {
+  //     console.log("error : ", error);
+  //   }
+  // };
+
+  // DOWNLOAD DOCUMENT PREVIEW
+  // const handleDownloadFile = async (documentId, hardDiskFileName, fileName) => {
+  //   // let serverDocPath = (filePath + "\\" + hardDiskFileName);
+  //   console.log(" this hardiskFileName ", hardDiskFileName);
+
+  //   axios
+  //     .get(`${ServerIp}/getOrderReceived/${documentId}/download`, {
+  //       responseType: "blob",
+  //     })
+  //     .then((response) => {
+  //       console.log(response.data);
+  //       const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+  //       setTitleName(`${fileName}`);
+  //       setOpen(true);
+  //       // Create a temporary URL for the Blob
+  //       const url = window.URL.createObjectURL(pdfBlob);
+  //       setPdfUrl(url);
+  //       // Create a temporary <a> element to trigger the download
+  //       // const tempLink = document.createElement("a");
+  //       // tempLink.href = url;
+  //       // tempLink.setAttribute("download", `bill_${User_Id}_${date}.pdf`); // Set the desired filename for the downloaded file
+  //       // Append the <a> element to the body and click it to trigger the downl
+  //       // document.body.appendChild(tempLink);
+  //       // tempLink.click();
+  //       // tempLink.remove();
+  //       // Clean up the temporary elements and URL
+  //       // document.body.removeChild(tempLink);
+  //       // window.URL.revokeObjectURL(url);
+  //       // window.open(url, "_blank");
+  //     })
+  //     // .then((blob) => {
+  //     //   const url = window.URL.createObjectURL(blob);
+  //     //   const a = document.createElement("a");
+  //     //   a.href = url;
+  //     //   a.download = fileName; // specify the filename here
+  //     //   document.body.appendChild(a);
+  //     //   a.click();
+  //     //   a.remove();
+  //     //   window.URL.revokeObjectURL(url);
+  //     // })
+  //     .catch((error) => {
+  //       console.error(error);
+  //     });
+  // };
+
+  //New Document Preview
+
+  const handleDownloadFile = async (documentId, hardDiskFileName, fileName) => {
+    console.log("Downloading file:", hardDiskFileName);
+
+    axios.get(`${ServerIp}/getOrderReceived/${documentId}/download`, {
+        responseType: "blob",
+    })
+    .then((response) => {
+        // 1. Get the content type from headers (or infer from file extension)
+        const contentType = response.headers['content-type'];
+        const fileBlob = new Blob([response.data], { type: contentType });
+        
+        const url = window.URL.createObjectURL(fileBlob);
+        
+        // 2. Identify the file extension
+        const fileExtension = fileName.split('.').pop().toLowerCase();
+        
+        // 3. Logic for Preview vs Download
+        const previewableTypes = ['pdf', 'jpg', 'jpeg', 'png'];
+
+        if (previewableTypes.includes(fileExtension)) {
+            // It's an image or PDF: Open in your Modal/Previewer
+            setTitleName(fileName);
+            setPdfUrl(url); // Ensure your preview component handles <img> tags too
+            setOpen(true);
+        } else {
+            // It's Excel, Word, or other: Trigger automatic download
+            const tempLink = document.createElement("a");
+            tempLink.href = url;
+            tempLink.setAttribute("download", fileName);
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+            
+            // Cleanup memory
+            window.URL.revokeObjectURL(url);
+            alert("This file format cannot be previewed and has been downloaded instead.");
+        }
+    })
+    .catch((error) => {
+        console.error("Download Error:", error);
+    });
+};
+
+  // OPEN DOCUMENT PREVIEW
+  const handleDocumentClick = (documentId, storedFileName, fileName) => {
+    if (!storedFileName) {
+      alert("No document available for this record");
+      return;
+    }
+
+    // custom logic
+    handleDownloadFile(documentId, storedFileName, fileName);
+
+    // Open document in new window/tab
+    // In production, this would open the actual file from your document server
+    // window.open(filePath, "_blank");
+    console.log(`Opening document: ${storedFileName}`);
+  };
+
+  const handleDocumentTypeChange = (index, value) => {
+    console.log("Selected Document Type:", value);
+    const updated = [...documents];
+    updated[index].documentType = value;
+    setDocuments(updated);
+  };
+
+  const handleFileChangeDropdown = (index, file) => {
+    const updated = [...documents];
+    updated[index].file = file;
+    setDocuments(updated);
+  };
+
+  const handleUpload = async (index) => {
+    const doc = documents[index];
+
+    if (!doc.documentType || !doc.file) {
+      alert("Please select document type and file");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", doc.file);
+    formData.append("documentType", doc.documentType);
+    formData.append("uploadedBy", "M001");
+
+    // 🔗 API call here
+    // await uploadLeadDocument(formData);
+    fetch(ServerIp + UPLOAD_ENDPOINT, {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Document upload response:", data);
+        const updated = [...documentIds];
+        updated[index] = data.documentId;
+        console.log("file uploaded by dialog box of OR : ", updated);
+        setDocumentIds(updated);
+        // Handle success (e.g., show a message, update state)
+      })
+      .catch((error) => console.error("Error uploading document:", error));
+
+    const updated = [...documents];
+    updated[index].uploaded = true;
+
+    // Add new empty row if less than 4
+    if (updated.length < 4) {
+      updated.push({ documentType: "", file: null, uploaded: false });
+    }
+
+    setDocuments(updated);
+  };
+
+  const handleClear = (index) => {
+    const updated = [...documents];
+    updated.splice(index, 1);
+
+    if (updated.length === 0) {
+      updated.push({ documentType: "", file: null, uploaded: false });
+    }
+
+    setDocuments(updated);
+  };
+
+  // useEffect(() => []); // Dependency array:  The effect runs only when rowId changes
 
   // ===== TABLE STYLES =====
   const headerCellStyle = {
@@ -1629,8 +2421,6 @@ function ViewOrderRecievedData(props) {
     maxWidth: 150,
   };
 
-
-
   // defaultValues: {
   //   projectTitle: "",
   //   customerName: "",
@@ -1646,13 +2436,14 @@ function ViewOrderRecievedData(props) {
   //   remarks: "",
   //   JSON_competitors: "",
   //   contractCopy: "",
-
+  //   letterOfIntent: "",
   // ---------------- FILTER + SORT LOGIC ----------------
   const filteredSortedData =
     tableData &&
     tableData
       .filter((row) => {
         const q = searchTerm.toLowerCase();
+
         const matchesSearch =
           !q ||
           row.projectTitle?.toLowerCase().includes(q) ||
@@ -1669,8 +2460,15 @@ function ViewOrderRecievedData(props) {
           statusFilter === "all" ||
           row.presentStatus?.toLowerCase() === statusFilter.toLowerCase();
 
-        return matchesSearch && matchesTenderType && matchesStatus;
+        // const matchesYear =
+        //   !yearFilter || dayjs(row.orderRxdDate).year() === yearFilter.year();
+
+        return (
+          matchesSearch && matchesTenderType && matchesStatus
+          //  && matchesYear
+        );
       })
+
       .sort((a, b) => {
         let aVal;
         let bVal;
@@ -1718,165 +2516,164 @@ function ViewOrderRecievedData(props) {
   return (
     <>
       {/* HEADER + CONTROLS */}
-      <Box
-        sx={{
-          mb: 2,
-          px: { xs: 1, sm: 0 },
-        }}
-      >
+      <Box sx={{ mb: 3, px: { xs: 1, sm: 0 } }}>
         <Box
           sx={{
-            borderRadius: 4,
+            borderRadius: 3,
             p: { xs: 2, sm: 3 },
-            boxShadow: 6,
-            background:
-              "linear-gradient(135deg, #e0f7ff 0%, #c8f0ff 40%, #a6e9ff 100%)",
-            color: "#06283D",
+            background: `linear-gradient(135deg,#EAF6FD 0%,#CFE9F7 5%,#B6DFF5 45%, #9CCEF0 100%,#6FAFD8 60%)`,
+            border: "1px solid rgba(111,182,232,0.5)",
+            boxShadow:
+              "0 16px 40px rgba(15,23,42,0.15), inset 0 1px 0 rgba(255,255,255,0.85)",
+            position: "relative",
+            overflow: "hidden",
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(circle at top right, rgba(255,255,255,0.35), transparent 55%)",
+              pointerEvents: "none",
+            },
           }}
         >
+          {/* =====================================================
+       TOP ROW : TITLE + SEARCH + COLUMN TOGGLE
+       ===================================================== */}
           <Box
             sx={{
+              position: "relative",
               display: "flex",
               flexWrap: "wrap",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 2,
+              zIndex: 1,
             }}
           >
+            {/* -------------------------------
+          PAGE TITLE
+         ------------------------------- */}
             <Box>
               <Typography
                 variant="h5"
                 sx={{
-                  fontWeight: 800,
-                  letterSpacing: 0.5,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
+                  fontWeight: 900,
+                  letterSpacing: 0.6,
+                  color: "#0F172A",
                 }}
               >
-                Order Received List
+                Order Received Data View
               </Typography>
-              {/* <Typography
-                variant="body2"
-                sx={{ opacity: 0.85, mt: 0.5, maxWidth: 520 }}
-              >
-                View, search, filter and manage all submitted tender leads in a
-                single, elegant dashboard.
-              </Typography> */}
             </Box>
 
-            {/* SEARCH BOX */}
-            <TextField
-              variant="outlined"
-              size="small"
-              placeholder="Search by tender, customer, reference..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRounded />
-                  </InputAdornment>
-                ),
-              }}
+            {/* -------------------------------
+          SEARCH + COLUMN VISIBILITY
+         ------------------------------- */}
+            <Box
               sx={{
-                minWidth: { xs: "100%", sm: 260, md: 320 },
-                backgroundColor: "rgba(240,248,255,0.9)",
-                borderRadius: 3,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 3,
-                  color: "#0f172a",
-                  "& fieldset": {
-                    borderColor: "rgba(148,163,184,0.5)",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "rgba(100,116,139,0.8)",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#3b82f6",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  color: "#475569",
-                },
-              }}
-            />
-
-            {/* select columns to view in table */}
-            <Tooltip title="Select columns to display">
-              <IconButton
-                onClick={handleColumnMenuOpen}
-                sx={{
-                  borderRadius: 2.5,
-                  border: "2px solid #1e40af",
-                  backgroundColor: "rgba(30,64,175,0.08)",
-                  color: "#1e40af",
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    backgroundColor: "rgba(30,64,175,0.15)",
-                    transform: "scale(1.05)",
-                  },
-                  maxWidth: 50,
-                }}
-              >
-                <ViewColumnIcon />
-              </IconButton>
-            </Tooltip>
-
-            {/* COLUMN VISIBILITY MENU */}
-            <Menu
-              anchorEl={columnMenuAnchor}
-              open={columnMenuOpen}
-              onClose={handleColumnMenuClose}
-              PaperProps={{
-                sx: {
-                  borderRadius: 2,
-                  minWidth: 280,
-                  maxHeight: 400,
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-                },
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                width: { xs: "100%", sm: "auto" },
               }}
             >
-              {leadColumns.map((col) => (
-                <Box
-                  key={col.id}
-                  onClick={() => handleColumnToggle(col.id)}
+              {/* SEARCH FIELD */}
+              <TextField
+                size="small"
+                placeholder="Search title, customer, lead owner..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchRounded sx={{ color: "#2563EB" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  minWidth: { xs: "100%", sm: 290 },
+                  backgroundColor: "rgba(255,255,255,0.95)",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    "& fieldset": {
+                      borderColor: "#6FB6E8",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#3B82F6",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#2563EB",
+                      borderWidth: 2,
+                      boxShadow: "0 0 0 3px rgba(37,99,235,0.25)",
+                    },
+                  },
+                }}
+              />
+
+              {/* COLUMN TOGGLE */}
+              <Tooltip title="Show / Hide Columns">
+                <IconButton
+                  onClick={handleColumnMenuOpen}
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    px: 2,
-                    py: 1,
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
+                    height: 44,
+                    width: 44,
+                    borderRadius: 2,
+                    background: "linear-gradient(145deg, #6FB6E8, #3B82F6)",
+                    color: "#ffffff",
+                    // boxShadow: "0 8px 20px rgba(37,99,235,0.45)",
+                    transition: "0.25s ease",
                     "&:hover": {
-                      backgroundColor: "rgba(30,64,175,0.08)",
+                      transform: "translateY(-2px) scale(1.05)",
+                      // boxShadow: "0 12px 28px rgba(37,99,235,0.6)",
                     },
                   }}
                 >
-                  <Checkbox
-                    checked={visibleColumns[col.id]}
-                    onChange={() => { }}
-                    size="small"
-                    sx={{
-                      color: "#1e40af",
-                      "&.Mui-checked": {
-                        color: "#1e40af",
-                      },
-                    }}
-                  />
-                  <Typography
-                    variant="body2"
-                    sx={{ fontSize: 13, color: "#0f172a" }}
+                  <ViewColumnIcon />
+                </IconButton>
+              </Tooltip>
+
+              {/* COLUMN MENU */}
+              <Menu
+                anchorEl={columnMenuAnchor}
+                open={columnMenuOpen}
+                onClose={handleColumnMenuClose}
+                PaperProps={{
+                  sx: {
+                    minWidth: 280,
+                    maxHeight: 400,
+                    borderRadius: 2,
+                    boxShadow: "0 16px 36px rgba(0,0,0,0.25)",
+                  },
+                }}
+              >
+                {leadColumns.map((col) => (
+                  <MenuItem
+                    key={col.id}
+                    onClick={() => handleColumnToggle(col.id)}
+                    sx={{ display: "flex", gap: 1 }}
                   >
+                    <Checkbox
+                      checked={visibleColumns[col.id]}
+                      size="small"
+                      sx={{
+                        color: "#3B82F6",
+                        "&.Mui-checked": { color: "#2563EB" },
+                      }}
+                    />
                     {col.label}
-                  </Typography>
-                </Box>
-              ))}
-            </Menu>
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Box>
           </Box>
 
-          {/* FILTERS + SORT */}
+          {/* =====================================================
+       FILTERS + SORTING CONTROLS
+       ===================================================== */}
           <Box
             sx={{
               mt: 2.5,
@@ -1919,6 +2716,43 @@ function ViewOrderRecievedData(props) {
                 </MenuItem>
               ))}
             </TextField>
+
+            {/* YEAR FILTER */}
+            {/* <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                views={["year"]}
+                label="Year"
+                value={yearFilter}
+                minDate={dayjs("2018-01-01")} // ✅ START FROM 2018
+                onChange={(newValue) => setYearFilter(newValue)}
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: {
+                      minWidth: 140,
+                      backgroundColor: "rgba(240,248,255,0.9)",
+                      borderRadius: 2.5,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2.5,
+                        color: "#0f172a",
+                        "& fieldset": {
+                          borderColor: "rgba(148,163,184,0.5)",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "rgba(100,116,139,0.8)",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#3b82f6",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "#475569",
+                      },
+                    },
+                  },
+                }}
+              />
+            </LocalizationProvider> */}
 
             {/* STATUS FILTER */}
             <TextField
@@ -1989,75 +2823,39 @@ function ViewOrderRecievedData(props) {
               <MenuItem value="valueEMDInCrore">EMD Value</MenuItem>
             </TextField>
 
-            {/* SORT ICON BUTTON */}
-            <Tooltip
-              title={`Sort ${sortDirection === "asc" ? "Descending" : "Ascending"
-                }`}
-            >
-              <IconButton
-                onClick={toggleSortDirection}
-                sx={{
-                  ml: 0.5,
-                  borderRadius: 2.5,
-                  border: "1px solid rgba(148,163,184,0.7)",
-                  backgroundColor: "rgba(240,248,255,0.9)",
-                  color: "#0f172a",
-                  "&:hover": {
-                    backgroundColor: "rgba(224,242,254,1)",
-                  },
-                  maxWidth: 50,
-                }}
-              >
-                {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
-              </IconButton>
-            </Tooltip>
-
-            {/* DOWNLOAD BUTTON */}
-            {/* <Button
-              variant="contained"
-              onClick={handleDownloadAllData}
+            {/* SORT DIRECTION */}
+            <IconButton
+              onClick={toggleSortDirection}
               sx={{
-                borderRadius: 999,
-                background: "linear-gradient(135deg,#16a34a,#22c55e)",
-                color: "#fff",
-                textTransform: "none",
-                px: 3,
-                py: 0.9,
-                fontWeight: 700,
-                boxShadow: "0 6px 16px rgba(22,163,74,0.35)",
+                borderRadius: 2,
+                background: "linear-gradient(145deg, #93C5FD, #60A5FA)",
+                color: "#0F172A",
+                maxWidth: 45,
+                boxShadow: "0 6px 16px rgba(59,130,246,0.35)",
                 "&:hover": {
-                  background: "linear-gradient(135deg,#15803d,#16a34a)",
+                  transform: "scale(1.08)",
                 },
               }}
             >
-              Download All Data
-            </Button> */}
+              {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
+            </IconButton>
 
-            {/* RESET BUTTON */}
+            {/* RESET */}
             <Button
-              variant="outlined"
+              variant="contained"
               onClick={handleResetFilters}
               startIcon={<RestartAltRounded />}
               sx={{
                 ml: { xs: 0, sm: "auto" },
                 borderRadius: 999,
-                border: "2px solid #0E4C92",
-                color: "#0E4C92",
-                textTransform: "none",
                 px: 3,
                 py: 0.8,
-                fontWeight: 600,
-                backgroundColor: "rgba(255,255,255,0.85)",
-                backdropFilter: "blur(6px)",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
-                transition: "0.2s ease",
+                fontWeight: 700,
+                background: "linear-gradient(135deg, #2563EB, #3B82F6)",
+                maxWidth: 120,
                 "&:hover": {
-                  backgroundColor: "#d0eaff",
-                  borderColor: "#0A3C7D",
-                  color: "#0A3C7D",
-                  boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                  background: "linear-gradient(135deg, #1D4ED8, #2563EB)",
                 },
-                maxWidth: 130,
               }}
             >
               Reset
@@ -2066,6 +2864,7 @@ function ViewOrderRecievedData(props) {
         </Box>
       </Box>
 
+      {/* Table */}
       <Box
         sx={{
           width: "100%",
@@ -2083,7 +2882,7 @@ function ViewOrderRecievedData(props) {
             overflowY: "auto",
             maxHeight: "48vh",
             // minWidth: "100%",
-            scrollbarGutter: "stable"
+            scrollbarGutter: "stable",
           }}
         >
           <Table
@@ -2121,39 +2920,15 @@ function ViewOrderRecievedData(props) {
               </TableRow>
             </TableHead>
 
-            {/* defaultValues: {
-      projectTitle: "",
-      customerName: "",
-      customerAddress: "",
-      defenceOrCivil: "",
-      PoCoWoNo: "",
-      tenderType: "",
-      valueWithoutGST: "",
-      valueWithGST: "",
-      deliverySchedule: "",
-      remarks: "",
-      contractCopy: "",
-      // operator details
-      OperatorId: "",
-      OperatorName: "",
-      OperatorRole: "",
-      OperatorSBU: "",
-      // files details
-      fileName: "",
-      filePath: "",
-      hardDiskFileName: "",
-      Dom_or_Export: "",
-    }, */}
-
             <TableBody>
-              {filteredSortedData && filteredSortedData.length > 0 ? (
+              {tableData && filteredSortedData.length > 0 ? (
                 filteredSortedData.map((row) => (
                   <TableRow
                     key={row.id}
                     hover
                     selected={selectedRow?.id === row.id}
-                    onClick={() => handleRowSelect(row)}
-                    onDoubleClick={() => handleRowDoubleClick(row)}
+                    onClick={() => handleRowClick(row)}
+                    // onDoubleClick={() => handleRowDoubleClick(row)}
                     sx={{
                       cursor: "pointer",
                       transition: "all 0.18s ease-out",
@@ -2161,7 +2936,8 @@ function ViewOrderRecievedData(props) {
                         backgroundColor: "rgba(59,130,246,0.06)",
                         boxShadow: 1,
                         transform: "translateY(-1px)",
-                      }, overflow: "hidden"
+                      },
+                      overflow: "hidden",
                     }}
                   >
                     {leadColumns.map((col) => {
@@ -2188,21 +2964,107 @@ function ViewOrderRecievedData(props) {
                         );
                       }
 
-                      // RENDER CUSTOMER ADDRESS WITH MIN WIDTH
-                      if (col.id === "customerAddress") {
+                      // RENDER CUSTOMER contractCopy DOCUMENT WITH MIN WIDTH
+                      if (col.id === "contractCopy") {
+                        // console.log("kkkkkkkkkkkkkkk : ", row.contractCopy);
                         return (
                           <TableCell
                             key={col.id}
                             align="left"
-                            sx={{
-                              fontSize: 13,
-                              maxWidth: 260,
-                              whiteSpace: "nowrap",
-                              textOverflow: "ellipsis",
-                              overflow: "hidden",
-                            }}
+                            sx={{ fontSize: 13, onClick: "disabled" }}
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            {row.customerAddress}
+                            {row.contractCopy ? (
+                              <>
+                                <Link
+                                  rel="noopener"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+
+                                    handleDownloadFile(
+                                      row.contractCopy.documentId,
+                                      row.contractCopy.storedFileName,
+                                      row.contractCopy?.originalFileName
+                                    );
+                                  }}
+                                  sx={{
+                                    cursor: "pointer",
+                                    color: "#1e40af",
+                                    fontWeight: 600,
+                                    textDecoration: "none",
+                                    "&:hover": {
+                                      textDecoration: "underline",
+                                      color: "#0d47a1",
+                                    },
+                                  }}
+                                >
+                                  {row.contractCopy?.originalFileName}
+                                </Link>
+                              </>
+                            ) : (
+                              <Typography
+                                sx={{
+                                  color: "#9ca3af",
+                                  fontSize: "0.85rem",
+                                }}
+                              >
+                                No document
+                              </Typography>
+                            )}
+                          </TableCell>
+                        );
+                      }
+
+                      // RENDER CUSTOMER letterOfIntent DOCUMENT WITH MIN WIDTH
+                      if (col.id === "letterOfIntent") {
+                        // console.log(
+                        //   "lllllllllllllllllllllllll : ",
+                        //   row.letterOfIntent
+                        // );
+                        return (
+                          <TableCell
+                            key={col.id}
+                            align="left"
+                            sx={{ fontSize: 13, onClick: "disabled" }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {row.letterOfIntent ? (
+                              <>
+                                <Link
+                                  rel="noopener"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // console.log("contractCopy : ", row.contractCopy);
+                                    handleDownloadFile(
+                                      row.letterOfIntent.documentId,
+                                      row.letterOfIntent.storedFileName,
+                                      row.letterOfIntent?.originalFileName
+                                    );
+                                  }}
+                                  sx={{
+                                    cursor: "pointer",
+                                    color: "#1e40af",
+                                    fontWeight: 600,
+                                    textDecoration: "none",
+                                    "&:hover": {
+                                      textDecoration: "underline",
+                                      color: "#0d47a1",
+                                    },
+                                  }}
+                                >
+                                  {row.letterOfIntent?.originalFileName}
+                                </Link>
+                              </>
+                            ) : (
+                              <Typography
+                                sx={{
+                                  color: "#9ca3af",
+                                  fontSize: "0.85rem",
+                                }}
+                              >
+                                No document
+                              </Typography>
+                            )}
                           </TableCell>
                         );
                       }
@@ -2259,6 +3121,33 @@ function ViewOrderRecievedData(props) {
                           </TableCell>
                         );
                       }
+
+                      // if (col.id === "attachments") {
+                      //   return (
+                      //     <TableCell key={col.id}>
+                      //       {(row.FilePath || []).length === 0 ? (
+                      //         "-"
+                      //       ) : (
+                      //         <Stack spacing={0.5}>
+                      //           {row.FilePath.map((path, i) => (
+                      //             <Typography
+                      //               key={i}
+                      //               sx={{
+                      //                 fontSize: 12,
+                      //                 color: "#2563eb",
+                      //                 cursor: "pointer",
+                      //                 textDecoration: "underline",
+                      //               }}
+                      //               onClick={() => window.open(path, "_blank")}
+                      //             >
+                      //               {row.FileName?.[i]}
+                      //             </Typography>
+                      //           ))}
+                      //         </Stack>
+                      //       )}
+                      //     </TableCell>
+                      //   );
+                      // }
 
                       // RENDER OTHER COLUMNS
                       return (
@@ -2325,11 +3214,11 @@ function ViewOrderRecievedData(props) {
             justifyContent: "space-between",
             pr: 2,
             background: isEditMode
-              ? "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)" // ORANGE (Edit)
+              ? "linear-gradient(135deg,#778DA9 20%, #9CCEF0 100%,#6FAFD8 60%)" // GREYBLUE (Edit)
               : "linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%)", // BLUE (View)
             color: "#ffffff",
             borderBottom: isEditMode
-              ? "3px solid #fb923c"
+              ? "3px solid #33415C"
               : "3px solid #60a5fa",
             py: 2.5,
             transition: "all 0.3s ease", // smooth color change
@@ -2350,10 +3239,10 @@ function ViewOrderRecievedData(props) {
                 variant="h6"
                 sx={{ fontWeight: 800, color: "#ffffff" }}
               >
-                {editingRow?.tenderName || "Lead Details"}
+                {"Order Received Details"}
               </Typography>
               {/* <Typography variant="caption" sx={{ color: "#bfdbfe", mt: 0.5 }}>
-                Reference: {editingRow?.tenderReferenceNo || "N/A"}
+                Reference: {editingRow?.PoCoWoNo || "N/A"}
               </Typography> */}
             </Box>
           </Box>
@@ -2365,22 +3254,22 @@ function ViewOrderRecievedData(props) {
               sx={{
                 fontWeight: 700,
                 fontSize: "0.75rem",
-                background: isEditMode ? "#fbbf24" : "#60a5fa",
-                color: isEditMode ? "#1f2937" : "#ffffff",
-                mr: 8,
+                background: isEditMode ? "#33415C" : "#60a5fa",
+                color: isEditMode ? "#ffffff" : "#ffffff",
+                ml: 3,
               }}
             />
-            {/* This is for close the dialog box "x" */}
-            {/* <IconButton
+            {/* Close Button */}
+            <IconButton
               onClick={handleEditCancel}
               sx={{
                 color: "#ffffff",
-                mr: 8,
+                maxWidth: 40,
                 "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
               }}
             >
               <CloseRounded />
-            </IconButton> */}
+            </IconButton>
           </Box>
         </DialogTitle>
 
@@ -2398,7 +3287,8 @@ function ViewOrderRecievedData(props) {
     //   deliverySchedule: "",
     //   remarks: "",
     //   JSON_competitors: "",
-    //   contractCopy: "", */}
+    //   contractCopy: "",
+    //   letterOfIntent: "", */}
 
         {/* CONTENT - TABULAR MATRIX FORMAT */}
         <DialogContent
@@ -2426,7 +3316,6 @@ function ViewOrderRecievedData(props) {
           <Box sx={{ p: 1.5 }}>
             {/* TENDER INFORMATION SECTION */}
             <Box sx={{ mb: 3 }}>
-
               <Box
                 sx={{
                   display: "grid",
@@ -2568,6 +3457,7 @@ function ViewOrderRecievedData(props) {
                     >
                       {field.label}
                     </Typography>
+                    {/* EDIT MODE */}
                     {isEditMode ? (
                       <TextField
                         value={editingRow?.[field.key] || ""}
@@ -2576,25 +3466,31 @@ function ViewOrderRecievedData(props) {
                         }
                         fullWidth
                         size="small"
+                        type={field.isDate ? "datetime-local" : "text"}
+                        /* 🔒 Reference Number Disabled in Edit Mode */
+                        disabled={field.key === "PoCoWoNo"}
+                        InputLabelProps={
+                          field.isDate ? { shrink: true } : undefined
+                        }
                         sx={{
                           mt: 1,
                           "& .MuiOutlinedInput-root": {
                             borderRadius: 1.5,
-                            background: "#ffffff",
+
+                            /* Grey background when disabled */
+                            background:
+                              field.key === "PoCoWoNo" ? "#f1f5f9" : "#ffffff",
+
                             "& fieldset": {
                               borderColor: "#60a5fa",
                             },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
                           },
                           "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
                             fontWeight: 600,
+
+                            /* Muted text when disabled */
+                            color:
+                              field.key === "PoCoWoNo" ? "#64748b" : "#1e293b",
                           },
                         }}
                       />
@@ -2808,7 +3704,7 @@ function ViewOrderRecievedData(props) {
                 {[
                   {
                     label: "Order Received Date",
-                    key: "defenceOrCivil",
+                    key: "orderRxdDate",
                     isDate: true,
                   },
                   // { label: "Sole / Consortium", key: "soleOrConsortium" },
@@ -3006,7 +3902,316 @@ function ViewOrderRecievedData(props) {
               </Box>
             </Box>
 
+            {/* Attachments Section only for edit mode */}
 
+            {isEditMode && (
+              <Card
+                sx={{
+                  mt: 1,
+                  mb: 3,
+                  p: { xs: 2, sm: 3, md: 3.5 },
+                  borderRadius: 4,
+                  // background:
+                  //   "linear-gradient(135deg, rgba(255,255,255,0.85), rgba(245,250,255,0.75))",
+                  backdropFilter: "blur(18px)",
+                  border: "1px solid rgba(148,163,184,0.25)",
+                  boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
+                  overflow: "hidden",
+                  position: "relative",
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    inset: 0,
+                    // background:
+                    //   "radial-gradient(circle at top right, rgba(59,130,246,0.14), transparent 55%)",
+                    pointerEvents: "none",
+                  },
+                }}
+              >
+                {/* Header */}
+
+                {isEditMode && (
+                  <Card
+                    sx={{
+                      mt: 2,
+                      p: 2.5,
+                      borderRadius: 3,
+                      border: "1px dashed #cbd5e1",
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 800, mb: 2 }}>
+                      📁 Multi-Format Document Manager
+                    </Typography>
+
+                    {/* Section 1: Upload New Files */}
+                    <Box
+                      sx={{ mb: 4, p: 2, bgcolor: "#f8fafc", borderRadius: 2 }}
+                    >
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ mb: 1, color: "#475569" }}
+                      >
+                        Upload New Documents (Supports PDF, DOCX, XLSX, JPG,
+                        PNG)
+                      </Typography>
+
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Button
+                          variant="contained"
+                          component="label"
+                          startIcon={<span>+</span>}
+                        >
+                          Select Files
+                          <input
+                            hidden
+                            multiple // 👈 Critical for multi-select
+                            type="file"
+                            // 👈 Added Excel (xlsx/xls) and Word (doc/docx) mimetypes
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.csv"
+                            onChange={handleMultipleFileSelect}
+                          />
+                        </Button>
+
+                        <Button
+                          variant="contained"
+                          color="success"
+                          disabled={newFiles.length === 0 || docSaving}
+                          onClick={handleBatchUpload}
+                        >
+                          {docSaving
+                            ? "Uploading..."
+                            : `Upload ${newFiles.length} Files`}
+                        </Button>
+                      </Stack>
+
+                      {/* Preview of files selected but not yet uploaded */}
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        flexWrap="wrap"
+                        sx={{ mt: 2 }}
+                      >
+                        {newFiles.map((f, i) => (
+                          <Chip
+                            key={i}
+                            label={f.name}
+                            onDelete={() => removeFileFromSelection(i)}
+                            variant="outlined"
+                            sx={{ mb: 1 }}
+                          />
+                        ))}
+                      </Stack>
+                    </Box>
+
+                    <Divider sx={{ my: 2 }} />
+
+                    {/* Section 2: Existing Documents (Your previous replacement logic) */}
+                    <Typography sx={{ fontWeight: 700, mb: 1, fontSize: 14 }}>
+                      Existing Attachments
+                    </Typography>
+                    <Stack spacing={1.5}>
+                      {docEditRows.map((d, index) => (
+                        <Paper
+                          key={d.documentId}
+                          variant="outlined"
+                          sx={{ p: 1.5, borderRadius: 2 }}
+                        >
+                          <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={12} md={4}>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {d.originalFileName}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="textSecondary"
+                              >
+                                {d.documentType}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={12} md={5}>
+                              <Button
+                                fullWidth
+                                variant="text"
+                                size="small"
+                                component="label"
+                                sx={{ border: "1px dashed #ccc" }}
+                              >
+                                {d.file ? d.file.name : "Replace this file"}
+                                <input
+                                  hidden
+                                  type="file"
+                                  onChange={(e) =>
+                                    handleReplaceFileSelect(
+                                      index,
+                                      e.target.files[0]
+                                    )
+                                  }
+                                />
+                              </Button>
+                            </Grid>
+                            <Grid item xs={12} md={3}>
+                              <Button
+                                fullWidth
+                                size="small"
+                                variant="contained"
+                                disabled={!d.file || docSaving}
+                                onClick={() => handleUpdateExistingDocument(d)}
+                              >
+                                Update
+                              </Button>
+                            </Grid>
+                          </Grid>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  </Card>
+                )}
+
+                <Divider sx={{ mt: 2.5, mb: 2, opacity: 0.5 }} />
+              </Card>
+            )}
+
+            {/* DOCUMENT VIEW - VIEW MODE ONLY */}
+            {!isEditMode ? (
+              <Box>
+                <Box
+                  sx={{
+                    background: "#ffffff",
+                    border: "1px solid #e0e7ff",
+                    borderRadius: 2,
+                    p: 2,
+                    "&:hover": {
+                      borderColor: "#60a5fa",
+                      boxShadow: "0 4px 12px rgba(96,165,250,0.1)",
+                    },
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap={1} mb={1}>
+                    <Typography
+                      sx={{
+                        color: "#1e3a5f",
+                        fontWeight: 700,
+                        fontSize: "0.85rem",
+                      }}
+                    >
+                      📎 Document
+                    </Typography>
+                  </Box>
+                  {editingRow?.contractCopy && (
+                    <>
+                      <Typography
+                        sx={{
+                          color: "#9ca3af",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        Contract Copy :
+                      </Typography>
+                      <Link
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          handleDownloadFile(
+                            editingRow?.contractCopy?.documentId,
+                            editingRow?.contractCopy?.storedFileName,
+                            editingRow?.contractCopy?.originalFileName
+                          );
+                        }}
+                        sx={{
+                          cursor: "pointer",
+                          color: "#1e40af",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
+                          textDecoration: "none",
+                          "&:hover": {
+                            textDecoration: "underline",
+                            color: "#0d47a1",
+                          },
+                        }}
+                      >
+                        {editingRow?.contractCopy?.originalFileName}
+                      </Link>
+                    </>
+                  )}
+                  {editingRow?.letterOfIntent && (
+                    <>
+                      <Typography
+                        sx={{
+                          color: "#9ca3af",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        Letter of intent :
+                      </Typography>
+                      <Link
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadFile(
+                            editingRow?.letterOfIntent.documentId,
+                            editingRow?.letterOfIntent.storedFileName,
+                            editingRow?.letterOfIntent?.originalFileName
+                          );
+                        }}
+                        sx={{
+                          cursor: "pointer",
+                          color: "#1e40af",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
+                          textDecoration: "none",
+                          "&:hover": {
+                            textDecoration: "underline",
+                            color: "#0d47a1",
+                          },
+                        }}
+                      >
+                        {editingRow?.letterOfIntent.originalFileName}
+                      </Link>
+                    </>
+                  )}
+                </Box>
+              </Box>
+            ) : (
+              <Typography
+                sx={{
+                  color: "#9ca3af",
+                  fontSize: "0.85rem",
+                }}
+              >
+                No document
+              </Typography>
+            )}
+
+            {/* <Box sx={{ md: 3 }}>
+            <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(2, 1fr)",
+                    lg: "repeat(3, 1fr)",
+                  },
+                  gap: 1.5,
+                }}
+              >
+              <Typography fontWeight={700}>Attachments</Typography>
+              <Stack spacing={1}>
+                {editingRow?.FilePath?.map((path, i) => (
+                  <Button
+                    key={i}
+                    variant="outlined"
+                    onClick={() => window.open(path, "_blank")}
+                  >
+                    {editingRow.FileName[i]}
+                  </Button>
+                ))}
+              </Stack>
+              </Box>
+            </Box> */}
           </Box>
         </DialogContent>
 
@@ -3021,7 +4226,7 @@ function ViewOrderRecievedData(props) {
         >
           {!isEditMode ? (
             <>
-              <Button
+              {/* <Button
                 onClick={handleEditCancel}
                 sx={{
                   color: "#64748b",
@@ -3036,44 +4241,51 @@ function ViewOrderRecievedData(props) {
                 }}
               >
                 Close
-              </Button>
-              <Button
-                onClick={handleEnterEditMode}
-                variant="contained"
-                sx={{
-                  background:
-                    "linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)",
-                  color: "#ffffff",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
-                  px: 3,
-                  "&:hover": {
+              </Button> */}
+              {dialogOpenedFrom === "editIcon" && (
+                <Button
+                  onClick={handleEnterEditMode}
+                  variant="contained"
+                  sx={{
                     background:
-                      "linear-gradient(135deg, #1e3a5f 0%, #162e4a 100%)",
-                    boxShadow: "0 8px 24px rgba(30,64,95,0.3)",
-                  },
-                  "&:active": {
-                    transform: "scale(0.98)",
-                  },
-                }}
-              >
-                ✏️ Edit Details
-              </Button>
+                      "linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)",
+                    color: "#ffffff",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    fontSize: "0.85rem",
+                    maxWidth: 180,
+                    letterSpacing: "0.5px",
+                    px: 3,
+                    "&:hover": {
+                      background:
+                        "linear-gradient(135deg, #1e3a5f 0%, #162e4a 100%)",
+                      boxShadow: "0 8px 24px rgba(30,64,95,0.3)",
+                    },
+                    "&:active": {
+                      transform: "scale(0.98)",
+                    },
+                  }}
+                >
+                  ✏️ Edit Details
+                </Button>
+              )}
             </>
           ) : (
             <>
               <Button
                 onClick={handleCancelEdit}
                 sx={{
-                  color: "#64748b",
+                  color: "#ffffff",
+                  background:
+                    "linear-gradient(135deg, #999999 0%, #777777 100%)",
                   fontWeight: 700,
                   textTransform: "uppercase",
                   fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
+                  maxWidth: 160,
                   "&:hover": {
-                    backgroundColor: "#e2e8f0",
+                    background:
+                      "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
                   },
                 }}
               >
@@ -3090,6 +4302,7 @@ function ViewOrderRecievedData(props) {
                   textTransform: "uppercase",
                   fontSize: "0.85rem",
                   letterSpacing: "0.5px",
+                  maxWidth: 200,
                   px: 3,
                   "&:hover": {
                     background:
@@ -3174,11 +4387,16 @@ function ViewOrderRecievedData(props) {
           <Button
             onClick={() => setConfirmSaveOpen(false)}
             sx={{
-              color: "#64748b",
+              color: "#ffffff",
+              background: "linear-gradient(135deg, #999999 0%, #777777 100%)",
               fontWeight: 700,
               textTransform: "uppercase",
               fontSize: "0.85rem",
-              "&:hover": { backgroundColor: "#e2e8f0" },
+              maxWidth: 160,
+              "&:hover": {
+                background: "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
+              },
             }}
           >
             Cancel
@@ -3187,15 +4405,16 @@ function ViewOrderRecievedData(props) {
             onClick={handleConfirmSave}
             variant="contained"
             sx={{
-              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
               color: "#ffffff",
               fontWeight: 700,
               textTransform: "uppercase",
               fontSize: "0.85rem",
+              maxWidth: 220,
               px: 3,
               "&:hover": {
-                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
-                boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
+                background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                boxShadow: "0 8px 24px rgba(16,185,129,0.35)",
               },
             }}
           >
@@ -3203,6 +4422,116 @@ function ViewOrderRecievedData(props) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* DELETE CONFIRMATION DIALOG */}
+      <Dialog
+        open={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: "#ffffff",
+            boxShadow: "0 25px 50px rgba(0,0,0,0.2)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            color: "#1e3a5f",
+            background: "#f8fafc",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            borderBottom: "2px solid #fbbf24",
+          }}
+        >
+          <Box sx={{ fontSize: 28 }}>⚠️</Box>
+          <Box>
+            <Typography sx={{ fontWeight: 800, color: "#1e3a5f" }}>
+              Confirm Update
+            </Typography>
+            {/* <Typography variant="caption" sx={{ color: "#64748b" }}>
+              Please review before saving
+            </Typography> */}
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
+          <Typography sx={{ color: "#475569", lineHeight: 1.6 }}>
+            You are about to delete this tender record. This action will be
+            synced to the database immediately.
+          </Typography>
+          {/* <Box
+            sx={{
+              mt: 2.5,
+              p: 2,
+              background: "#f0f9ff",
+              border: "1px solid #bfdbfe",
+              borderRadius: 2,
+              color: "#1e3a5f",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+            }}
+          >
+            📌 Make sure all fields are correct before confirming.
+          </Box> */}
+        </DialogContent>
+        <DialogActions
+          sx={{
+            background: "#f8fafc",
+            borderTop: "1px solid #e0e7ff",
+            p: 2,
+            gap: 1,
+          }}
+        >
+          <Button
+            onClick={() => setConfirmDeleteOpen(false)}
+            sx={{
+              color: "#ffffff",
+              background: "linear-gradient(135deg, #999999 0%, #777777 100%)",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              maxWidth: 160,
+              "&:hover": {
+                background: "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => handleDeleteRow(idDeleteOpen)}
+            variant="contained"
+            sx={{
+              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              color: "#ffffff",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              maxWidth: 160,
+              px: 3,
+              "&:hover": {
+                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
+              },
+            }}
+          >
+            ✓ Yes, Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Show pdf in object */}
+      <PdfViewerDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        pdfUrl={pdfUrl}
+        title={titleName}
+      />
     </>
   );
 }
@@ -3216,6 +4545,8 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [excelData, setExcelData] = useState([]);
+  const [selectedFiles, setSelectedFile] = useState([]);
+  const [uploadFileData, setuploadFileData] = useState();
 
   // defaultValues: {
   //   projectTitle: "",
@@ -3247,6 +4578,7 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
     "remarks",
     "JSON_competitors",
     "contractCopy",
+    "letterOfIntent",
     // user info
     "OperatorId",
     "OperatorName",
@@ -3269,6 +4601,7 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
     "remarks",
     "JSON_competitors",
     "contractCopy",
+    "letterOfIntent",
   ];
 
   // ----------------------------

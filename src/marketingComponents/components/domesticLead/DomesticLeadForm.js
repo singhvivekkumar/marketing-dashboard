@@ -43,7 +43,6 @@ import {
   EditRounded,
   DeleteRounded,
   CloseRounded,
-  CheckRounded,
 } from "@mui/icons-material";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import * as XLSX from "xlsx";
@@ -229,7 +228,7 @@ const DomesticLeadForm = () => {
     );
 
     axios
-      .post(ServerIp, formattedData)
+      .post(ServerIp + API, formattedData)
       .then((response) => {
         console.log("Server Response:", response.data);
         setSubmittedData(formattedData);
@@ -264,7 +263,7 @@ const DomesticLeadForm = () => {
     <Container
       maxWidth="xl"
       sx={{
-        mt: -7,
+        mt: 0,
         py: 1,
         minHeight: "100vh",
         background: "linear-gradient(135deg, #e3eeff 0%, #f8fbff 100%)",
@@ -536,7 +535,7 @@ const DomesticLeadForm = () => {
               {/* SECTION 2: CLASSIFICATION & DOMAIN */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -649,7 +648,7 @@ const DomesticLeadForm = () => {
               {/* SECTION 3: VALUES */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -758,7 +757,7 @@ const DomesticLeadForm = () => {
               {/* SECTION 4: TIMELINE */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -854,7 +853,7 @@ const DomesticLeadForm = () => {
               {/* SECTION 5: COMPETITORS & RESULTS */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -1020,7 +1019,7 @@ const DomesticLeadForm = () => {
               {/* SECTION 6: REASON & INFO */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -1204,7 +1203,7 @@ const DomesticLeadForm = () => {
 
       {/* ------------------------ VIEW DATA ------------------------ */}
       {value === 1 && orderData && (
-        <ViewDomesticLeadsData ViewData={orderData} />
+        <ViewDomesticLeadsData ViewData={orderData} ServerIp={ServerIp} />
       )}
 
       {/* ------------------------ BULK UPLOAD ------------------------ */}
@@ -1263,8 +1262,22 @@ const lightTextFieldSx = {
 function ViewDomesticLeadsData(props) {
   console.log("props viewDomesticData", props.ViewData);
 
-  const data = props.ViewData?.data || [];
+  // Store data in local state for updates
+  const [tableData, setTableData] = useState(props.ViewData.data || []);
 
+  // Extract ServerIp from props
+  const ServerIp = props.ServerIp || "";
+
+  // Sync with parent data when it changes
+  useEffect(() => {
+    if (props.ViewData.data) {
+      setTableData(props.ViewData.data);
+    }
+  }, [props.ViewData.data]);
+
+  // const data = props.ViewData?.data || [];
+
+  //States for search
   const [searchTerm, setSearchTerm] = useState("");
   const [tenderTypeFilter, setTenderTypeFilter] = useState("all");
   const [resultFilter, setResultFilter] = useState("all");
@@ -1275,10 +1288,16 @@ function ViewDomesticLeadsData(props) {
   const [sortBy, setSortBy] = useState("dateCreated");
   const [sortDirection, setSortDirection] = useState("desc");
 
+  // for Dialog
   const [selectedRow, setSelectedRow] = useState(null);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
+
+  const [dialogOpenedFrom, setDialogOpenedFrom] = useState("rowClick"); // "rowClick" or "editIcon"
+
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [idDeleteOpen, setIdDeleteOpen] = useState(null);
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
@@ -1292,6 +1311,7 @@ function ViewDomesticLeadsData(props) {
   const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
   const columnMenuOpen = Boolean(columnMenuAnchor);
 
+  // DEFINE ALL AVAILABLE COLUMNS
   const leadColumns = [
     { id: "tenderName", label: "Tender Name" },
     { id: "tenderReferenceNo", label: "Tender Ref No" },
@@ -1319,6 +1339,7 @@ function ViewDomesticLeadsData(props) {
     { id: "dateCreated", label: "Created Date" },
   ];
 
+  // COLUMN VISIBILITY STATE
   const [visibleColumns, setVisibleColumns] = useState(
     leadColumns.reduce((acc, col) => {
       acc[col.id] = true;
@@ -1339,6 +1360,38 @@ function ViewDomesticLeadsData(props) {
     setOpenClosedFilter(e.target.value);
 
   const handleSortByChange = (e) => setSortBy(e.target.value);
+
+  // DELETE ROW
+  const handleDeleteRow = async (id) => {
+    // if (!window.confirm("Are you sure you want to delete this entry?")) return;
+
+    console.log("Deleting row with ID:", id);
+    const deleteData = {
+      id: id,
+    };
+    console.log(
+      "api for delete in domestic lead : ",
+      `${ServerIp}/getDomesticLead`
+    );
+    // TODO: delete logic here
+    try {
+      await axios.delete(`${ServerIp}/getDomesticLead`, {
+        data: deleteData, // Send the data in the request body
+        headers: {
+          "Content-Type": "application/json", // VERY IMPORTANT: Set the Content-Type
+        },
+      });
+      // Show success notification
+      setTableData(
+        tableData.filter((item) => item.id !== id) // Create a new array excluding the item with the given id
+      );
+      setConfirmDeleteOpen(false);
+      alert("✅ Deleted successfully!");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      alert("❌ Failed to Delete. Please try again.");
+    }
+  };
 
   // COLUMN SELECTION HANDLERS
   const handleColumnMenuOpen = (event) => {
@@ -1393,12 +1446,21 @@ function ViewDomesticLeadsData(props) {
     console.log(" work new book : ", workbook);
   };
 
-  const handleRowSelect = (row) => {
-    setSelectedRow(row);
+  // OPEN DIALOG FROM ROW CLICK (VIEW MODE ONLY)
+  const handleRowClick = (row) => {
+    setTempEditingRow({ ...row }); // Store original data
+    setEditingRow({ ...row }); // Set for viewing
+    setIsEditMode(false); // Start in VIEW mode
+    setDialogOpenedFrom("rowClick"); // Mark as opened from row click
+    setEditDialogOpen(true);
   };
 
+  // OPEN DIALOG FROM EDIT ICON (READY TO EDIT)
   const handleEditClick = (row) => {
-    setEditingRow({ ...row });
+    setTempEditingRow({ ...row }); // Store original data
+    setEditingRow({ ...row }); // Set for editing
+    setIsEditMode(false); // Start in VIEW mode but with edit option
+    setDialogOpenedFrom("editIcon"); // Mark as opened from edit icon
     setEditDialogOpen(true);
   };
 
@@ -1406,9 +1468,13 @@ function ViewDomesticLeadsData(props) {
     setEditingRow((prev) => ({ ...prev, [field]: value }));
   };
 
+  // CANCEL / CLOSE DIALOG
   const handleEditCancel = () => {
     setEditDialogOpen(false);
     setEditingRow(null);
+    setTempEditingRow(null);
+    setIsEditMode(false);
+    setDialogOpenedFrom("rowClick");
   };
 
   // ENTER EDIT MODE
@@ -1417,37 +1483,57 @@ function ViewDomesticLeadsData(props) {
   };
 
   const handleEditSave = () => {
-    setTempEditingRow({ ...editingRow });
+    // setTempEditingRow({ ...editingRow });
     setConfirmSaveOpen(true);
+    console.log("Saving updated row:", editingRow);
   };
 
   // CONFIRM AND SAVE TO BACKEND
   const handleConfirmSave = async () => {
     try {
-      console.log("Saving updated row:", editingRow);
+      console.log("Confirmed - Updating row:", editingRow);
 
-      // Mock API call - Replace with real API endpoint
-      const mockApiResponse = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            success: true,
-            message: "Record updated successfully",
-            data: editingRow,
-          });
-        }, 800);
-      });
+      // Call real update API
+      const updatePayload = {
+        id: editingRow.id, // Include ID for update
+        ...editingRow, // Rest of data to edit
+      };
 
-      if (mockApiResponse.success) {
-        console.log("Backend Response:", mockApiResponse);
-        alert("Changes saved successfully!");
+      // Replace with your actual API endpoint
+      // const API_ENDPOINT = `/getBudgetaryQuotation/${updatePayload?.id}`;
+
+      const response = await axios.put(
+        `${ServerIp}/getDomesticLead`,
+        updatePayload
+      );
+
+      console.log("res from server : ", response);
+
+      if (response.data.success || response.status === 200) {
+        console.log("Backend Response:", response.data);
+
+        // Update the local table data with the new values
+        const updatedTableData = tableData.map((row) =>
+          row.id === editingRow.id ? editingRow : row
+        );
+        setTableData(updatedTableData);
+
+        // Notify parent component about update if callback provided
+        if (props.onDataUpdate) {
+          props.onDataUpdate(updatedTableData);
+        }
+
+        // Show success notification
+        alert("✅ Changes saved successfully!");
         setConfirmSaveOpen(false);
         setEditDialogOpen(false);
         setIsEditMode(false);
         setEditingRow(null);
+        setTempEditingRow(null);
       }
     } catch (error) {
       console.error("Error saving changes:", error);
-      alert("Failed to save changes. Please try again.");
+      alert("❌ Failed to save changes. Please try again.");
     }
   };
 
@@ -1456,10 +1542,11 @@ function ViewDomesticLeadsData(props) {
     setEditingRow({ ...tempEditingRow });
   };
 
+  // Delete VALUES - SHOW CONFIRMATION DIALOG
   const handleDeleteClick = (id) => {
-    if (!window.confirm("Are you sure you want to delete this entry?")) return;
-    console.log("Deleting Domestic Lead with ID:", id);
-    // TODO: connect to backend delete API
+    console.log("Saving updated row:", editingRow);
+    setIdDeleteOpen(id);
+    setConfirmDeleteOpen(true); // Open confirmation dialog
   };
 
   // DOUBLE CLICK → OPEN READ-ONLY VIEW
@@ -1499,8 +1586,8 @@ function ViewDomesticLeadsData(props) {
 
   // Filter + sort logic
   const filteredSortedData =
-    data &&
-    data
+    tableData &&
+    tableData
       .filter((row) => {
         const q = searchTerm.toLowerCase();
         const matchesSearch =
@@ -1569,150 +1656,173 @@ function ViewDomesticLeadsData(props) {
   return (
     <>
       {/* HEADER + CONTROLS */}
-      <Box
-        sx={{
-          mb: 3,
-          px: { xs: 1, sm: 0 },
-        }}
-      >
+      <Box sx={{ mb: 3, px: { xs: 1, sm: 0 } }}>
         <Box
           sx={{
-            borderRadius: 4,
+            borderRadius: 3,
             p: { xs: 2, sm: 3 },
-            boxShadow: 6,
-            background:
-              "linear-gradient(135deg, #e0f7ff 0%, #c8f0ff 40%, #a6e9ff 100%)",
-            color: "#06283D",
+            background: `linear-gradient(135deg,#EAF6FD 0%,#CFE9F7 5%,#B6DFF5 45%, #9CCEF0 100%,#6FAFD8 60%)`,
+            border: "1px solid rgba(111,182,232,0.5)",
+            boxShadow:
+              "0 16px 40px rgba(15,23,42,0.15), inset 0 1px 0 rgba(255,255,255,0.85)",
+            position: "relative",
+            overflow: "hidden",
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(circle at top right, rgba(255,255,255,0.35), transparent 55%)",
+              pointerEvents: "none",
+            },
           }}
         >
+          {/* =====================================================
+       TOP ROW : TITLE + SEARCH + COLUMN TOGGLE
+       ===================================================== */}
           <Box
             sx={{
+              position: "relative",
               display: "flex",
               flexWrap: "wrap",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 2,
+              zIndex: 1,
             }}
           >
+            {/* -------------------------------
+          PAGE TITLE
+         ------------------------------- */}
             <Box>
               <Typography
                 variant="h5"
                 sx={{
-                  fontWeight: 800,
-                  letterSpacing: 0.5,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
+                  fontWeight: 900,
+                  letterSpacing: 0.6,
+                  color: "#0F172A",
                 }}
               >
-                Domestic Lead List
+                Domestic Lead Data View
               </Typography>
-              {/* <Typography
-                variant="body2"
-                sx={{ opacity: 0.85, mt: 0.5, maxWidth: 520 }}
-              >
-                View, search, filter and manage all submitted tender leads in a
-                single, elegant dashboard.
-              </Typography> */}
             </Box>
 
-            {/* SEARCH BOX */}
-            <TextField
-              variant="outlined"
-              size="small"
-              placeholder="Search by tender, customer, reference..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRounded />
-                  </InputAdornment>
-                ),
-              }}
+            {/* -------------------------------
+          SEARCH + COLUMN VISIBILITY
+         ------------------------------- */}
+            <Box
               sx={{
-                minWidth: { xs: "100%", sm: 260, md: 320 },
-                backgroundColor: "rgba(240,248,255,0.9)",
-                borderRadius: 3,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 3,
-                  color: "#0f172a",
-                  "& fieldset": {
-                    borderColor: "rgba(148,163,184,0.5)",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "rgba(100,116,139,0.8)",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#3b82f6",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  color: "#475569",
-                },
-              }}
-            />
-
-            {/* Column Selection Menu */}
-            <Tooltip title="Select columns to view in table">
-              <IconButton
-                onClick={handleColumnMenuOpen}
-                sx={{
-                  border: "2px solid #1e40af",
-                  borderRadius: 1.5,
-                  backgroundColor: "rgba(30, 64, 175, 0.06)",
-                  color: "#1e40af",
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    backgroundColor: "rgba(30, 64, 175, 0.12)",
-                    transform: "scale(1.05)",
-                  },
-                  maxWidth: 50,
-                }}
-              >
-                <ViewColumnIcon />
-              </IconButton>
-            </Tooltip>
-
-            <Menu
-              anchorEl={columnMenuAnchor}
-              open={columnMenuOpen}
-              onClose={handleColumnMenuClose}
-              PaperProps={{
-                sx: {
-                  minWidth: 280,
-                  maxHeight: 400,
-                },
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                width: { xs: "100%", sm: "auto" },
               }}
             >
-              {leadColumns.map((col) => (
-                <MenuItem
-                  key={col.id}
-                  onClick={() => handleColumnToggle(col.id)}
+              {/* SEARCH FIELD */}
+              <TextField
+                size="small"
+                placeholder="Search title, customer, lead owner..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchRounded sx={{ color: "#2563EB" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  minWidth: { xs: "100%", sm: 290 },
+                  backgroundColor: "rgba(255,255,255,0.95)",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    "& fieldset": {
+                      borderColor: "#6FB6E8",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#3B82F6",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#2563EB",
+                      borderWidth: 2,
+                      boxShadow: "0 0 0 3px rgba(37,99,235,0.25)",
+                    },
+                  },
+                }}
+              />
+
+              {/* COLUMN TOGGLE */}
+              <Tooltip title="Show / Hide Columns">
+                <IconButton
+                  onClick={handleColumnMenuOpen}
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
+                    height: 44,
+                    width: 44,
+                    borderRadius: 2,
+                    background: "linear-gradient(145deg, #6FB6E8, #3B82F6)",
+                    color: "#ffffff",
+                    // boxShadow: "0 8px 20px rgba(37,99,235,0.45)",
+                    transition: "0.25s ease",
+                    "&:hover": {
+                      transform: "translateY(-2px) scale(1.05)",
+                      // boxShadow: "0 12px 28px rgba(37,99,235,0.6)",
+                    },
                   }}
                 >
-                  <Checkbox
-                    checked={visibleColumns[col.id]}
-                    // onChange={() => handleColumnToggle(col.id)}
-                    size="small"
-                  />
-                  <span>{col.label}</span>
-                </MenuItem>
-              ))}
-            </Menu>
+                  <ViewColumnIcon />
+                </IconButton>
+              </Tooltip>
+
+              {/* COLUMN MENU */}
+              <Menu
+                anchorEl={columnMenuAnchor}
+                open={columnMenuOpen}
+                onClose={handleColumnMenuClose}
+                PaperProps={{
+                  sx: {
+                    minWidth: 280,
+                    maxHeight: 400,
+                    borderRadius: 2,
+                    boxShadow: "0 16px 36px rgba(0,0,0,0.25)",
+                  },
+                }}
+              >
+                {leadColumns.map((col) => (
+                  <MenuItem
+                    key={col.id}
+                    onClick={() => handleColumnToggle(col.id)}
+                    sx={{ display: "flex", gap: 1 }}
+                  >
+                    <Checkbox
+                      checked={visibleColumns[col.id]}
+                      size="small"
+                      sx={{
+                        color: "#3B82F6",
+                        "&.Mui-checked": { color: "#2563EB" },
+                      }}
+                    />
+                    {col.label}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Box>
           </Box>
 
-          {/* FILTERS + SORT */}
+          {/* =====================================================
+       FILTERS + SORTING CONTROLS
+       ===================================================== */}
           <Box
             sx={{
-              mt: 2.5,
+              position: "relative",
+              mt: 3,
               display: "flex",
               flexWrap: "wrap",
               gap: 1.5,
+              alignItems: "center",
+              zIndex: 1,
             }}
           >
             {/* TENDER TYPE FILTER */}
@@ -1813,36 +1923,50 @@ function ViewDomesticLeadsData(props) {
               }}
             >
               <MenuItem value="dateCreated">Created Date</MenuItem>
-              <MenuItem value="tenderDated">Tender Date</MenuItem>
-              <MenuItem value="estimatedValueInCrWithoutGST">Estimate Value</MenuItem>
-              <MenuItem value="submittedValueInCrWithoutGST">Submitted Value</MenuItem>
-              <MenuItem value="lastDateOfSub">Last Date of Submission</MenuItem>
-              <MenuItem value="valueOfEMD">EMD Value</MenuItem>
+              <MenuItem value="tenderDate">Tender Date</MenuItem>
+              <MenuItem value="rfpDueDate">RFP Due Date</MenuItem>
+              <MenuItem value="bidSubmittedOn">Bid Submitted On</MenuItem>
+              <MenuItem value="valueEMDInCrore">EMD Value</MenuItem>
             </TextField>
 
-            {/* SORT ICON BUTTON */}
-            <Tooltip
-              title={`Sort ${
-                sortDirection === "asc" ? "Descending" : "Ascending"
-              }`}
+
+            {/* SORT DIRECTION */}
+            <IconButton
+              onClick={toggleSortDirection}
+              sx={{
+                borderRadius: 2,
+                background: "linear-gradient(145deg, #93C5FD, #60A5FA)",
+                color: "#0F172A",
+                maxWidth: 45,
+                boxShadow: "0 6px 16px rgba(59,130,246,0.35)",
+                "&:hover": {
+                  transform: "scale(1.08)",
+                },
+              }}
             >
-              <IconButton
-                onClick={toggleSortDirection}
-                sx={{
-                  ml: 0.5,
-                  borderRadius: 2.5,
-                  border: "1px solid rgba(148,163,184,0.7)",
-                  backgroundColor: "rgba(240,248,255,0.9)",
-                  color: "#0f172a",
-                  "&:hover": {
-                    backgroundColor: "rgba(224,242,254,1)",
-                  },
-                  maxWidth: 50,
-                }}
-              >
-                {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
-              </IconButton>
-            </Tooltip>
+              {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
+            </IconButton>
+
+            {/* RESET */}
+            <Button
+              variant="contained"
+              onClick={handleResetFilters}
+              startIcon={<RestartAltRounded />}
+              sx={{
+                ml: { xs: 0, sm: "auto" },
+                borderRadius: 999,
+                px: 3,
+                py: 0.8,
+                fontWeight: 700,
+                background: "linear-gradient(135deg, #2563EB, #3B82F6)",
+                maxWidth: 120,
+                "&:hover": {
+                  background: "linear-gradient(135deg, #1D4ED8, #2563EB)",
+                },
+              }}
+            >
+              Reset
+            </Button>
 
             {/* DOWNLOAD BUTTON */}
             {/* <Button
@@ -1864,36 +1988,6 @@ function ViewDomesticLeadsData(props) {
             >
               Download All Data
             </Button> */}
-
-            {/* RESET BUTTON */}
-            <Button
-              variant="outlined"
-              onClick={handleResetFilters}
-              startIcon={<RestartAltRounded />}
-              sx={{
-                ml: { xs: 0, sm: "auto" },
-                borderRadius: 999,
-                border: "2px solid #0E4C92",
-                color: "#0E4C92",
-                textTransform: "none",
-                px: 3,
-                py: 0.8,
-                fontWeight: 600,
-                backgroundColor: "rgba(255,255,255,0.85)",
-                backdropFilter: "blur(6px)",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
-                transition: "0.2s ease",
-                "&:hover": {
-                  backgroundColor: "#d0eaff",
-                  borderColor: "#0A3C7D",
-                  color: "#0A3C7D",
-                  boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-                },
-                maxWidth: 130,
-              }}
-            >
-              Reset
-            </Button>
           </Box>
         </Box>
       </Box>
@@ -1914,7 +2008,7 @@ function ViewDomesticLeadsData(props) {
             boxShadow: 8,
             overflowX: "auto",
             overflowY: "auto",
-            maxHeight: "75vh",
+            maxHeight: "47vh",
             minWidth: "100%",
           }}
         >
@@ -1983,8 +2077,8 @@ function ViewDomesticLeadsData(props) {
                     key={row.id}
                     hover
                     selected={selectedRow?.id === row.id}
-                    onClick={() => handleRowSelect(row)}
-                    onDoubleClick={() => handleRowDoubleClick(row)}
+                    onClick={() => handleRowClick(row)}
+                    // onDoubleClick={() => handleRowDoubleClick(row)}
                     sx={{
                       cursor: "pointer",
                       transition: "all 0.18s ease-out",
@@ -2300,11 +2394,11 @@ function ViewDomesticLeadsData(props) {
             justifyContent: "space-between",
             pr: 2,
             background: isEditMode
-              ? "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)" // ORANGE (Edit)
+              ? "linear-gradient(135deg,#778DA9 20%, #9CCEF0 100%,#6FAFD8 60%)" // GREYBLUE (Edit)
               : "linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%)", // BLUE (View)
             color: "#ffffff",
             borderBottom: isEditMode
-              ? "3px solid #fb923c"
+              ? "3px solid #33415C"
               : "3px solid #60a5fa",
             py: 2.5,
             transition: "all 0.3s ease", // smooth color change
@@ -2325,7 +2419,7 @@ function ViewDomesticLeadsData(props) {
                 variant="h6"
                 sx={{ fontWeight: 800, color: "#ffffff" }}
               >
-                {editingRow?.tenderName || "Lead Details"}
+                {"Domestic Lead Details"}
               </Typography>
               {/* <Typography variant="caption" sx={{ color: "#bfdbfe", mt: 0.5 }}>
                 Reference: {editingRow?.tenderReferenceNo || "N/A"}
@@ -2340,22 +2434,22 @@ function ViewDomesticLeadsData(props) {
               sx={{
                 fontWeight: 700,
                 fontSize: "0.75rem",
-                background: isEditMode ? "#fbbf24" : "#60a5fa",
-                color: isEditMode ? "#1f2937" : "#ffffff",
-                mr: 8,
+                background: isEditMode ? "#33415C" : "#60a5fa",
+                color: isEditMode ? "#ffffff" : "#ffffff",
+                ml:3,
               }}
             />
             {/* This is for close the dialog box "x" */}
-            {/* <IconButton
+            <IconButton
               onClick={handleEditCancel}
               sx={{
                 color: "#ffffff",
-                mr: 8,
+                maxWidth: 40,
                 "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
               }}
             >
               <CloseRounded />
-            </IconButton> */}
+            </IconButton>
           </Box>
         </DialogTitle>
 
@@ -2407,19 +2501,11 @@ function ViewDomesticLeadsData(props) {
                   display: "grid",
                   gridTemplateColumns: {
                     xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(4, 1fr)",
                   },
                   gap: 1.5,
                 }}
               >
-                {[
-                  { label: "Tender Name", key: "tenderName" },
-                  { label: "Tender Reference No", key: "tenderReferenceNo" },
-                  { label: "Document Type", key: "documentType" },
-                  { label: "Tender Dated", key: "tenderDated", isDate: true },
-                ].map((field) => (
+                {[{ label: "Tender Name", key: "tenderName" }].map((field) => (
                   <Box
                     key={field.key}
                     sx={{
@@ -2529,6 +2615,9 @@ function ViewDomesticLeadsData(props) {
                 }}
               >
                 {[
+                  { label: "Tender Reference No", key: "tenderReferenceNo" },
+                  { label: "Document Type", key: "documentType" },
+                  { label: "Tender Dated", key: "tenderDated", isDate: true },
                   { label: "Customer Name", key: "customerName" },
                   { label: "Lead Owner", key: "leadOwner" },
                   { label: "Civil / Defence", key: "civilOrDefence" },
@@ -2560,6 +2649,7 @@ function ViewDomesticLeadsData(props) {
                     >
                       {field.label}
                     </Typography>
+                    {/* EDIT MODE */}
                     {isEditMode ? (
                       <TextField
                         value={editingRow?.[field.key] || ""}
@@ -2568,25 +2658,35 @@ function ViewDomesticLeadsData(props) {
                         }
                         fullWidth
                         size="small"
+                        type={field.isDate ? "datetime-local" : "text"}
+                        /* 🔒 Reference Number Disabled in Edit Mode */
+                        disabled={field.key === "tenderReferenceNo"}
+                        InputLabelProps={
+                          field.isDate ? { shrink: true } : undefined
+                        }
                         sx={{
                           mt: 1,
                           "& .MuiOutlinedInput-root": {
                             borderRadius: 1.5,
-                            background: "#ffffff",
+
+                            /* Grey background when disabled */
+                            background:
+                              field.key === "tenderReferenceNo"
+                                ? "#f1f5f9"
+                                : "#ffffff",
+
                             "& fieldset": {
                               borderColor: "#60a5fa",
                             },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
                           },
                           "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
                             fontWeight: 600,
+
+                            /* Muted text when disabled */
+                            color:
+                              field.key === "tenderReferenceNo"
+                                ? "#64748b"
+                                : "#1e293b",
                           },
                         }}
                       />
@@ -3170,7 +3270,7 @@ function ViewDomesticLeadsData(props) {
         >
           {!isEditMode ? (
             <>
-              <Button
+              {/* <Button
                 onClick={handleEditCancel}
                 sx={{
                   color: "#64748b",
@@ -3186,8 +3286,9 @@ function ViewDomesticLeadsData(props) {
                 }}
               >
                 Close
-              </Button>
-              <Button
+              </Button> */}
+              {dialogOpenedFrom === "editIcon" && (
+                <Button
                 onClick={handleEnterEditMode}
                 variant="contained"
                 sx={{
@@ -3197,7 +3298,7 @@ function ViewDomesticLeadsData(props) {
                   fontWeight: 700,
                   textTransform: "uppercase",
                   fontSize: "0.85rem",
-                  maxWidth:180,
+                  maxWidth: 180,
                   letterSpacing: "0.5px",
                   px: 3,
                   "&:hover": {
@@ -3212,20 +3313,22 @@ function ViewDomesticLeadsData(props) {
               >
                 ✏️ Edit Details
               </Button>
+            )}
             </>
           ) : (
             <>
               <Button
                 onClick={handleCancelEdit}
                 sx={{
-                  color: "#64748b",
+                  color: "#ffffff",
+                  background: "linear-gradient(135deg, #999999 0%, #777777 100%)",
                   fontWeight: 700,
                   textTransform: "uppercase",
-                  maxWidth:180,
                   fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
+                  maxWidth:160,
                   "&:hover": {
-                    backgroundColor: "#e2e8f0",
+                    background: "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",  
                   },
                 }}
               >
@@ -3240,7 +3343,7 @@ function ViewDomesticLeadsData(props) {
                   color: "#ffffff",
                   fontWeight: 700,
                   textTransform: "uppercase",
-                  maxWidth:220,
+                  maxWidth: 200,
                   fontSize: "0.85rem",
                   letterSpacing: "0.5px",
                   px: 3,
@@ -3327,11 +3430,16 @@ function ViewDomesticLeadsData(props) {
           <Button
             onClick={() => setConfirmSaveOpen(false)}
             sx={{
-              color: "#64748b",
+              color: "#ffffff",
+              background: "linear-gradient(135deg, #999999 0%, #777777 100%)",
               fontWeight: 700,
               textTransform: "uppercase",
               fontSize: "0.85rem",
-              "&:hover": { backgroundColor: "#e2e8f0" },
+              maxWidth:160,
+              "&:hover": {
+                background: "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)", 
+              },
             }}
           >
             Cancel
@@ -3340,11 +3448,114 @@ function ViewDomesticLeadsData(props) {
             onClick={handleConfirmSave}
             variant="contained"
             sx={{
+              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+              color: "#ffffff",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              maxWidth:220,
+              px: 3,
+              "&:hover": {
+                background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                boxShadow: "0 8px 24px rgba(16,185,129,0.35)",
+              },
+            }}
+          >
+            ✓ Yes, Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* DELETE CONFIRMATION DIALOG */}
+      <Dialog
+        open={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: "#ffffff",
+            boxShadow: "0 25px 50px rgba(0,0,0,0.2)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            color: "#1e3a5f",
+            background: "#f8fafc",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            borderBottom: "2px solid #fbbf24",
+          }}
+        >
+          <Box sx={{ fontSize: 28 }}>⚠️</Box>
+          <Box>
+            <Typography sx={{ fontWeight: 800, color: "#1e3a5f" }}>
+              Confirm Update
+            </Typography>
+            {/* <Typography variant="caption" sx={{ color: "#64748b" }}>
+              Please review before saving
+            </Typography> */}
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
+          <Typography sx={{ color: "#475569", lineHeight: 1.6 }}>
+            You are about to delete this tender record. This action will be
+            synced to the database immediately.
+          </Typography>
+          {/* <Box
+            sx={{
+              mt: 2.5,
+              p: 2,
+              background: "#f0f9ff",
+              border: "1px solid #bfdbfe",
+              borderRadius: 2,
+              color: "#1e3a5f",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+            }}
+          >
+            📌 Make sure all fields are correct before confirming.
+          </Box> */}
+        </DialogContent>
+        <DialogActions
+          sx={{
+            background: "#f8fafc",
+            borderTop: "1px solid #e0e7ff",
+            p: 2,
+            gap: 1,
+          }}
+        >
+          <Button
+            onClick={() => setConfirmDeleteOpen(false)}
+            sx={{
+              color: "#ffffff",
+              background: "linear-gradient(135deg, #999999 0%, #777777 100%)",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              maxWidth:160,
+              "&:hover": {
+                background: "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",  
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => handleDeleteRow(idDeleteOpen)}
+            variant="contained"
+            sx={{
               background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
               color: "#ffffff",
               fontWeight: 700,
               textTransform: "uppercase",
               fontSize: "0.85rem",
+              maxWidth:160,
               px: 3,
               "&:hover": {
                 background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
@@ -3352,7 +3563,7 @@ function ViewDomesticLeadsData(props) {
               },
             }}
           >
-            ✓ Yes, Save Changes
+            ✓ Yes, Delete
           </Button>
         </DialogActions>
       </Dialog>
@@ -3369,6 +3580,17 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [excelData, setExcelData] = useState([]);
+
+  // ✅ FIXED SAMPLE FILE DOWNLOAD (Bulk Upload)
+  const handleDownloadSampleExcel = () => {
+    const fileUrl = "/sample/Domestic_Lead_Sample.xlsx"; // fixed public path
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = "Domestic_Lead_Sample.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const DB_COLUMNS = [
     "tenderName",
@@ -3585,11 +3807,78 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
           maxWidth: 720,
           p: 4,
           borderRadius: 4,
+          position: "relative", // ✅ REQUIRED FOR TOP-RIGHT BUTTON
           background: "rgba(255,255,255,0.9)",
           backdropFilter: "blur(12px)",
           boxShadow: "0 20px 45px rgba(0,0,0,0.12)",
         }}
       >
+        {/* DOWNLOAD SAMPLE BUTTON */}
+
+        {/* <Box sx={{ position: "absolute", top: 16, right: 16 }}>
+  <Button
+    // startIcon={<CloudQueueRoundedIcon />}
+    onClick={handleDownloadSampleExcel}
+    sx={{
+      borderRadius: 999,
+      px: 3,
+      py: 0.9,
+      fontWeight: 700,
+      fontSize: 13,
+      textTransform: "none",
+
+      color: "#2563eb",
+      backgroundColor: "#eff6ff",
+      border: "1px solid #bfdbfe",
+
+      boxShadow: "0 4px 12px rgba(37,99,235,0.15)",
+      transition: "all 0.2s ease",
+
+      "&:hover": {
+        backgroundColor: "#dbeafe",
+        borderColor: "#60a5fa",
+        transform: "translateY(-1px)",
+      },
+    }}
+  >
+    Download Sample Excel
+  </Button>
+</Box> */}
+
+        <Box sx={{ position: "absolute", top: 16, right: 16 }}>
+          <Button
+            variant="contained"
+            onClick={handleDownloadSampleExcel}
+            component="label"
+            sx={{
+              borderRadius: 999,
+              px: 2,
+              py: 1.2,
+              fontWeight: 900,
+              fontSize: 12,
+              textTransform: "none",
+              color: "#ffffff",
+              // background:
+              //   "linear-gradient(135deg, #42a5f5 0%, #2563eb 50%, #1e40af 100%)",
+              background: "linear-gradient(135deg, #f0f9ff, #e0f2fe)",
+              color: "#1e40af",
+              border: "1.5px solid #bae6fd",
+              transition: "all 0.25s ease",
+              "&:hover": {
+                background: "linear-gradient(135deg, #e0f2fe, #dbeafe)",
+                boxShadow: "0 14px 32px rgba(37,99,235,0.45)",
+                transform: "translateY(-2px) scale(1.03)",
+              },
+              "&:active": {
+                transform: "scale(0.96)",
+                boxShadow: "0 6px 14px rgba(37,99,235,0.35)",
+              },
+            }}
+          >
+            Sample format
+          </Button>
+        </Box>
+
         {/* TITLE */}
         <Typography
           variant="h5"
@@ -3598,9 +3887,10 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
             textAlign: "center",
             color: "#0d47a1",
             mb: 1,
+            mt: 8, // ✅ prevents overlap with button
           }}
         >
-          Upload Export Leads Data
+          Upload Domestic Lead Data
         </Typography>
 
         <Typography
@@ -3622,9 +3912,8 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
               mb: 5,
               border: "2px dashed #93c5fd",
               borderRadius: 4,
-              p: { xs: 4, sm: 6 }, // ⬅️ MORE INNER SPACE
-              minHeight: 280, // ⬅️ INCREASED HEIGHT
-
+              p: { xs: 4, sm: 6 },
+              minHeight: 280,
               textAlign: "center",
               background: "linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)",
               transition: "all 0.25s ease",
@@ -3681,20 +3970,16 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
                 fontSize: 14,
                 textTransform: "none",
                 color: "#ffffff",
-
                 background:
                   "linear-gradient(135deg, #42a5f5 0%, #2563eb 50%, #1e40af 100%)",
                 boxShadow: "0 8px 22px rgba(37,99,235,0.35)",
-
                 transition: "all 0.25s ease",
-
                 "&:hover": {
                   background:
                     "linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #1d4ed8 100%)",
                   boxShadow: "0 14px 32px rgba(37,99,235,0.45)",
                   transform: "translateY(-2px) scale(1.03)",
                 },
-
                 "&:active": {
                   transform: "scale(0.96)",
                   boxShadow: "0 6px 14px rgba(37,99,235,0.35)",
@@ -3725,15 +4010,9 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
           </Alert>
         )}
 
-        {/* PUSH BUTTON (UNCHANGED LOGIC) */}
+        {/* PUSH BUTTON */}
         {excelData.length > 0 && (
-          <Box
-            sx={{
-              mt: 4,
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
+          <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
             <Button
               variant="contained"
               color="success"

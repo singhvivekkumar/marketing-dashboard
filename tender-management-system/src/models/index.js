@@ -14,6 +14,8 @@ import { TPCRFormModel } from './tpcr_form_model.js';
 import { CPDSFormModel } from './cpds_form_model.js';
 import { InHouseRDModel } from './inhouserd_model.js';
 import { OrderReceivedDocumentModel } from './order_received_document_model.js';
+import { TpcrDocumentModel } from './tpcr_document_model.js';
+import { CpdsDocumentModel } from './cpds_document_model.js';
 
 
 // const Sequelize = require("sequelize");
@@ -47,5 +49,8 @@ db.TPCRFormModel=TPCRFormModel(sequelize,Sequelize);
 db.CPDSFormModel=CPDSFormModel(sequelize,Sequelize);
 db.InHouseRDModel= InHouseRDModel(sequelize,Sequelize);
 db.OrderReceivedDocumentModel= OrderReceivedDocumentModel(sequelize,Sequelize);
+db.TpcrDocumentModel= TpcrDocumentModel(sequelize,Sequelize);
+db.CpdsDocumentModel= CpdsDocumentModel(sequelize,Sequelize);
+
 
 export default db

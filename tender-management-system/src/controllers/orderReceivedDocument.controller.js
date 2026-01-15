@@ -82,10 +82,23 @@ export const getDocumentsByLead = async (req, res) => {
       where: { leadId }
     });
 
-    res.json(docs);
+    // res.json(docs);
+    res.status(200).json({
+      success: true,
+      data: docs,
+      message: "Documents details fetched successfully",
+      error: {}
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    // res.status(500).json({ error: err.message });
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: "Error fetching documents details",
+      error: err.message
+    });
+  }   
+      
 };
 
 export const downloadDocument = async (req, res) => {

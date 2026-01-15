@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
 import * as XLSX from "xlsx";
+import dayjs from "dayjs";
 import {
   Container,
   Paper,
@@ -46,7 +47,7 @@ import {
   EditRounded,
   DeleteRounded,
   CloseRounded,
-  CheckRounded,
+  
 } from "@mui/icons-material";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
@@ -54,33 +55,37 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import CloudQueueRoundedIcon from "@mui/icons-material/CloudQueueRounded";
 
-
 const tenderTypeOptions = ["ST", "MT", "Nom", "LT"];
 const documentTypeOptions = ["RFP", "RFQ", "EOI", "BQ", "NIT", "RFI", "Others"];
 
-
 const STATUS_OPTIONS = [
-  "Draft",
-  "Submitted",
-  "In Progress",
-  "Under Review",
-  "Won",
-  "Lost",
-  "On Hold",
+  "RFP", "RFQ", "EOI", "BQ", "NIT", "RFI", "Others"
 ];
 
-const TENDER_TYPE_OPTIONS = [
-  "ST", "MT", "LT"
-];
+const TENDER_TYPE_OPTIONS = ["ST", "MT", "LT"];
 
 const CRMLeadForm = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
+  
   const [value, setValue] = useState(0);
   const [orderData, setOrderData] = useState([]);
   const [ServerIp, SetServerIp] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+
+  // Document Upload States
+  const [documentFile, setDocumentFile] = useState(null);
+  const [uploadedDocument, setUploadedDocument] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  //
+  const [browsefile, setbrowsefile] = useState(null);
+  const [presentDate, setPrsentDate] = useState(new Date());
+  const [SaveDataHardDiskURL, SetSaveDataHardDiskURL] = useState("");
+  const [uploadFileData, setuploadFileData] = useState();
 
   const API = "/getCRMLeads";
+  const UPLOAD_API = "/fileUpload";
   let user = JSON.parse(localStorage.getItem("user"));
   console.log(" user object ", user);
 
@@ -90,14 +95,14 @@ const CRMLeadForm = () => {
       .then(function (response) {
         // WE SETTING THE API
         console.log(
-          "LeadSubmitted is looking for server IP : ",
+          " CRM Lead is looking for server IP : ",
           response.data.project[0].ServerIP[0].NodeServerIP
         );
         SetServerIp(response.data.project[0].ServerIP[0].NodeServerIP);
         axios
           .get(response.data.project[0].ServerIP[0].NodeServerIP + API)
           .then((response) => {
-            console.log(" error while getting API : ", response)
+            console.log(" Response while hitting API : ", response);
             setOrderData(response.data);
           })
           .catch((error) => console.log(error.message));
@@ -147,9 +152,9 @@ const CRMLeadForm = () => {
     },
   });
 
-const today = new Date().toLocaleDateString("en-CA");
-const now = new Date().toLocaleString("sv-SE").slice(0, 16);
-const lastDateSubmission = watch("lastDateSubmission");
+  const today = new Date().toLocaleDateString("en-CA");
+  const now = new Date().toLocaleString("sv-SE").slice(0, 16);
+  const lastDateSubmission = watch("lastDateSubmission");
 
   const onSubmit = (data) => {
     console.log("Raw Form Data:", data);
@@ -176,11 +181,20 @@ const lastDateSubmission = watch("lastDateSubmission");
       teamAssigned: data.teamAssigned,
       remarks: data.remarks || "",
       corrigendumInfo: data.corrigendumInfo || "",
+      attachment: selectedFiles.map((f) => f.name),
+      // fileName: uploadFileData?.fileName,
+      // filePath: uploadFileData?.filePath,
+      // hardDiskFileName: uploadFileData?.hardDiskFileName,
+
       OperatorId: user.id || "291536",
       OperatorName: user.username || "Vivek Kumar Singh",
       OperatorRole: user.userRole || "Lead Owner",
       OperatorSBU: "Software SBU",
       submittedAt: new Date().toISOString(),
+      contractCopy: uploadFileData?.map((f) => f.originalName),
+      FileName: uploadFileData?.map((f) => f.savedName),
+      FilePath: uploadFileData?.map((f) => f.filePath),
+      HardDiskFileName: uploadFileData?.map((f) => f.savedName),
     };
 
     console.log("Frontend Form Data:", JSON.stringify(formattedData, null, 2));
@@ -191,6 +205,8 @@ const lastDateSubmission = watch("lastDateSubmission");
     //   JSON.stringify(formattedData, null, 2)
     // );
 
+
+    // HERE WE ARE CALLING THE API
     axios
       .post(ServerIp + API, formattedData)
       .then((response) => {
@@ -206,7 +222,179 @@ const lastDateSubmission = watch("lastDateSubmission");
   const handleReset = () => {
     reset();
     setSubmittedData(null);
+    setSelectedFiles([]);
+    setuploadFileData(null);
   };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    // const validFiles = files.filter(
+    //   (file) => file.type.includes("pdf") || file.type.includes("image")
+    // );
+
+    const validFiles = files.filter(
+      (file) =>
+        file.type.includes("pdf") ||
+        file.type.includes("image") ||
+        file.type.includes("sheet") ||
+        file.type.includes("word")
+    );
+
+    setSelectedFiles((prev) => [...prev, ...validFiles]);
+    console.log(" how many selected : ", selectedFiles);
+  };
+
+  const handleFileUpload = async () => {
+    console.log(" how many selected from upload : ", selectedFiles);
+    if (selectedFiles.length === 0) {
+      alert("Please select files");
+      return;
+    }
+
+    const formData = new FormData();
+    selectedFiles.forEach((file) => formData.append("files", file));
+    
+    console.log("formData send to backend : ", formData)
+
+    try {
+      const res = await fetch(ServerIp + "/crmFileUpload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      console.log("Uploaded files: ", data);
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed");
+    }
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setDocumentFile(file);
+      setbrowsefile(file);
+    } else {
+      alert("Please Select pdf only");
+    }
+  };
+
+  const handleUploadDocument = async () => {
+    if (!documentFile && (user != null || user.id !== undefined)) {
+      alert("Please select a document first");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      // formData.append("document", documentFile);
+
+      const originalFileName = browsefile.name;
+      const newFileName = user.id + "$" + originalFileName;
+
+      const updatedFile = new File([browsefile], newFileName, {
+        type: browsefile.type,
+      });
+
+      console.log("updated file by File class: ", updatedFile);
+
+      formData.append("video", updatedFile);
+
+      // This will use after upload..
+      let todayDate = dayjs();
+      todayDate = todayDate.format("DD-MM-YYYY hh:mm:ss a");
+
+      fetch(ServerIp + UPLOAD_API, {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("file upload res : ", data);
+          // console.log(data);
+          setuploadFileData({
+            fileName: originalFileName,
+            filePath: data.path,
+            hardDiskFileName: data.fileName,
+            createdDate: todayDate,
+          });
+        })
+        .catch((error) => console.error(error));
+
+      // Mock API call - In production, this would be your real upload endpoint
+      // Simulating backend response with server-generated filename
+      // const mockResponse = await new Promise((resolve) => {
+      //   setTimeout(() => {
+      //     const timestamp = Date.now();
+      //     const fileExtension = documentFile.name.split(".").pop();
+      //     const serverFilename = `BQ_DOC_${timestamp}.${fileExtension}`;
+      //     const filePath = `/uploads/documents/${serverFilename}`;
+
+      //     resolve({
+      //       success: true,
+      //       filename: serverFilename,
+      //       originalName: documentFile.name,
+      //       filePath: filePath,
+      //       uploadedAt: new Date().toISOString(),
+      //     });
+      //   }, 1500); // Simulate network delay
+      // });
+
+      // up
+
+      // if (mockResponse.success) {
+      //   setUploadedDocument({
+      //     filename: mockResponse.filename,
+      //     originalName: mockResponse.originalName,
+      //     filePath: mockResponse.filePath,
+      //     uploadedAt: mockResponse.uploadedAt,
+      //   });
+      //   alert(`✅ Document uploaded successfully!\nFilename: ${mockResponse.filename}`);
+      //   setDocumentFile(null); // Clear selected file
+      // }
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      alert("❌ Failed to upload document. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  const handleClearDocument = () => {
+    setDocumentFile(null);
+    setUploadedDocument(null);
+    // Clear file input
+    const fileInput = document.getElementById("document-input");
+    if (fileInput) fileInput.value = "";
+  };
+
+  // const handleFileUpload = async () => {
+  //   if (selectedFiles.length === 0) {
+  //     alert("Please select files");
+  //     return;
+  //   }
+
+  //   const formData = new FormData();
+  //   selectedFiles.forEach((file) => formData.append("files", file));
+
+  //   try {
+  //     const res = await fetch(ServerIp + "/fileUpload", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+
+  //     const data = await res.json();
+  //     console.log("Uploaded files:", data);
+  //     setuploadFileData(data);
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Upload failed");
+  //   }
+  // };
 
   // SNACKBAR CLOSE
   const handleCloseSnackbar = () => {
@@ -227,31 +415,36 @@ const lastDateSubmission = watch("lastDateSubmission");
     }
   };
 
-  
-
   return (
     <Container
       maxWidth="xl"
       sx={{
-        mt: -7,
+        mt: 0,
         py: 1,
         minHeight: "85vh",
         background: "linear-gradient(135deg, #e3eeff 0%, #f8fbff 100%)",
         borderRadius: 4,
       }}
     >
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                background: "linear-gradient(45deg, #0d47a1, #42a5f5, #1e88e5)",
-                WebkitBackgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              CRM Leads
-            </Typography>
-            <Divider  flexItem sx={{ background: "linear-gradient(135deg, #0d47a1 , #42a5f5, #1e88e5)", height: '4px', mt: 3}}/>
+      <Typography
+        variant="h4"
+        sx={{
+          fontWeight: 700,
+          background: "linear-gradient(45deg, #0d47a1, #42a5f5, #1e88e5)",
+          WebkitBackgroundClip: "text",
+          color: "transparent",
+        }}
+      >
+        CRM Leads
+      </Typography>
+      <Divider
+        flexItem
+        sx={{
+          background: "linear-gradient(135deg, #0d47a1 , #42a5f5, #1e88e5)",
+          height: "4px",
+          mt: 3,
+        }}
+      />
 
       {/* ------------------------ TABS ------------------------ */}
       <Tabs
@@ -277,63 +470,62 @@ const lastDateSubmission = watch("lastDateSubmission");
         }}
       >
         <Tab
-            icon={<AddCircleOutlineRoundedIcon />}
-            iconPosition="start"
-            label="Create Data"
-          />
-          <Tab
-            icon={<VisibilityOutlinedIcon />}
-            iconPosition="start"
-            label="View Data"
-          />
-          <Tab
-            icon={<CloudUploadOutlinedIcon />}
-            iconPosition="start"
-            label="Bulk Upload"
-          />
+          icon={<AddCircleOutlineRoundedIcon />}
+          iconPosition="start"
+          label="Create Data"
+        />
+        <Tab
+          icon={<VisibilityOutlinedIcon />}
+          iconPosition="start"
+          label="View Data"
+        />
+        <Tab
+          icon={<CloudUploadOutlinedIcon />}
+          iconPosition="start"
+          label="Bulk Upload"
+        />
       </Tabs>
 
       {value === 0 && (
         <Container maxWidth="lg">
-        <Paper
-          elevation={10}
-          sx={{
-            p: { xs: 2, md: 5 },
-            borderRadius: 2,
-            background: "rgba(255,255,255,0.85)",
-            backdropFilter: "blur(14px)",
-            // transition: "0.3s",
-            boxShadow: "0 12px 32px rgba(0,0,0,0.10)",
-            // "&:hover": { transform: "scale(1.01)" },
-          }}
-        >
-         
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Card
-              sx={{
-                mt:-5,
-                mb: 3,
-                p: 3,
-                borderRadius: 4,
-                background: "rgba(250,250,255,0.8)",
-                backdropFilter: "blur(10px)",
-                // transition: "0.3s",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                // "&:hover": {
-                //   transform: "translateY(-4px)",
-                //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                // },
-              }}
-            >
-              <Typography
+          <Paper
+            elevation={10}
+            sx={{
+              p: { xs: 2, md: 5 },
+              borderRadius: 2,
+              background: "rgba(255,255,255,0.85)",
+              backdropFilter: "blur(14px)",
+              // transition: "0.3s",
+              boxShadow: "0 12px 32px rgba(0,0,0,0.10)",
+              // "&:hover": { transform: "scale(1.01)" },
+            }}
+          >
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Card
+                sx={{
+                  mt: -5,
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 4,
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  // transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  // "&:hover": {
+                  //   transform: "translateY(-4px)",
+                  //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  // },
+                }}
+              >
+                <Typography
                   variant="h6"
                   sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
                 >
                   📋 CRM Details
                 </Typography>
-              <Divider sx={{ mb: 3 }} />
+                <Divider sx={{ mb: 3 }} />
 
-              <Grid container spacing={4}>
+                <Grid container spacing={4}>
                   {[
                     ["leadID", "Lead ID"],
                     ["issueDate", "Issue Date", "date"],
@@ -364,108 +556,108 @@ const lastDateSubmission = watch("lastDateSubmission");
                         )}
                       />
                     </Grid>
-                ))}
+                  ))}
 
-                {/* Document Type */}
-                <Grid item xs={12} md={6}>
-                  <Controller
-                    name="documentType"
-                    control={control}
-                    rules={{ required: "Document Type is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        select
-                        fullWidth
-                        label="Document Type"
-                        InputLabelProps={{ shrink: true }}
-                        className="text-field-style"
-                        error={!!errors.documentType}
-                        helperText={errors.documentType?.message}
-                      >
-                        {documentTypeOptions.map((item) => (
-                          <MenuItem key={item} value={item}>
-                            {item}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    )}
-                  />
-                </Grid>
+                  {/* Document Type */}
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="documentType"
+                      control={control}
+                      rules={{ required: "Document Type is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          select
+                          fullWidth
+                          label="Document Type"
+                          InputLabelProps={{ shrink: true }}
+                          className="text-field-style"
+                          error={!!errors.documentType}
+                          helperText={errors.documentType?.message}
+                        >
+                          {documentTypeOptions.map((item) => (
+                            <MenuItem key={item} value={item}>
+                              {item}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      )}
+                    />
+                  </Grid>
 
-                {/* Tender Type */}
-                <Grid item xs={12} md={6}>
-                  <Controller
-                    name="tenderType"
-                    control={control}
-                    rules={{ required: "Tender Type is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        select
-                        fullWidth
-                        label="Tender Type"
-                        InputLabelProps={{ shrink: true }}
-                        className="text-field-style"
-                        error={!!errors.tenderType}
-                        helperText={errors.tenderType?.message}
-                      >
-                        {tenderTypeOptions.map((item) => (
-                          <MenuItem key={item} value={item}>
-                            {item}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    )}
-                  />
-                </Grid>
+                  {/* Tender Type */}
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="tenderType"
+                      control={control}
+                      rules={{ required: "Tender Type is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          select
+                          fullWidth
+                          label="Tender Type"
+                          InputLabelProps={{ shrink: true }}
+                          className="text-field-style"
+                          error={!!errors.tenderType}
+                          helperText={errors.tenderType?.message}
+                        >
+                          {tenderTypeOptions.map((item) => (
+                            <MenuItem key={item} value={item}>
+                              {item}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      )}
+                    />
+                  </Grid>
 
-                {/* EMD Value */}
-                <Grid item xs={12} md={6}>
-                  <Controller
-                    name="emdInLakhs"
-                    control={control}
-                    rules={{ required: "EMD value is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        type="number"
-                        label="EMD in Crore"
-                        InputLabelProps={{ shrink: true }}
-                        className="text-field-style"
-                        error={!!errors.emdInLakhs}
-                        helperText={errors.emdInLakhs?.message}
-                      />
-                    )}
-                  />
-                </Grid>
+                  {/* EMD Value */}
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="emdInLakhs"
+                      control={control}
+                      rules={{ required: "EMD value is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          type="number"
+                          label="EMD in Crore"
+                          InputLabelProps={{ shrink: true }}
+                          className="text-field-style"
+                          error={!!errors.emdInLakhs}
+                          helperText={errors.emdInLakhs?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
 
-                {/* Approx Tender Value */}
-                <Grid item xs={12} md={6}>
-                  <Controller
-                    name="approxTenderValueLakhs"
-                    control={control}
-                    rules={{
-                      required: "Approx Tender Value is required",
-                    }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        type="number"
-                        label="Approx Tender Value in Lakhs"
-                        InputLabelProps={{ shrink: true }}
-                        className="text-field-style"
-                        error={!!errors.approxTenderValueLakhs}
-                        helperText={errors.approxTenderValueLakhs?.message}
-                      />
-                    )}
-                  />
-                </Grid>
+                  {/* Approx Tender Value */}
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="approxTenderValueLakhs"
+                      control={control}
+                      rules={{
+                        required: "Approx Tender Value is required",
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          type="number"
+                          label="Approx Tender Value in Lakhs"
+                          InputLabelProps={{ shrink: true }}
+                          className="text-field-style"
+                          error={!!errors.approxTenderValueLakhs}
+                          helperText={errors.approxTenderValueLakhs?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
 
-                {/* Last Date of Submission */}
-                <Grid item xs={12} md={6}>
+                  {/* Last Date of Submission */}
+                  <Grid item xs={12} md={6}>
                     <Controller
                       name="lastDateSubmission"
                       control={control}
@@ -490,9 +682,8 @@ const lastDateSubmission = watch("lastDateSubmission");
                     />
                   </Grid>
 
-
-                {/* Pre Bid Date */}
-                <Grid item xs={12} md={6}>
+                  {/* Pre Bid Date */}
+                  <Grid item xs={12} md={6}>
                     <Controller
                       name="preBidDate"
                       control={control}
@@ -522,172 +713,295 @@ const lastDateSubmission = watch("lastDateSubmission");
                     />
                   </Grid>
 
-                {/* Team Assigned */}
-                <Grid item xs={12}>
-                  <Controller
-                    name="teamAssigned"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Team Assigned"
-                        InputLabelProps={{ shrink: true }}
-                        className="text-field-style"
-                        error={!!errors.teamAssigned}
-                        helperText={errors.teamAssigned?.message}
-                      />
-                    )}
-                  />
+                  {/* Team Assigned */}
+                  <Grid item xs={12}>
+                    <Controller
+                      name="teamAssigned"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="Team Assigned"
+                          InputLabelProps={{ shrink: true }}
+                          className="text-field-style"
+                          error={!!errors.teamAssigned}
+                          helperText={errors.teamAssigned?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* Remarks */}
+                  <Grid item xs={12}>
+                    <Controller
+                      name="remarks"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          multiline
+                          rows={2}
+                          label="Remarks"
+                          InputLabelProps={{ shrink: true }}
+                          className="text-field-style"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  {/* Corrigendum */}
+                  <Grid item xs={12}>
+                    <Controller
+                      name="corrigendumInfo"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="Corrigendums Date & File"
+                          InputLabelProps={{ shrink: true }}
+                          className="text-field-style"
+                        />
+                      )}
+                    />
+                  </Grid>
                 </Grid>
+              </Card>
 
-                {/* Remarks */}
-                <Grid item xs={12}>
-                  <Controller
-                    name="remarks"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        multiline
-                        rows={2}
-                        label="Remarks"
-                        InputLabelProps={{ shrink: true }}
-                        className="text-field-style"
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* Corrigendum */}
-                <Grid item xs={12}>
-                  <Controller
-                    name="corrigendumInfo"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Corrigendums Date & File"
-                        InputLabelProps={{ shrink: true }}
-                        className="text-field-style"
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </Card>
-
-            {/* BUTTONS */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                gap: 3,
-                mt: 4,
-                flexWrap: "wrap",
-              }}
-            >
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
+              {/* Attachments Section */}
+              <Card
                 sx={{
-                  px: 6,
-                  py: 1.6,
-                  fontSize: "1.1rem",
-                  borderRadius: 3,
-                  fontWeight: 700,
-                  maxWidth:180,
-                  background: "linear-gradient(90deg, #1565c0, #42a5f5)",
-                  textTransform: "none",
-                  transition: "0.3s",
-                  "&:hover": {
-                    transform: "scale(1.05)",
-                    background: "linear-gradient(90deg, #0d47a1, #1e88e5)",
-                  },
-                }}
-              >
-                Submit
-              </Button>
-              &nbsp;&nbsp;&nbsp;
-              <Button
-                variant="outlined"
-                size="large"
-                onClick={handleReset}
-                sx={{
-                  px: 6,
-                  py: 1.6,
-                  fontSize: "1.1rem",
-                  borderRadius: 3,
-                  fontWeight: 700,
-                  maxWidth:180,
-                  borderWidth: 2,
-                  textTransform: "none",
-                  "&:hover": {
-                    transform: "scale(1.03)",
-                    background: "#f4f6fb",
-                  },
-                }}
-              >
-                Reset
-              </Button>
-            </Box>
-          </form>
-
-          {/* SUCCESS SNACKBAR */}
-          <Snackbar
-            open={submitSuccess}
-            autoHideDuration={4500}
-            onClose={handleCloseSnackbar}
-            anchorOrigin={{ vertical: "top", horizontal: "center" }}
-          >
-            <Alert
-              onClose={handleCloseSnackbar}
-              severity="success"
-              sx={{ width: "100%" }}
-            >
-              CRM Lead submitted successfully!
-            </Alert>
-          </Snackbar>
-
-          {submittedData && (
-            <Box sx={{ mt: 5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                📊 Submitted Data (JSON)
-              </Typography>
-
-              <Paper
-                sx={{
+                  mt: -1,
+                  mb: 3,
                   p: 3,
-                  background: "#0d1117",
-                  color: "#c9d1d9",
                   borderRadius: 4,
-                  maxHeight: 500,
-                  overflow: "auto",
-                  fontFamily: "monospace",
-                  fontSize: "0.95rem",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                  background: "rgba(250,250,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  // transition: "0.3s",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+                  // "&:hover": {
+                  //   transform: "translateY(-4px)",
+                  //   boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  // },
                 }}
               >
-                <pre>{JSON.stringify(submittedData, null, 2)}</pre>
-              </Paper>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ fontWeight: 500, mb: 2, color: "#1976d2" }}
+                >
+                  📎 Attachments
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
 
-              <Button
-                variant="contained"
+                <Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    Upload Contract Copy / Work Order / Letter of Intent
+                    (Optional)
+                  </Typography>
+
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    sx={{ mt: 2, mb: 2 }}
+                  >
+                    Choose Files
+                    <input
+                      type="file"
+                      hidden
+                      multiple
+                      accept=".pdf,.jpg,.xlsx,.doc,.docx,.xls"
+                      onChange={handleFileChange}
+                    />
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    sx={{ mt: 2, mb: 2, ml: 3, maxWidth:140 }}
+                    onClick={handleFileUpload}
+                  >
+                    Upload Files
+                  </Button>
+
+                  {selectedFiles.length > 0 && (
+                    <Grid container spacing={2} sx={{ mt: 2 }}>
+                      {selectedFiles.map((file, index) => {
+                        const fileUrl = URL.createObjectURL(file);
+
+                        return (
+                          <Grid item xs={12} md={6} key={index}>
+                            <Card
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 2,
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                              }}
+                            >
+                              {/* FILE NAME (CLICK TO PREVIEW IN NEW TAB) */}
+                              <Tooltip title="Click to preview">
+                                <Typography
+                                  sx={{
+                                    fontSize: 14,
+                                    fontWeight: 600,
+                                    color: "#1e40af",
+                                    cursor: "pointer",
+                                    textDecoration: "underline",
+                                    maxWidth: "75%",
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                  }}
+                                  onClick={() => window.open(fileUrl, "_blank")}
+                                >
+                                  {file.name}
+                                </Typography>
+                              </Tooltip>
+
+                              {/* REMOVE BUTTON */}
+                              <Button
+                                size="small"
+                                color="error"
+                                variant="outlined"
+                                onClick={() =>
+                                  setSelectedFiles((prev) =>
+                                    prev.filter((_, i) => i !== index)
+                                  )
+                                }
+                                sx={{
+                                  textTransform: "none",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </Card>
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
+                  )}
+                </Box>
+              </Card>
+
+              {/* BUTTONS */}
+              <Box
                 sx={{
-                  mt: 2,
-                  background: "#2e7d32",
-                  "&:hover": { background: "#1b5e20" },
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 3,
+                  mt: 4,
+                  flexWrap: "wrap",
                 }}
-                onClick={handleDownloadJSON}
               >
-                Download JSON
-              </Button>
-            </Box>
-          )}
-        </Paper>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    px: 6,
+                    py: 1.6,
+                    fontSize: "1.1rem",
+                    borderRadius: 3,
+                    fontWeight: 700,
+                    maxWidth: 180,
+                    background: "linear-gradient(90deg, #1565c0, #42a5f5)",
+                    textTransform: "none",
+                    transition: "0.3s",
+                    "&:hover": {
+                      transform: "scale(1.05)",
+                      background: "linear-gradient(90deg, #0d47a1, #1e88e5)",
+                    },
+                  }}
+                >
+                  Submit
+                </Button>
+                &nbsp;&nbsp;&nbsp;
+                <Button
+                  variant="outlined"
+                  size="large"
+                  onClick={handleReset}
+                  sx={{
+                    px: 6,
+                    py: 1.6,
+                    fontSize: "1.1rem",
+                    borderRadius: 3,
+                    fontWeight: 700,
+                    maxWidth: 180,
+                    borderWidth: 2,
+                    textTransform: "none",
+                    "&:hover": {
+                      transform: "scale(1.03)",
+                      background: "#f4f6fb",
+                    },
+                  }}
+                >
+                  Reset
+                </Button>
+              </Box>
+            </form>
+
+            {/* SUCCESS SNACKBAR */}
+            <Snackbar
+              open={submitSuccess}
+              autoHideDuration={4500}
+              onClose={handleCloseSnackbar}
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+              <Alert
+                onClose={handleCloseSnackbar}
+                severity="success"
+                sx={{ width: "100%" }}
+              >
+                CRM Lead submitted successfully!
+              </Alert>
+            </Snackbar>
+
+            {submittedData && (
+              <Box sx={{ mt: 5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  📊 Submitted Data (JSON)
+                </Typography>
+
+                <Paper
+                  sx={{
+                    p: 3,
+                    background: "#0d1117",
+                    color: "#c9d1d9",
+                    borderRadius: 4,
+                    maxHeight: 500,
+                    overflow: "auto",
+                    fontFamily: "monospace",
+                    fontSize: "0.95rem",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  <pre>{JSON.stringify(submittedData, null, 2)}</pre>
+                </Paper>
+
+                <Button
+                  variant="contained"
+                  sx={{
+                    mt: 2,
+                    background: "#2e7d32",
+                    "&:hover": { background: "#1b5e20" },
+                  }}
+                  onClick={handleDownloadJSON}
+                >
+                  Download JSON
+                </Button>
+              </Box>
+            )}
+          </Paper>
         </Container>
       )}
 
@@ -699,12 +1013,9 @@ const lastDateSubmission = watch("lastDateSubmission");
       {value === 2 && (
         <ExcelUploadAndValidate user={user} ServerIp={ServerIp} />
       )}
-
-
     </Container>
   );
 };
-
 
 const lightReadOnlyFieldSx = {
   "& .MuiOutlinedInput-root": {
@@ -747,19 +1058,35 @@ const lightTextFieldSx = {
   },
 };
 
-
 function ViewCRMLeadData(props) {
-  console.log("props view BudgetaryQuotationData", props.ViewData);
+  console.log("props view ViewCRMLeadData", props);
 
-  const data = props.ViewData?.data || [];
+   // Extract ServerIp from props
+   const ServerIp = props.ServerIp || "";
+
+   // Store data in local state for updates
+   const [tableData, setTableData] = useState(props.ViewData.data || []);
+ 
+   // Sync with parent data when it changes
+   useEffect(() => {
+     if (props.ViewData.data) {
+       setTableData(props.ViewData.data);
+     }
+   }, [props.ViewData.data]);
   const [searchTerm, setSearchTerm] = useState("");
   const [tenderTypeFilter, setTenderTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
   const [sortBy, setSortBy] = useState("dateCreated");
   const [sortDirection, setSortDirection] = useState("desc");
+  const [dialogOpenedFrom, setDialogOpenedFrom] = useState("rowClick"); // "rowClick" or "editIcon"
 
   const [selectedRow, setSelectedRow] = useState(null);
+   // Document Upload States
+   const [documentFile, setDocumentFile] = useState(null);
+   const [uploadedDocument, setUploadedDocument] = useState(null);
+   const [isUploading, setIsUploading] = useState(false);
+ 
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
@@ -875,9 +1202,18 @@ function ViewCRMLeadData(props) {
     console.log(" work new book : ", workbook);
   };
 
-  // Row Selection
-  const handleRowSelect = (row) => {
-    setSelectedRow(row);
+  // // Row Selection
+  // const handleRowSelect = (row) => {
+  //   setSelectedRow(row);
+  // };
+
+   // OPEN DIALOG FROM ROW CLICK (VIEW MODE ONLY)
+   const handleRowClick = (row) => {
+    setTempEditingRow({ ...row }); // Store original data
+    setEditingRow({ ...row }); // Set for viewing
+    setIsEditMode(false); // Start in VIEW mode
+    setDialogOpenedFrom("rowClick"); // Mark as opened from row click
+    setEditDialogOpen(true);
   };
 
   // OPEN EDIT DIALOG
@@ -914,14 +1250,14 @@ function ViewCRMLeadData(props) {
   const handleConfirmSave = async () => {
     try {
       console.log("Saving updated row:", editingRow);
-      
+
       // Mock API call - Replace with real API endpoint
       const mockApiResponse = await new Promise((resolve) => {
         setTimeout(() => {
           resolve({
             success: true,
             message: "Record updated successfully",
-            data: editingRow
+            data: editingRow,
           });
         }, 800);
       });
@@ -946,7 +1282,6 @@ function ViewCRMLeadData(props) {
     setEditingRow({ ...tempEditingRow });
   };
 
- 
   // DELETE ROW
   const handleDeleteClick = (id) => {
     if (!window.confirm("Are you sure you want to delete this entry?")) return;
@@ -968,7 +1303,7 @@ function ViewCRMLeadData(props) {
     fontSize: 13,
     color: "#ecfeff",
     background: "linear-gradient(90deg, #001F54, #034078)",
-      // "linear-gradient(90deg, #0a47e0ff 0%, #1453b7ff 50%, #81a6daff 100%)",
+    // "linear-gradient(90deg, #0a47e0ff 0%, #1453b7ff 50%, #81a6daff 100%)",
     borderBottom: "none",
     whiteSpace: "nowrap",
   };
@@ -990,22 +1325,22 @@ function ViewCRMLeadData(props) {
     ...headerCellStyle,
     textAlign: "center",
     minWidth: 140,
-    maxWidth: 150
+    maxWidth: 150,
   };
 
   // ---------------- FILTER + SORT LOGIC ----------------
   const filteredSortedData =
-    data &&
-    data
+  tableData &&
+  tableData
       .filter((row) => {
         const q = searchTerm.toLowerCase();
         const matchesSearch =
           !q ||
           row.tenderName?.toLowerCase().includes(q) ||
-          row.customerName?.toLowerCase().includes(q) ||
-          row.tenderReferenceNo?.toLowerCase().includes(q) ||
-          row.bidOwner?.toLowerCase().includes(q) ||
-          row.customerAddress?.toLowerCase().includes(q);
+          row.organisation?.toLowerCase().includes(q) ||
+          row.leadID?.toLowerCase().includes(q) ||
+          row.preBidDate?.toLowerCase().includes(q) ||
+          row.teamAssigned?.toLowerCase().includes(q);
 
         const matchesTenderType =
           tenderTypeFilter === "all" ||
@@ -1013,13 +1348,13 @@ function ViewCRMLeadData(props) {
 
         const matchesStatus =
           statusFilter === "all" ||
-          row.presentStatus?.toLowerCase() === statusFilter.toLowerCase();
+          row.documentType?.toLowerCase() === statusFilter.toLowerCase();
 
         return matchesSearch && matchesTenderType && matchesStatus;
       })
       .sort((a, b) => {
         let aVal;
-        let bVal;  
+        let bVal;
 
         // defaultValues: {
         //   leadID: "",
@@ -1169,7 +1504,7 @@ function ViewCRMLeadData(props) {
                     backgroundColor: "rgba(30,64,175,0.15)",
                     transform: "scale(1.05)",
                   },
-                  maxWidth: 50
+                  maxWidth: 50,
                 }}
               >
                 <ViewColumnIcon />
@@ -1218,7 +1553,10 @@ function ViewCRMLeadData(props) {
                       },
                     }}
                   />
-                  <Typography variant="body2" sx={{ fontSize: 13, color: "#0f172a" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: 13, color: "#0f172a" }}
+                  >
                     {col.label}
                   </Typography>
                 </Box>
@@ -1270,11 +1608,11 @@ function ViewCRMLeadData(props) {
               ))}
             </TextField>
 
-            {/* STATUS FILTER */}
+            {/* Document FILTER */}
             <TextField
               select
               size="small"
-              label="Present Status"
+              label="Document Type"
               value={statusFilter}
               onChange={handleStatusFilterChange}
               sx={{
@@ -1350,14 +1688,19 @@ function ViewCRMLeadData(props) {
               <MenuItem value="dateCreated">Created Date</MenuItem>
               <MenuItem value="issueDate">Issue Date</MenuItem>
               <MenuItem value="emdInLakhs">EMD In Lakhs</MenuItem>
-              <MenuItem value="approxTenderValueLakhs">Approx Tender Value In Lakhs</MenuItem>
-              <MenuItem value="lastDateSubmission">Late Date Submission</MenuItem>
+              <MenuItem value="approxTenderValueLakhs">
+                Approx Tender Value In Lakhs
+              </MenuItem>
+              <MenuItem value="lastDateSubmission">
+                Late Date Submission
+              </MenuItem>
             </TextField>
 
             {/* SORT ICON BUTTON */}
             <Tooltip
-              title={`Sort ${sortDirection === "asc" ? "Descending" : "Ascending"
-                }`}
+              title={`Sort ${
+                sortDirection === "asc" ? "Descending" : "Ascending"
+              }`}
             >
               <IconButton
                 onClick={toggleSortDirection}
@@ -1370,7 +1713,7 @@ function ViewCRMLeadData(props) {
                   "&:hover": {
                     backgroundColor: "rgba(224,242,254,1)",
                   },
-                  maxWidth: 50
+                  maxWidth: 50,
                 }}
               >
                 {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
@@ -1422,7 +1765,7 @@ function ViewCRMLeadData(props) {
                   color: "#0A3C7D",
                   boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
                 },
-                maxWidth: 130
+                maxWidth: 130,
               }}
             >
               Reset
@@ -1451,7 +1794,7 @@ function ViewCRMLeadData(props) {
             minWidth: "100%",
           }}
         >
-         <Table
+          <Table
             stickyHeader
             size="small"
             sx={{
@@ -1472,7 +1815,11 @@ function ViewCRMLeadData(props) {
                     visibleColumns[col.id] && (
                       <TableCell
                         key={col.id}
-                        sx={col.id === "actions" ? actionHeaderStyle : headerCellStyle}
+                        sx={
+                          col.id === "actions"
+                            ? actionHeaderStyle
+                            : headerCellStyle
+                        }
                       >
                         {col.label}
                       </TableCell>
@@ -1480,7 +1827,6 @@ function ViewCRMLeadData(props) {
                 )}
               </TableRow>
             </TableHead>
-
 
             {/* leadID: "",
       issueDate: "",
@@ -1501,7 +1847,6 @@ function ViewCRMLeadData(props) {
       // OperatorSBU:
     }, */}
 
-
             <TableBody>
               {filteredSortedData && filteredSortedData.length > 0 ? (
                 filteredSortedData.map((row) => (
@@ -1509,7 +1854,7 @@ function ViewCRMLeadData(props) {
                     key={row.id}
                     hover
                     selected={selectedRow?.id === row.id}
-                    onClick={() => handleRowSelect(row)}
+                    onClick={() => handleRowClick(row)}
                     onDoubleClick={() => handleRowDoubleClick(row)}
                     sx={{
                       cursor: "pointer",
@@ -1587,7 +1932,7 @@ function ViewCRMLeadData(props) {
                                     "&:hover": {
                                       backgroundColor: "rgba(59,130,246,0.25)",
                                     },
-                                    maxWidth: 40
+                                    maxWidth: 40,
                                   }}
                                 >
                                   <EditRounded fontSize="small" />
@@ -1606,7 +1951,7 @@ function ViewCRMLeadData(props) {
                                     "&:hover": {
                                       backgroundColor: "rgba(239,68,68,0.25)",
                                     },
-                                    maxWidth: 40
+                                    maxWidth: 40,
                                   }}
                                 >
                                   <DeleteRounded fontSize="small" />
@@ -1632,8 +1977,8 @@ function ViewCRMLeadData(props) {
                             }}
                           >
                             {
-                              row.emdInLakhs  
-                            //  (parseFloat(row.emdInLakhs))/10
+                              row.emdInLakhs
+                              //  (parseFloat(row.emdInLakhs))/10
                             }
                           </TableCell>
                         );
@@ -1660,7 +2005,9 @@ function ViewCRMLeadData(props) {
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={leadColumns.filter((c) => visibleColumns[c.id]).length}
+                    colSpan={
+                      leadColumns.filter((c) => visibleColumns[c.id]).length
+                    }
                     align="center"
                     sx={{ py: 4 }}
                   >
@@ -1674,7 +2021,7 @@ function ViewCRMLeadData(props) {
           </Table>
         </TableContainer>
       </Box>
-     
+
       {/* EDIT DIALOG - VIEW MODE & EDIT MODE - PROFESSIONAL BLUE THEME */}
       <Dialog
         open={editDialogOpen}
@@ -1701,15 +2048,15 @@ function ViewCRMLeadData(props) {
             justifyContent: "space-between",
             pr: 2,
             background: isEditMode
-            ? "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)" // ORANGE (Edit)
-            : "linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%)", // BLUE (View)
+              ? "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)" // ORANGE (Edit)
+              : "linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%)", // BLUE (View)
             color: "#ffffff",
             borderBottom: isEditMode
-            ? "3px solid #fb923c"
-            : "3px solid #60a5fa",
+              ? "3px solid #fb923c"
+              : "3px solid #60a5fa",
             py: 2.5,
             transition: "all 0.3s ease", // smooth color change
-            }}
+          }}
         >
           {/* title and heading */}
           <Box display="flex" alignItems="center" gap={4}>
@@ -1746,45 +2093,22 @@ function ViewCRMLeadData(props) {
                 mr: 8,
               }}
             />
-            {/* This is for close the dialog box "x" */}
-            {/* <IconButton
+            {/* Close Button */}
+            <IconButton
               onClick={handleEditCancel}
               sx={{
                 color: "#ffffff",
-                mr: 8,
+                maxWidth: 40,
                 "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
               }}
             >
               <CloseRounded />
-            </IconButton> */}
+            </IconButton>
           </Box>
         </DialogTitle>
 
-
-{/* 
-         leadID: data.leadID,
-      issueDate: data.issueDate,
-      tenderName: data.tenderName,
-      organisation: data.organisation,
-      documentType: data.documentType,
-      tenderType: data.tenderType,
-      emdInLakhs:
-        data.emdInLakhs !== ""
-          ? parseFloat(parseFloat(data.emdInLakhs).toFixed(5))
-          : null,
-      approxTenderValueLakhs:
-        data.approxTenderValueLakhs !== ""
-          ? parseFloat(parseFloat(data.approxTenderValueLakhs).toFixed(5))
-          : null,
-      // emdInLakhs:data.emdInLakhs,
-      // approxTenderValueLakhs:data.approxTenderValueLakhs,
-      lastDateSubmission: data.lastDateSubmission,
-      preBidDate: data.preBidDate,
-      teamAssigned: data.teamAssigned,
-      remarks: data.remarks || "",
-      corrigendumInfo: data.corrigendumInfo || "", */}
-
-
+        {/* 
+      
 
         {/* CONTENT - TABULAR MATRIX FORMAT */}
         <DialogContent
@@ -2000,8 +2324,8 @@ function ViewCRMLeadData(props) {
                 ))}
               </Box> */}
 
-              {/* Customer Address - Full Width */}
-              {/* <Box
+            {/* Customer Address - Full Width */}
+            {/* <Box
                 sx={{
                   background: "#ffffff",
                   border: "1px solid #e0e7ff",
@@ -2080,7 +2404,10 @@ function ViewCRMLeadData(props) {
               >
                 {[
                   { label: "EMD in Lakhs", key: "emdInLakhs" },
-                  { label: "Approx Tender in Lakhs", key: "approxTenderValueLakhs",},
+                  {
+                    label: "Approx Tender in Lakhs",
+                    key: "approxTenderValueLakhs",
+                  },
                   // {
                   //   label: "Submitted Value (Cr, w/o GST)",
                   //   key: "submittedValueInCrWithoutGST",
@@ -2162,7 +2489,6 @@ function ViewCRMLeadData(props) {
                 ))}
               </Box>
             </Box>
-
 
             {/* TIMELINE SECTION */}
             <Box sx={{ mb: 3 }}>
@@ -2269,7 +2595,6 @@ function ViewCRMLeadData(props) {
 
             {/* STATUS & RESULTS SECTION */}
             <Box sx={{ mb: 3 }}>
-             
               <Box
                 sx={{
                   display: "grid",
@@ -2364,7 +2689,7 @@ function ViewCRMLeadData(props) {
             </Box>
 
             {/* ADDITIONAL INFORMATION SECTION */}
-           {/*  <Box sx={{ mb: 2 }}>
+            {/*  <Box sx={{ mb: 2 }}>
               <Typography
                 variant="subtitle1"
                 sx={{
@@ -2481,9 +2806,7 @@ function ViewCRMLeadData(props) {
               </Box>
             </Box> */}
           </Box>
-
         </DialogContent>
-
 
         {/* DIALOG ACTIONS */}
         <DialogActions
@@ -2496,7 +2819,7 @@ function ViewCRMLeadData(props) {
         >
           {!isEditMode ? (
             <>
-              <Button
+              {/* <Button
                 onClick={handleEditCancel}
                 sx={{
                   color: "#64748b",
@@ -2511,8 +2834,9 @@ function ViewCRMLeadData(props) {
                 }}
               >
                 Close
-              </Button>
-              <Button
+              </Button> */}
+              {dialogOpenedFrom === "editIcon" && (
+                <Button
                 onClick={handleEnterEditMode}
                 variant="contained"
                 sx={{
@@ -2522,6 +2846,7 @@ function ViewCRMLeadData(props) {
                   fontWeight: 700,
                   textTransform: "uppercase",
                   fontSize: "0.85rem",
+                  maxWidth: 180,
                   letterSpacing: "0.5px",
                   px: 3,
                   "&:hover": {
@@ -2536,6 +2861,7 @@ function ViewCRMLeadData(props) {
               >
                 ✏️ Edit Details
               </Button>
+            )}
             </>
           ) : (
             <>
@@ -2547,6 +2873,7 @@ function ViewCRMLeadData(props) {
                   textTransform: "uppercase",
                   fontSize: "0.85rem",
                   letterSpacing: "0.5px",
+                  maxWidth: 180,
                   "&:hover": {
                     backgroundColor: "#e2e8f0",
                   },
@@ -2565,6 +2892,7 @@ function ViewCRMLeadData(props) {
                   textTransform: "uppercase",
                   fontSize: "0.85rem",
                   letterSpacing: "0.5px",
+                  maxWidth: 200,
                   px: 3,
                   "&:hover": {
                     background:
@@ -2678,14 +3006,12 @@ function ViewCRMLeadData(props) {
           </Button>
         </DialogActions>
       </Dialog>
-
-
     </>
   );
 }
 
 // ---------------------------------------------------------------------------
-// PUSH 
+// PUSH
 // ---------------------------------------------------------------------------
 
 function ExcelUploadAndValidate({ user, ServerIp }) {
@@ -2693,6 +3019,19 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [excelData, setExcelData] = useState([]);
+  const [selectedFiles, setSelectedFile] = useState([]);
+  
+
+  // ✅ FIXED SAMPLE FILE DOWNLOAD (Bulk Upload)
+  const handleDownloadSampleExcel = () => {
+    const fileUrl = "/sample/CRM_Lead_Sample.xlsx"; // fixed public path
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = "CRM_Lead_Sample.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const DB_COLUMNS = [
     "leadID",
@@ -2818,7 +3157,6 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
 
     reader.readAsArrayBuffer(file);
   };
-
   // ----------------------------
   // SEND TO BACKEND
   // ----------------------------
@@ -2884,16 +3222,83 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
     <Paper
       elevation={8}
       sx={{
-        mb:8,
+        mb: 8,
         width: "100%",
         maxWidth: 720,
         p: 4,
         borderRadius: 4,
+        position: "relative", // ✅ REQUIRED FOR TOP-RIGHT BUTTON
         background: "rgba(255,255,255,0.9)",
         backdropFilter: "blur(12px)",
         boxShadow: "0 20px 45px rgba(0,0,0,0.12)",
       }}
     >
+      {/* DOWNLOAD SAMPLE BUTTON */}
+
+      {/* <Box sx={{ position: "absolute", top: 16, right: 16 }}>
+<Button
+// startIcon={<CloudQueueRoundedIcon />}
+onClick={handleDownloadSampleExcel}
+sx={{
+  borderRadius: 999,
+  px: 3,
+  py: 0.9,
+  fontWeight: 700,
+  fontSize: 13,
+  textTransform: "none",
+
+  color: "#2563eb",
+  backgroundColor: "#eff6ff",
+  border: "1px solid #bfdbfe",
+
+  boxShadow: "0 4px 12px rgba(37,99,235,0.15)",
+  transition: "all 0.2s ease",
+
+  "&:hover": {
+    backgroundColor: "#dbeafe",
+    borderColor: "#60a5fa",
+    transform: "translateY(-1px)",
+  },
+}}
+>
+Download Sample Excel
+</Button>
+</Box> */}
+
+      <Box sx={{ position: "absolute", top: 20, right: 19 }}>
+        <Button
+          variant="contained"
+          onClick={handleDownloadSampleExcel}
+          component="label"
+          sx={{
+            borderRadius: 999,
+            px: 2,
+            py: 1.2,
+            fontWeight: 900,
+            fontSize: 12,
+            textTransform: "none",
+            color: "#ffffff",
+            // background:
+            //   "linear-gradient(135deg, #42a5f5 0%, #2563eb 50%, #1e40af 100%)",
+            background: "linear-gradient(135deg, #f0f9ff, #e0f2fe)",
+            color: "#1e40af",
+            border: "1.5px solid #bae6fd",
+            transition: "all 0.25s ease",
+            "&:hover": {
+              background: "linear-gradient(135deg, #e0f2fe, #dbeafe)",
+              boxShadow: "0 14px 32px rgba(37,99,235,0.45)",
+              transform: "translateY(-2px) scale(1.03)",
+            },
+            "&:active": {
+              transform: "scale(0.96)",
+              boxShadow: "0 6px 14px rgba(37,99,235,0.35)",
+            },
+          }}
+        >
+          Sample format
+        </Button>
+      </Box>
+
       {/* TITLE */}
       <Typography
         variant="h5"
@@ -2902,9 +3307,10 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
           textAlign: "center",
           color: "#0d47a1",
           mb: 1,
+          mt: 8, // ✅ prevents overlap with button
         }}
       >
-        Upload Export Leads Data
+        Upload Lost Lead  Data
       </Typography>
 
       <Typography
@@ -2923,12 +3329,11 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
       {excelData.length === 0 && (
         <Box
           sx={{
-            mb:5,
+            mb: 5,
             border: "2px dashed #93c5fd",
             borderRadius: 4,
-            p: { xs: 4, sm: 6 }, // ⬅️ MORE INNER SPACE
-            minHeight: 280, // ⬅️ INCREASED HEIGHT
-
+            p: { xs: 4, sm: 6 },
+            minHeight: 280,
             textAlign: "center",
             background: "linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)",
             transition: "all 0.25s ease",
@@ -2985,20 +3390,16 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
               fontSize: 14,
               textTransform: "none",
               color: "#ffffff",
-
               background:
                 "linear-gradient(135deg, #42a5f5 0%, #2563eb 50%, #1e40af 100%)",
               boxShadow: "0 8px 22px rgba(37,99,235,0.35)",
-
               transition: "all 0.25s ease",
-
               "&:hover": {
                 background:
                   "linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #1d4ed8 100%)",
                 boxShadow: "0 14px 32px rgba(37,99,235,0.45)",
                 transform: "translateY(-2px) scale(1.03)",
               },
-
               "&:active": {
                 transform: "scale(0.96)",
                 boxShadow: "0 6px 14px rgba(37,99,235,0.35)",
@@ -3029,15 +3430,9 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
         </Alert>
       )}
 
-      {/* PUSH BUTTON (UNCHANGED LOGIC) */}
+      {/* PUSH BUTTON */}
       {excelData.length > 0 && (
-        <Box
-          sx={{
-            mt: 4,
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
+        <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
           <Button
             variant="contained"
             color="success"

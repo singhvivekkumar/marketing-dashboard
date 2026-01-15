@@ -33,7 +33,6 @@ import {
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import * as XLSX from "xlsx";
-import dayjs from "dayjs";
 import {
   SearchRounded,
   NorthRounded,
@@ -42,18 +41,19 @@ import {
   EditRounded,
   DeleteRounded,
 } from "@mui/icons-material";
-
 import { useForm, Controller } from "react-hook-form";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import axios from "axios";
-import { mockBudgetaryQuotationData } from "../../../mockData/budgetaryQuotationMockData";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import CloudQueueRoundedIcon from "@mui/icons-material/CloudQueueRounded";
 import CloseRounded from "@mui/icons-material/CloseRounded";
+import FileCopyIcon from "@mui/icons-material/FileCopy";
+import CancelIcon from "@mui/icons-material/Cancel";
+import { PdfViewerDialog } from "./pdfViewerDialog";
 
 const BudgetaryQuotationForm = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -63,31 +63,33 @@ const BudgetaryQuotationForm = () => {
   const [ServerIp, SetServerIp] = useState("");
 
   // Document Upload States
+  const [browsefile, setbrowsefile] = useState(null);
   const [documentFile, setDocumentFile] = useState(null);
   const [uploadedDocument, setUploadedDocument] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadFileData, setuploadFileData] = useState();
+  const [uploadFileData, setUploadFileData] = useState();
 
-  const API = "/getBudgetaryQuoatation";
-  const API_ENDPOINT = "/budgetary-quotation/upload-document";
+  const API = "/getBudgetaryQuotation";
+  const UPLOAD_API = "/fileUpload";
+
+  const API_ENDPOINT = "/getBudgetaryQuotation";
   let user = JSON.parse(localStorage.getItem("user"));
-  console.log(" user object ", user);
+  // console.log(" user object ", user);
 
   // here, we apply the logic networking
   useEffect(() => {
     // ===== FOR TESTING - USE MOCK DATA =====
-    console.log("Loading mock data for testing...");
-    setOrderData(mockBudgetaryQuotationData);
-    SetServerIp("http://localhost:5000"); // For when API is ready
-    axios
-      .get(ServerIp + API)
-      .then((response) => {
-        setOrderData(response.data);
-      })
-      .catch((error) => console.log(error.message));
+    // console.log("Loading mock data for testing...");
+    // setOrderData(mockBudgetaryQuotationData);
+    // SetServerIp("http://localhost:5000"); // For when API is ready
+    // axios
+    //   .get(ServerIp + API)
+    //   .then((response) => {
+    //     setOrderData(response.data);
+    //   })
+    //   .catch((error) => console.log(error.message));
 
     // ===== FOR PRODUCTION - UNCOMMENT BELOW & COMMENT ABOVE =====
-    /*
     axios
       .get(`/config.json`)
       .then(function (response) {
@@ -99,6 +101,7 @@ const BudgetaryQuotationForm = () => {
         axios
           .get(response.data.project[0].ServerIP[0].NodeServerIP + API)
           .then((response) => {
+            console.log(" table data : ", response.data);
             setOrderData(response.data);
           })
           .catch((error) => console.log(error.message));
@@ -109,7 +112,6 @@ const BudgetaryQuotationForm = () => {
       .finally(function () {
         // always executed
       });
-    */
   }, []);
 
   // by default values of the form's field
@@ -131,6 +133,10 @@ const BudgetaryQuotationForm = () => {
       referenceNo: "",
       JSON_competitors: "",
       presentStatus: "",
+
+      fileName: "",
+      filePath: "",
+      hardDiskFileName: "",
     },
   });
 
@@ -145,7 +151,8 @@ const BudgetaryQuotationForm = () => {
 
   const onSubmit = (data) => {
     // here we are formatting data so that we can send to backend
-    console.log(data);
+    console.log("onSubmit data : ", data);
+    console.log("onSubmit data : ");
     const formattedData = {
       bqTitle: data.bqTitle,
       customerName: data.customerName,
@@ -203,23 +210,27 @@ const BudgetaryQuotationForm = () => {
       const url = URL.createObjectURL(dataBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `budgetary-quotation-${submittedData.serialNumber
-        }-${Date.now()}.json`;
+      link.download = `budgetary-quotation-${
+        submittedData.serialNumber
+      }-${Date.now()}.json`;
       link.click();
       URL.revokeObjectURL(url);
     }
   };
 
   // ===== DOCUMENT UPLOAD HANDLERS =====
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
     if (file) {
       setDocumentFile(file);
+      setbrowsefile(file);
+    } else {
+      alert("Please Select pdf only");
     }
   };
 
   const handleUploadDocument = async () => {
-    if (!documentFile) {
+    if (!documentFile && (user != null || user.id !== undefined)) {
       alert("Please select a document first");
       return;
     }
@@ -228,101 +239,74 @@ const BudgetaryQuotationForm = () => {
     try {
       // Create FormData for file upload
       const formData = new FormData();
-      formData.append("document", documentFile);
+      // formData.append("document", documentFile);
 
-      const originalFileName = documentFile.name;
+      const originalFileName = browsefile.name;
       const newFileName = user.id + "$" + originalFileName;
 
-      const updatedFile = new File([documentFile], newFileName, {
-        type: documentFile.type,
+      const updatedFile = new File([browsefile], newFileName, {
+        type: browsefile.type,
       });
 
       console.log("updated file by File class: ", updatedFile);
 
       formData.append("video", updatedFile);
 
-      let todayDate = dayjs();
-      todayDate = todayDate.format("DD-MM-YYYY hh:mm:ss a");
+      // This will use after upload..
+      // let todayDate = dayjs();
+      // todayDate = todayDate.format("DD-MM-YYYY hh:mm:ss a");
 
-      fetch(ServerIp + API_ENDPOINT, {
+      fetch(ServerIp + UPLOAD_API, {
         method: "POST",
         body: formData,
       })
         .then((response) => response.json())
-        .then((data) => {
-          // console.log("res :8081/pdfupload", data);
-          // console.log(newFileName);
-          setUploadedDocument({
-            filename: originalFileName,
-            filePath: data.path,
-            originalName: data.fileName,
-            uploadedAt: todayDate,
-          });
-          setuploadFileData({
+        .then((docResponse) => {
+          console.log("file upload res : ", docResponse.data.filePath);
+          // console.log(data);
+          setUploadFileData({
             fileName: originalFileName,
-            filePath: data.path,
-            hardDiskFileName: data.fileName,
-            createdDate: todayDate,
+            filePath: docResponse.data.filePath,
+            hardDiskFileName: docResponse.data.fileName,
+            createdDate: docResponse.data.dateTime,
           });
-          alert(`✅ Document uploaded successfully!\nFilename: ${originalFileName}`);
-          setDocumentFile(null); // Clear selected file
         })
-        .catch((error) => console.error(error));
-
-
-
-      // Mock API call - In production, this would be your real upload endpoint
-      // Simulating backend response with server-generated filename
-
-    } catch (error) {
-      console.error("Error uploading document:", error);
-      alert("❌ Failed to upload document. Please try again.");
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleUploadDocument1 = async () => {
-    if (!documentFile) {
-      alert("Please select a document first");
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append("document", documentFile);
-
-      // Mock API call - In production, this would be your real upload endpoint
-      // Simulating backend response with server-generated filename
-      const mockResponse = await new Promise((resolve) => {
-        setTimeout(() => {
-          const timestamp = Date.now();
-          const fileExtension = documentFile.name.split(".").pop();
-          const serverFilename = `BQ_DOC_${timestamp}.${fileExtension}`;
-          const filePath = `/uploads/documents/${serverFilename}`;
-
-          resolve({
-            success: true,
-            filename: serverFilename,
-            originalName: documentFile.name,
-            filePath: filePath,
-            uploadedAt: new Date().toISOString(),
-          });
-        }, 1500); // Simulate network delay
-      });
-
-      if (mockResponse.success) {
-        setUploadedDocument({
-          filename: mockResponse.filename,
-          originalName: mockResponse.originalName,
-          filePath: mockResponse.filePath,
-          uploadedAt: mockResponse.uploadedAt,
+        .catch((error) => {
+          console.error(error);
+          console.log("error of updated file of dialog of VBQ : ", error);
         });
-        alert(`✅ Document uploaded successfully!\nFilename: ${mockResponse.filename}`);
-        setDocumentFile(null); // Clear selected file
-      }
+
+      // Mock API call - In production, this would be your real upload endpoint
+      // Simulating backend response with server-generated filename
+      // const mockResponse = await new Promise((resolve) => {
+      //   setTimeout(() => {
+      //     const timestamp = Date.now();
+      //     const fileExtension = documentFile.name.split(".").pop();
+      //     const serverFilename = `BQ_DOC_${timestamp}.${fileExtension}`;
+      //     const filePath = `/uploads/documents/${serverFilename}`;
+
+      //     resolve({
+      //       success: true,
+      //       filename: serverFilename,
+      //       originalName: documentFile.name,
+      //       filePath: filePath,
+      //       uploadedAt: new Date().toISOString(),
+      //     });
+      //   }, 1500); // Simulate network delay
+      // });
+
+      // up
+
+      // if (mockResponse.success) {
+      //   setUploadedDocument({
+      //     filename: mockResponse.filename,
+      //     originalName: mockResponse.originalName,
+      //     filePath: mockResponse.filePath,
+      //     uploadedAt: mockResponse.uploadedAt,
+      //   });
+      //   alert(`✅ Document uploaded successfully!\nFilename: ${mockResponse.filename}`);
+      //   setDocumentFile(null); // Clear selected file
+      // }
     } catch (error) {
       console.error("Error uploading document:", error);
       alert("❌ Failed to upload document. Please try again.");
@@ -342,9 +326,10 @@ const BudgetaryQuotationForm = () => {
     <Container
       maxWidth="xl"
       sx={{
-        mt: -7,
+        mt: 0,
         py: 1,
         minHeight: "83vh",
+        borderColor: "2px red",
         background: "linear-gradient(135deg, #e3eeff 0%, #f8fbff 100%)",
         borderRadius: 1,
       }}
@@ -847,35 +832,48 @@ const BudgetaryQuotationForm = () => {
 
               {/* ===== DOCUMENT UPLOAD SECTION (COMPACT) ===== */}
 
-
               <Card
                 sx={{
-                  mt: -1,
+                  mt: 2,
                   mb: 3,
-                  p: 3,
+                  p: { xs: 2, md: 4 }, // Responsive padding
                   borderRadius: 4,
-                  background: "rgba(250,250,255,0.8)",
-                  backdropFilter: "blur(10px)",
-                  transition: "0.3s",
-                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-                  border: "1px solid rgba(13, 71, 161, 0.1)",
+                  background: "rgba(255, 255, 255, 0.9)",
+                  backdropFilter: "blur(12px)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+                  border: "1px solid rgba(200, 200, 255, 0.3)",
                 }}
               >
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: 800, color: "#0d47a1", mb: 2 }}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    mb: 2,
+                    gap: 1.5,
+                  }}
                 >
-                  📎 Document/Attachment Upload
-                </Typography>
-                <Divider sx={{ mb: 3 }} />
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 800,
+                      color: "#1a237e",
+                      letterSpacing: "-0.5px",
+                    }}
+                  >
+                    Document Attachment
+                  </Typography>
+                </Box>
 
-                <Grid container spacing={2} sx={{ mt: -1, mb: 3 }}>
-                  {/* file select */}
-                  <Grid item xs={12} sm={6} md={4}>
+                <Divider sx={{ mb: 4, opacity: 0.6 }} />
+
+                <Grid container spacing={3} alignItems="center">
+                  {/* Left Side: Upload Actions */}
+                  <Grid item xs={12} lg={5}>
                     <Box
                       sx={{
                         display: "flex",
-                        gap: 1,
+                        flexDirection: { xs: "column", sm: "row" },
+                        gap: 2,
                         alignItems: "center",
                       }}
                     >
@@ -886,37 +884,28 @@ const BudgetaryQuotationForm = () => {
                         style={{ display: "none" }}
                         accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.txt"
                       />
-                      <label
-                        htmlFor="document-input"
-                        style={{
-                          flex: 1,
-                          marginBottom: 0,
-                        }}
-                      >
+
+                      <label htmlFor="document-input" style={{ width: "100%" }}>
                         <Button
                           component="span"
-                          variant="contained"
-                          size="small"
+                          variant="outlined"
+                          fullWidth
                           startIcon={<CloudUploadOutlinedIcon />}
                           sx={{
-                            background:
-                              "linear-gradient(135deg, #1565c0, #42a5f5)",
-                            color: "#ffffff",
-                            fontWeight: 600,
+                            py: 1.5,
+                            px: 3,
+                            borderRadius: 3,
+                            fontWeight: 700,
                             textTransform: "none",
-                            borderRadius: 2,
-                            width: "100%",
-                            py: 1.2,
-                            transition: "0.3s",
+                            border: "2px dashed #42a5f5",
+                            color: "#1565c0",
                             "&:hover": {
-                              transform: "translateY(-2px)",
-                              background:
-                                "linear-gradient(135deg, #0d47a1, #1e88e5)",
-                              boxShadow: "0 4px 12px rgba(13, 71, 161, 0.3)",
+                              border: "2px solid #1565c0",
+                              backgroundColor: "rgba(66, 165, 245, 0.04)",
                             },
                           }}
                         >
-                          Select Document
+                          {documentFile ? "Change File" : "Select Document"}
                         </Button>
                       </label>
 
@@ -924,156 +913,116 @@ const BudgetaryQuotationForm = () => {
                         onClick={handleUploadDocument}
                         disabled={!documentFile || isUploading}
                         variant="contained"
-                        size="small"
                         sx={{
-                          background:
-                            documentFile && !isUploading
-                              ? "linear-gradient(135deg, #2e7d32, #4caf50)"
-                              : "#bdbdbd",
-                          color: "#ffffff",
-                          fontWeight: 600,
+                          width: { xs: "100%", sm: "auto" },
+                          minWidth: 140,
+                          py: 1.5,
+                          borderRadius: 3,
+                          fontWeight: 700,
                           textTransform: "none",
-                          borderRadius: 2,
-                          py: 1.2,
-                          px: 2.5,
-                          minWidth: "110px",
-                          transition: "0.3s",
-                          "&:hover:not(:disabled)": {
-                            transform: "translateY(-2px)",
-                            background:
-                              "linear-gradient(135deg, #1b5e20, #388e3c)",
-                            boxShadow: "0 4px 12px rgba(46, 125, 50, 0.3)",
+                          background:
+                            "linear-gradient(135deg, #1565c0 0%, #42a5f5 100%)",
+                          boxShadow: "0 4px 14px rgba(21, 101, 192, 0.4)",
+                          "&:disabled": { background: "#e0e0e0" },
+                          "&:hover": {
+                            // transform: "translateY(-1px)",
+                            boxShadow: "0 6px 20px rgba(21, 101, 192, 0.5)",
                           },
                         }}
                       >
-                        {isUploading ? "..." : "Upload"}
+                        {isUploading ? "Uploading..." : "Upload Now"}
                       </Button>
-
-                      {(documentFile || uploadedDocument) && (
-                        // <Tooltip title="Clear selection">
-                        //   <IconButton
-                        //     onClick={handleClearDocument}
-                        //     disabled={isUploading}
-                        //     size="small"
-                        //     sx={{
-                        //       color: "#ef5350",
-                        //       transition: "0.3s",
-                        //       "&:hover": {
-                        //         backgroundColor: "rgba(239, 83, 80, 0.1)",
-                        //         color: "#c62828",
-                        //       },
-                        //     }}
-                        //   >
-                        //     <CloseRounded fontSize="small" />
-                        //   </IconButton>
-                        // </Tooltip>
-                        <Button
-                          onClick={handleClearDocument}
-                          disabled={isUploading}
-                          variant="outlined"
-                          startIcon={<CloseRounded />}
-                          sx={{
-                            borderColor: "#ef5350",
-                            color: "#ef5350",
-                            fontWeight: 700,
-                            textTransform: "none",
-                            borderRadius: 2.5,
-                            px: 3,
-                            py: 1.2,
-                            transition: "0.3s",
-                            "&:hover": {
-                              borderColor: "#c62828",
-                              color: "#c62828",
-                              backgroundColor: "rgba(239, 83, 80, 0.05)",
-                            },
-                          }}
-                        >
-                          Clear
-                        </Button>
-                      )}
                     </Box>
                   </Grid>
 
-                  {/* File Status Display */}
-                  <Grid item xs={12} sm={6} md={8}>
-                    <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
-                      {documentFile && !uploadedDocument && (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                            px: 2,
-                            py: 1,
-                            backgroundColor: "rgba(25, 118, 210, 0.08)",
-                            borderRadius: 2,
-                            border: "1px solid #42a5f5",
-                          }}
-                        >
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              fontWeight: 600,
-                              color: "#1565c0",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            📄 {documentFile.name.substring(0, 25)}
-                            {documentFile.name.length > 25 ? "..." : ""}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{ color: "#64748b", fontSize: "0.75rem" }}
-                          >
-                            ({(documentFile.size / 1024).toFixed(1)} KB)
-                          </Typography>
-                        </Box>
-                      )}
-
-                      {uploadedDocument && (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                            px: 2,
-                            py: 1,
-                            backgroundColor: "rgba(76, 175, 80, 0.12)",
-                            borderRadius: 2,
-                            border: "1px solid #4caf50",
-                          }}
-                        >
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              fontWeight: 600,
-                              color: "#2e7d32",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            ✅ {uploadedDocument.originalName.substring(0, 25)}
-                            {uploadedDocument.originalName.length > 25 ? "..." : ""}
-                          </Typography>
-                        </Box>
-                      )}
-
-                      {!documentFile && !uploadedDocument && (
+                  {/* Right Side: File Status */}
+                  <Grid item xs={12} lg={5}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        borderRadius: 3,
+                        backgroundColor: "#f8fafc",
+                        border: "1px solid #e2e8f0",
+                        minHeight: 60,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        position: "relative",
+                      }}
+                    >
+                      {!documentFile && !uploadedDocument ? (
                         <Typography
-                          variant="caption"
+                          variant="body2"
+                          sx={{ color: "#94a3b8", fontStyle: "italic" }}
+                        >
+                          No file selected (Max 10MB)
+                        </Typography>
+                      ) : (
+                        <Box
                           sx={{
-                            color: "#64748b",
-                            fontSize: "0.85rem",
-                            fontStyle: "italic",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                            width: "100%",
                           }}
                         >
-                          PDF, DOC, DOCX, XLS, XLSX, PPT, TXT (Max 10MB)
-                        </Typography>
+                          <Box
+                            sx={{
+                              p: 1,
+                              borderRadius: 2,
+                              backgroundColor: uploadedDocument
+                                ? "#e8f5e9"
+                                : "#e3f2fd",
+                              color: uploadedDocument ? "#2e7d32" : "#1565c0",
+                              display: "flex",
+                            }}
+                          >
+                            {uploadedDocument ? (
+                              "✅"
+                            ) : (
+                              <FileCopyIcon />
+                            )}
+                          </Box>
+
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography
+                              variant="subtitle2"
+                              noWrap
+                              sx={{ fontWeight: 700, color: "#334155" }}
+                            >
+                              {uploadedDocument
+                                ? uploadedDocument.originalName
+                                : documentFile.name}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "#64748b" }}
+                            >
+                              {uploadedDocument
+                                ? "Successfully Uploaded"
+                                : `${(documentFile.size / 1024).toFixed(1)} KB`}
+                            </Typography>
+                          </Box>
+
+                          <Tooltip title="Remove file">
+                            <IconButton
+                              size="small"
+                              onClick={handleClearDocument}
+                              sx={{
+                                color: "#f44336",
+                                maxWidth: 30,
+                                "&:hover": { backgroundColor: "#ffebee" },
+                              }}
+                            >
+                              <CancelIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       )}
-                    </Box>
+                    </Paper>
                   </Grid>
                 </Grid>
-
-
               </Card>
 
               {/* FORM ACTION BUTTONS */}
@@ -1202,51 +1151,10 @@ const BudgetaryQuotationForm = () => {
   );
 };
 
-const lightReadOnlyFieldSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: 2.5,
-    backgroundColor: "#f1f5ff",
-    color: "#0f172a",
-    "& fieldset": {
-      borderColor: "#bfdbfe",
-    },
-  },
-  "& .MuiInputLabel-root": {
-    color: "#1e3a8a",
-    fontWeight: 600,
-  },
-  "& input": {
-    cursor: "default",
-  },
-};
-
-const lightTextFieldSx = {
-  mb: 2,
-  "& .MuiOutlinedInput-root": {
-    borderRadius: 2.5,
-    backgroundColor: "#ffffff",
-    color: "#0f172a",
-    "& fieldset": {
-      borderColor: "#93c5fd",
-    },
-    "&:hover fieldset": {
-      borderColor: "#3b82f6",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "#2563eb",
-      boxShadow: "0 0 0 3px rgba(59,130,246,0.2)",
-    },
-  },
-  "& .MuiInputLabel-root": {
-    color: "#1e3a8a",
-    fontWeight: 600,
-  },
-};
-
 //---------------TABLE---------------
 
 function ViewBudgetaryQuotationData(props) {
-  console.log("props viewBudgetaryQuotationData", props.ViewData.data);
+  console.log("props viewBudgetaryQuotationData", props);
 
   // Extract ServerIp from props
   const ServerIp = props.ServerIp || "";
@@ -1257,34 +1165,47 @@ function ViewBudgetaryQuotationData(props) {
   // Sync with parent data when it changes
   useEffect(() => {
     if (props.ViewData.data) {
+      props.ViewData.data.sort((a, b) => {
+        return a.id - b.id;
+      });
       setTableData(props.ViewData.data);
     }
   }, [props.ViewData.data]);
+
+  //States for search
   const [searchTerm, setSearchTerm] = useState("");
   const [defenceFilter, setDefenceFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-
   const [sortBy, setSortBy] = useState("dateCreated");
   const [sortDirection, setSortDirection] = useState("desc");
 
+  // for Dialog
   const [selectedRow, setSelectedRow] = useState(null);
-
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
+
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [idDeleteOpen, setIdDeleteOpen] = useState(null);
+
   const [tempEditingRow, setTempEditingRow] = useState(null);
   const [dialogOpenedFrom, setDialogOpenedFrom] = useState("rowClick"); // "rowClick" or "editIcon"
 
   // Document Upload States
   const [documentFile, setDocumentFile] = useState(null);
   const [uploadedDocument, setUploadedDocument] = useState(null);
+  const [uploadFileData, setUploadFileData] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-
 
   // COLUMN SELECTION STATE
   const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
   const columnMenuOpen = Boolean(columnMenuAnchor);
+  const [open, setOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [titleName, setTitleName] = useState("");
+
+  let user = JSON.parse(localStorage.getItem("user"));
 
   const leadColumns = [
     { id: "bqTitle", label: "BQ Title" },
@@ -1310,7 +1231,6 @@ function ViewBudgetaryQuotationData(props) {
     }, {})
   );
 
-  // ---------------- HANDLERS ----------------
   const STATUS_OPTIONS = [
     "Draft",
     "Submitted",
@@ -1323,6 +1243,7 @@ function ViewBudgetaryQuotationData(props) {
 
   const TENDER_TYPE_OPTIONS = ["ST", "MT", "Nom", "LT"];
 
+  // ---------------- HANDLERS ----------------
   //--------------------SEARCH----------------------
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -1373,25 +1294,6 @@ function ViewBudgetaryQuotationData(props) {
     setSortDirection("desc");
   };
 
-  // DOWNLOAD ALL DATA AS EXCEL
-  // const handleDownloadAllData = () => {
-  //   console.log(" data for download : ", data);
-  //   if (!data || data.length === 0) {
-  //     alert("No data available to download");
-  //     return;
-  //   }
-
-  //   const worksheet = XLSX.utils.json_to_sheet(data);
-
-  //   const workbook = XLSX.utils.book_new();
-  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Lead_Submitted");
-
-  //   XLSX.writeFile(
-  //     workbook,
-  //     `Lead_Submitted_Data_${new Date().toISOString().slice(0, 10)}.xlsx`
-  //   );
-  // };
-
   // Row Selection
   const handleRowSelect = (row) => {
     setSelectedRow(row);
@@ -1406,7 +1308,7 @@ function ViewBudgetaryQuotationData(props) {
     setEditDialogOpen(true);
   };
 
-  // OPEN DIALOG FROM EDIT ICON (READY TO EDIT)
+  // OPEN DIALOG FROM EDIT ICON (READY TO EDIT) it will be hitted by edit btn of action column
   const handleEditClick = (row) => {
     setTempEditingRow({ ...row }); // Store original data
     setEditingRow({ ...row }); // Set for editing
@@ -1443,7 +1345,22 @@ function ViewBudgetaryQuotationData(props) {
   // SAVE EDITED VALUES - SHOW CONFIRMATION DIALOG
   const handleEditSave = () => {
     console.log("Saving updated row:", editingRow);
+    if (uploadFileData) {
+      setEditingRow((prev) => ({
+        ...prev,
+        FileName: uploadFileData.fileName,
+        FilePath: uploadFileData.filePath,
+        HardDiskFileName: uploadFileData.hardDiskFileName,
+      }));
+    }
     setConfirmSaveOpen(true); // Open confirmation dialog
+  };
+
+  // Delete VALUES - SHOW CONFIRMATION DIALOG
+  const handleDeleteClick = (id) => {
+    console.log("Saving updated editingRow:", editingRow);
+    setIdDeleteOpen(id);
+    setConfirmDeleteOpen(true); // Open confirmation dialog
   };
 
   // CONFIRM AND SAVE TO BACKEND
@@ -1451,17 +1368,22 @@ function ViewBudgetaryQuotationData(props) {
     try {
       console.log("Confirmed - Updating row:", editingRow);
 
+      // SETTING DOCUMENT INFOMATION FOR UPDATE
+      console.log(
+        " file details clicked by handleConfirmSave : ",
+        uploadFileData
+      );
       // Call real update API
       const updatePayload = {
         id: editingRow.id, // Include ID for update
-        ...editingRow,
+        ...editingRow, // Rest of data to edit
       };
-
+      console.log(" updatedPayload by handleConfirmSave : ", updatePayload);
       // Replace with your actual API endpoint
-      const API_ENDPOINT = "/updateBudgetaryQuotation";
+      // const API_ENDPOINT = `/getBudgetaryQuotation/${updatePayload?.id}`;
 
       const response = await axios.put(
-        `${ServerIp}${API_ENDPOINT}`,
+        `${ServerIp}/getBudgetaryQuotation`,
         updatePayload
       );
 
@@ -1486,6 +1408,7 @@ function ViewBudgetaryQuotationData(props) {
         setIsEditMode(false);
         setEditingRow(null);
         setTempEditingRow(null);
+        setDocumentFile(null); // Clear selected file from frontend
       }
     } catch (error) {
       console.error("Error saving changes:", error);
@@ -1494,25 +1417,83 @@ function ViewBudgetaryQuotationData(props) {
   };
 
   // DELETE ROW
-  const handleDeleteClick = (id) => {
-    if (!window.confirm("Are you sure you want to delete this entry?")) return;
+  const handleDeleteRow = async (id) => {
+    // if (!window.confirm("Are you sure you want to delete this entry?")) return;
 
     console.log("Deleting row with ID:", id);
+    const deleteData = {
+      id: id,
+    };
 
     // TODO: delete logic here
+    try {
+      await axios.delete(`${ServerIp}/getBudgetaryQuotation`, {
+        data: deleteData, // Send the data in the request body
+        headers: {
+          "Content-Type": "application/json", // VERY IMPORTANT: Set the Content-Type
+        },
+      });
+      // Show success notification
+      setTableData(
+        tableData.filter((item) => item.id !== id) // Create a new array excluding the item with the given id
+      );
+      setConfirmDeleteOpen(false);
+      alert("✅ Deleted successfully!");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      alert("❌ Failed to Delete. Please try again.");
+    }
+  };
+
+  const handleDownloadFile = async (fileName, hardDiskFileName) => {
+    console.log(" this hardiskFileName ", hardDiskFileName);
+
+    axios
+      .get(`${ServerIp}/getBudgetaryQuotation/downloadFile`, {
+        responseType: "blob",
+        params: {
+          hardDiskFileName: hardDiskFileName,
+        },
+      })
+      .then((response) => {
+        console.log("response data of file : ",response.data);
+        
+        const pdfBlob = new Blob([response.data], { type: "application/pdf" || "application/doc" });
+        // Create a temporary URL for the Blob
+        setTitleName(`${fileName}`);
+        setOpen(true);
+        const url = window.URL.createObjectURL(pdfBlob);
+
+        // setPdfUrl(url);
+        // Create a temporary <a> element to trigger the download
+        const tempLink = document.createElement("a");
+        tempLink.href = url;
+        tempLink.setAttribute("document", `BQ_${fileName}`); // Set the desired filename for the downloaded file
+        tempLink.download = `BQ_${fileName}`
+        setPdfUrl(tempLink);
+        
+
+      })
+      
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   // OPEN DOCUMENT PREVIEW
-  const handleDocumentClick = (filePath, filename) => {
-    if (!filePath) {
+  const handleDocumentClick = (fileName, hardDiskFileName) => {
+    if (!hardDiskFileName) {
       alert("No document available for this record");
       return;
     }
-
+    // setOpen(true);
+    // custom logic
+    handleDownloadFile(fileName, hardDiskFileName);
+    // PdfViewerDialog(open, ()=> setOpen(false), fileName, hardDiskFileName, ServerIp);
     // Open document in new window/tab
     // In production, this would open the actual file from your document server
-    window.open(filePath, "_blank");
-    console.log(`Opening document: ${filename} from ${filePath}`);
+    // window.open(filePath, "_blank");
+    console.log(`Opening document: ${fileName}`);
   };
 
   // DIALOG DOCUMENT UPLOAD HANDLER
@@ -1525,45 +1506,86 @@ function ViewBudgetaryQuotationData(props) {
 
   // DIALOG DOCUMENT UPLOAD
   const handleDialogUploadDocument = async () => {
-    if (!documentFile) {
+    if (!documentFile && (user != null || user.id !== undefined)) {
       alert("Please select a document first");
       return;
     }
+    // console.log(" update file of dialog of VBQ is calling  : ")
+
     setIsUploading(true);
     try {
+      // Create FormData for file upload
       const formData = new FormData();
-      formData.append("document", documentFile);
+      console.log(" documentFile details of dialog of VBQ : ", documentFile);
 
-      // Mock API - simulates server response
-      const mockResponse = await new Promise((resolve) => {
-        setTimeout(() => {
-          const timestamp = Date.now();
-          const fileExtension = documentFile.name.split(".").pop();
-          const serverFilename = `BQ_DOC_${timestamp}.${fileExtension}`;
-          resolve({
-            success: true,
-            filename: serverFilename,
-            originalName: documentFile.name,
-            filePath: `/uploads/documents/${serverFilename}`,
-            uploadedAt: new Date().toISOString(),
-          });
-        }, 1500);
+      const originalFileName = documentFile.name;
+      const newFileName = user.id + "$" + originalFileName;
+
+      const updatedFile = new File([documentFile], newFileName, {
+        type: documentFile.type,
       });
 
-      if (mockResponse.success) {
-        const uploadResponse = {
-          filename: mockResponse.filename,
-          originalName: mockResponse.originalName,
-          filePath: mockResponse.filePath,
-          uploadedAt: mockResponse.uploadedAt,
-        };
-        setUploadedDocument(uploadResponse);
-        handleEditFieldChange("document", uploadResponse);
-        alert(
-          `✅ Document uploaded successfully!\nFilename: ${mockResponse.filename}`
-        );
-        setDocumentFile(null);
-      }
+      formData.append("video", updatedFile);
+      console.log(" updated file of dialog of VBQ : ", updatedFile);
+
+      // This will use after upload..
+      console.log(" updated file of dialog of VBQ : ", updatedFile);
+      fetch(ServerIp + "/fileUpload", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((docResponse) => {
+          // console.log("res :8081/pdfupload", docResponse);
+          // console.log(newFileName);
+          console.log("Response of the upload the doc : ", docResponse.data);
+          setUploadFileData({
+            fileName: originalFileName,
+            filePath: docResponse.data.filePath,
+            hardDiskFileName: docResponse.data.fileName,
+            createdDate: docResponse.data.dateTime,
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+          console.log("error of updated file of dialog of VBQ : ", error);
+        });
+
+      // Mock API call - In production, this would be your real upload endpoint
+      // Simulating backend response with server-generated filename
+      // const mockResponse = await new Promise((resolve) => {
+      //   setTimeout(() => {
+      //     const timestamp = Date.now();
+      //     const fileExtension = documentFile.name.split(".").pop();
+      //     const serverFilename = `BQ_DOC_${timestamp}.${fileExtension}`;
+      //     const filePath = `/uploads/documents/${serverFilename}`;
+
+      //     resolve({
+      //       success: true,
+      //       filename: serverFilename,
+      //       originalName: documentFile.name,
+      //       filePath: filePath,
+      //       uploadedAt: new Date().toISOString(),
+      //     });
+      //   }, 1500); // Simulate network delay
+      // });
+
+      // up
+
+      // if (mockResponse.success) {
+      //   setUploadedDocument({
+      //     filename: mockResponse.filename,
+      //     originalName: mockResponse.originalName,
+      //     filePath: mockResponse.filePath,
+      //     uploadedAt: mockResponse.uploadedAt,
+      //   });
+      //   alert(`✅ Document uploaded successfully!\nFilename: ${mockResponse.filename}`);
+      //   setDocumentFile(null); // Clear selected file
+      // }
+      alert(
+        `✅ Document uploaded successfully!\nFilename: ${documentFile.filename}`
+      );
+      // setDocumentFile(null); // Clear selected file
     } catch (error) {
       console.error("Error uploading document:", error);
       alert("❌ Failed to upload document. Please try again.");
@@ -1618,143 +1640,164 @@ function ViewBudgetaryQuotationData(props) {
   return (
     <>
       {/* HEADER + CONTROLS */}
-      <Box
-        sx={{
-          mb: 3,
-          px: { xs: 1, sm: 0 },
-        }}
-      >
+      <Box sx={{ mb: 3, px: { xs: 1, sm: 0 } }}>
         <Box
           sx={{
-            borderRadius: 1.5,
+            borderRadius: 3,
             p: { xs: 2, sm: 3 },
-            boxShadow: 6,
-            background:
-              "linear-gradient(135deg, #e0f7ff 0%, #c8f0ff 40%, #a6e9ff 100%)",
-            color: "#06283D",
+            background: `linear-gradient(135deg,#EAF6FD 0%,#CFE9F7 5%,#B6DFF5 45%, #9CCEF0 100%,#6FAFD8 60%)`,
+            border: "1px solid rgba(111,182,232,0.5)",
+            boxShadow:
+              "0 16px 40px rgba(15,23,42,0.15), inset 0 1px 0 rgba(255,255,255,0.85)",
+            position: "relative",
+            overflow: "hidden",
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(circle at top right, rgba(255,255,255,0.35), transparent 55%)",
+              pointerEvents: "none",
+            },
           }}
         >
+          {/* =====================================================
+       TOP ROW : TITLE + SEARCH + COLUMN TOGGLE
+       ===================================================== */}
           <Box
             sx={{
+              position: "relative",
               display: "flex",
               flexWrap: "wrap",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 2,
+              zIndex: 1,
             }}
           >
+            {/* -------------------------------
+          PAGE TITLE
+         ------------------------------- */}
             <Box>
               <Typography
                 variant="h5"
                 sx={{
-                  fontWeight: 800,
-                  letterSpacing: 0.5,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
+                  fontWeight: 900,
+                  letterSpacing: 0.6,
+                  color: "#0F172A",
                 }}
               >
                 Budgetary Quotation Data View
               </Typography>
-              {/* <Typography
-                variant="body2"
-                sx={{ opacity: 0.85, mt: 0.5, maxWidth: 520 }}
-              >
-                View, search, filter and manage all in a single, elegant dashboard.
-              </Typography> */}
             </Box>
 
-            {/* SEARCH BOX */}
-            <TextField
-              variant="outlined"
-              size="small"
-              placeholder="Search by title, customer, reference..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRounded />
-                  </InputAdornment>
-                ),
-              }}
+            {/* -------------------------------
+          SEARCH + COLUMN VISIBILITY
+         ------------------------------- */}
+            <Box
               sx={{
-                minWidth: { xs: "100%", sm: 260, md: 320 },
-                backgroundColor: "rgba(240,248,255,0.9)", // Light shade
-                borderRadius: 3,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 3,
-                  color: "#0f172a",
-                  "& fieldset": {
-                    borderColor: "rgba(148,163,184,0.5)",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "rgba(100,116,139,0.8)",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#3b82f6",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  color: "#475569",
-                },
-              }}
-            />
-
-            {/* Column Selection Menu */}
-            <Tooltip title="Select columns to view in table">
-              <IconButton
-                onClick={handleColumnMenuOpen}
-                sx={{
-                  border: "2px solid #1e40af",
-                  borderRadius: 1.5,
-                  backgroundColor: "rgba(30, 64, 175, 0.06)",
-                  color: "#1e40af",
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    backgroundColor: "rgba(30, 64, 175, 0.12)",
-                    transform: "scale(1.05)",
-                  },
-                  maxWidth: 50,
-                }}
-              >
-                <ViewColumnIcon />
-              </IconButton>
-            </Tooltip>
-
-            <Menu
-              anchorEl={columnMenuAnchor}
-              open={columnMenuOpen}
-              onClose={handleColumnMenuClose}
-              PaperProps={{
-                sx: {
-                  minWidth: 280,
-                  maxHeight: 400,
-                },
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                width: { xs: "100%", sm: "auto" },
               }}
             >
-              {leadColumns.map((col) => (
-                <MenuItem
-                  key={col.id}
-                  onClick={() => handleColumnToggle(col.id)}
+              {/* SEARCH FIELD */}
+              <TextField
+                size="small"
+                placeholder="Search title, customer, lead owner..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchRounded sx={{ color: "#2563EB" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  minWidth: { xs: "100%", sm: 290 },
+                  backgroundColor: "rgba(255,255,255,0.95)",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    "& fieldset": {
+                      borderColor: "#6FB6E8",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#3B82F6",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#2563EB",
+                      borderWidth: 2,
+                      boxShadow: "0 0 0 3px rgba(37,99,235,0.25)",
+                    },
+                  },
+                }}
+              />
+
+              {/* COLUMN TOGGLE */}
+              <Tooltip title="Show / Hide Columns">
+                <IconButton
+                  onClick={handleColumnMenuOpen}
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
+                    height: 44,
+                    width: 44,
+                    borderRadius: 2,
+                    background: "linear-gradient(145deg, #6FB6E8, #3B82F6)",
+                    color: "#ffffff",
+                    // boxShadow: "0 8px 20px rgba(37,99,235,0.45)",
+                    transition: "0.25s ease",
+                    "&:hover": {
+                      transform: "translateY(-2px) scale(1.05)",
+                      // boxShadow: "0 12px 28px rgba(37,99,235,0.6)",
+                    },
                   }}
                 >
-                  <Checkbox
-                    checked={visibleColumns[col.id]}
-                    // onChange={() => handleColumnToggle(col.id)}
-                    size="small"
-                  />
-                  <span>{col.label}</span>
-                </MenuItem>
-              ))}
-            </Menu>
+                  <ViewColumnIcon />
+                </IconButton>
+              </Tooltip>
+
+              {/* COLUMN MENU */}
+              <Menu
+                anchorEl={columnMenuAnchor}
+                open={columnMenuOpen}
+                onClose={handleColumnMenuClose}
+                PaperProps={{
+                  sx: {
+                    minWidth: 280,
+                    maxHeight: 400,
+                    borderRadius: 2,
+                    boxShadow: "0 16px 36px rgba(0,0,0,0.25)",
+                  },
+                }}
+              >
+                {leadColumns.map((col) => (
+                  <MenuItem
+                    key={col.id}
+                    onClick={() => handleColumnToggle(col.id)}
+                    sx={{ display: "flex", gap: 1 }}
+                  >
+                    <Checkbox
+                      checked={visibleColumns[col.id]}
+                      size="small"
+                      sx={{
+                        color: "#3B82F6",
+                        "&.Mui-checked": { color: "#2563EB" },
+                      }}
+                    />
+                    {col.label}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Box>
           </Box>
 
-          {/* FILTERS + SORT */}
+          {/* =====================================================
+            FILTERS + SORTING CONTROLS
+            ===================================================== */}
           <Box
             sx={{
               mt: 2,
@@ -1823,9 +1866,13 @@ function ViewBudgetaryQuotationData(props) {
               }}
             >
               <MenuItem value="all">All</MenuItem>
-              <MenuItem value="Budgetary Quotation Submitted">Budgetary Quotation Submitted</MenuItem>
+              <MenuItem value="Budgetary Quotation Submitted">
+                Budgetary Quotation Submitted
+              </MenuItem>
               {/* <MenuItem value="In Progress">In Progress</MenuItem> */}
-              <MenuItem value="Commercial Bid Submitted">Commercial Bid Submitted</MenuItem>
+              <MenuItem value="Commercial Bid Submitted">
+                Commercial Bid Submitted
+              </MenuItem>
             </TextField>
 
             {/* SORT BY FILTER */}
@@ -1868,10 +1915,11 @@ function ViewBudgetaryQuotationData(props) {
             </TextField>
 
             {/* SORT ICON BUTTON */}
-            <Tooltip
+            {/* <Tooltip
               size="small"
-              title={`Sort ${sortDirection === "asc" ? "Descending" : "Ascending"
-                }`}
+              title={`Sort ${
+                sortDirection === "asc" ? "Descending" : "Ascending"
+              }`}
             >
               <IconButton
                 onClick={toggleSortDirection}
@@ -1889,7 +1937,24 @@ function ViewBudgetaryQuotationData(props) {
               >
                 {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
+
+            {/* SORT DIRECTION */}
+            <IconButton
+              onClick={toggleSortDirection}
+              sx={{
+                borderRadius: 2,
+                background: "linear-gradient(145deg, #93C5FD, #60A5FA)",
+                color: "#0F172A",
+                maxWidth: 45,
+                boxShadow: "0 6px 16px rgba(59,130,246,0.35)",
+                "&:hover": {
+                  transform: "scale(1.08)",
+                },
+              }}
+            >
+              {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
+            </IconButton>
 
             {/* DOWNLOAD BUTTON */}
             {/* <Button
@@ -1917,30 +1982,20 @@ function ViewBudgetaryQuotationData(props) {
 
             {/* RESET BUTTON */}
             <Button
-              variant="outlined"
+              variant="contained"
               onClick={handleResetFilters}
               startIcon={<RestartAltRounded />}
               sx={{
                 ml: { xs: 0, sm: "auto" },
                 borderRadius: 999,
-                border: "2px solid #0E4C92", // deep visible blue border
-                color: "#0E4C92", // strong readable blue text
-                textTransform: "none",
                 px: 3,
                 py: 0.8,
-                fontWeight: 600,
-                backgroundColor: "rgba(255,255,255,0.85)", // bright + visible
-                backdropFilter: "blur(6px)",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
-                transition: "0.2s ease",
+                fontWeight: 700,
+                background: "linear-gradient(135deg, #2563EB, #3B82F6)",
+                maxWidth: 120,
                 "&:hover": {
-                  backgroundColor: "#d0eaff", // light sky blue hover
-                  borderColor: "#0A3C7D",
-                  color: "#0A3C7D",
-                  boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                  background: "linear-gradient(135deg, #1D4ED8, #2563EB)",
                 },
-                // custom
-                maxWidth: 130,
               }}
             >
               Reset
@@ -1965,7 +2020,7 @@ function ViewBudgetaryQuotationData(props) {
             boxShadow: 8,
             overflowX: "auto",
             overflowY: "auto",
-            maxHeight: "50vh",
+            maxHeight: "47vh",
             minWidth: "100%",
           }}
         >
@@ -2025,7 +2080,7 @@ function ViewBudgetaryQuotationData(props) {
                     const matchesStatus =
                       statusFilter === "all" ||
                       row.presentStatus?.toLowerCase() ===
-                      statusFilter.toLowerCase();
+                        statusFilter.toLowerCase();
 
                     return matchesSearch && matchesDefence && matchesStatus;
                   })
@@ -2048,8 +2103,8 @@ function ViewBudgetaryQuotationData(props) {
                         break;
                       case "dateCreated":
                       default:
-                        aVal = a.dateCreated || "";
-                        bVal = b.dateCreated || "";
+                        aVal = a.id || "";
+                        bVal = b.id || "";
                         break;
                     }
 
@@ -2098,17 +2153,19 @@ function ViewBudgetaryQuotationData(props) {
                                 "&:hover": {
                                   backgroundColor: "rgba(59,130,246,0.25)",
                                 },
-                                maxWidth: 40,
+                                maxWidth: 35,
                               }}
                             >
                               <EditRounded fontSize="small" />
                             </IconButton>
                           </Tooltip>
+                          {/* delete logic of any row */}
                           <Tooltip title="Delete">
                             <IconButton
                               size="small"
                               onClick={(e) => {
                                 e.stopPropagation();
+                                // handleConfirmSave(row.id)
                                 handleDeleteClick(row.id);
                               }}
                               sx={{
@@ -2117,7 +2174,7 @@ function ViewBudgetaryQuotationData(props) {
                                 "&:hover": {
                                   backgroundColor: "rgba(239,68,68,0.25)",
                                 },
-                                maxWidth: 40,
+                                maxWidth: 35,
                               }}
                             >
                               <DeleteRounded fontSize="small" />
@@ -2139,10 +2196,13 @@ function ViewBudgetaryQuotationData(props) {
                               component="th"
                               scope="row"
                               sx={{
-                                fontWeight: 600,
+                                fontFamily: `"Inter", "Roboto", sans-serif`,
                                 fontSize: 14,
+                                fontWeight: 500,
                                 maxWidth: 180,
-                                whiteSpace: "nowrap",
+                                whiteSpace: "nowrap", // ⬅️ allow wrap
+                                wordBreak: "break-word", // ⬅️ prevents weird splits
+                                fontKerning: "none", // ⬅️ key fix
                                 textOverflow: "ellipsis",
                                 overflow: "hidden",
                               }}
@@ -2157,9 +2217,13 @@ function ViewBudgetaryQuotationData(props) {
                             <TableCell
                               key={col.id}
                               sx={{
+                                fontFamily: `"Inter", "Roboto", sans-serif`,
                                 fontSize: 14,
+                                fontWeight: 500,
                                 maxWidth: 180,
-                                whiteSpace: "nowrap",
+                                whiteSpace: "nowrap", // ⬅️ allow wrap
+                                wordBreak: "break-word", // ⬅️ prevents weird splits
+                                fontKerning: "none", // ⬅️ key fix
                                 textOverflow: "ellipsis",
                                 overflow: "hidden",
                               }}
@@ -2175,9 +2239,13 @@ function ViewBudgetaryQuotationData(props) {
                               key={col.id}
                               align="left"
                               sx={{
-                                fontSize: 13,
-                                maxWidth: 260,
-                                whiteSpace: "nowrap",
+                                fontFamily: `"Inter", "Roboto", sans-serif`,
+                                fontSize: 14,
+                                fontWeight: 500,
+                                maxWidth: 180,
+                                whiteSpace: "nowrap", // ⬅️ allow wrap
+                                wordBreak: "break-word", // ⬅️ prevents weird splits
+                                fontKerning: "none", // ⬅️ key fix
                                 textOverflow: "ellipsis",
                                 overflow: "hidden",
                               }}
@@ -2192,7 +2260,17 @@ function ViewBudgetaryQuotationData(props) {
                             <TableCell
                               key={col.id}
                               align="left"
-                              sx={{ fontSize: 13 }}
+                              sx={{
+                                fontFamily: `"Inter", "Roboto", sans-serif`,
+                                fontSize: 14,
+                                fontWeight: 500,
+                                maxWidth: 180,
+                                whiteSpace: "nowrap", // ⬅️ allow wrap
+                                wordBreak: "break-word", // ⬅️ prevents weird splits
+                                fontKerning: "none", // ⬅️ key fix
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                              }}
                             >
                               <Chip
                                 size="small"
@@ -2233,14 +2311,14 @@ function ViewBudgetaryQuotationData(props) {
                                     cellContent === "Closed"
                                       ? "rgba(248,113,113,0.18)"
                                       : cellContent === "In Progress"
-                                        ? "rgba(234,179,8,0.18)"
-                                        : "rgba(52,211,153,0.18)",
+                                      ? "rgba(234,179,8,0.18)"
+                                      : "rgba(52,211,153,0.18)",
                                   color:
                                     cellContent === "Closed"
                                       ? "#b91c1c"
                                       : cellContent === "In Progress"
-                                        ? "#92400e"
-                                        : "#15803d",
+                                      ? "#92400e"
+                                      : "#15803d",
                                 }}
                               />
                             </TableCell>
@@ -2256,9 +2334,13 @@ function ViewBudgetaryQuotationData(props) {
                               key={col.id}
                               align="left"
                               sx={{
-                                fontSize: 13,
-                                maxWidth: 160,
-                                whiteSpace: "nowrap",
+                                fontFamily: `"Inter", "Roboto", sans-serif`,
+                                fontSize: 14,
+                                fontWeight: 500,
+                                maxWidth: 180,
+                                whiteSpace: "nowrap", // ⬅️ allow wrap
+                                wordBreak: "break-word", // ⬅️ prevents weird splits
+                                fontKerning: "none", // ⬅️ key fix
                                 textOverflow: "ellipsis",
                                 overflow: "hidden",
                               }}
@@ -2276,9 +2358,13 @@ function ViewBudgetaryQuotationData(props) {
                               key={col.id}
                               align="left"
                               sx={{
-                                fontSize: 13,
-                                maxWidth: 200,
-                                whiteSpace: "nowrap",
+                                fontFamily: `"Inter", "Roboto", sans-serif`,
+                                fontSize: 14,
+                                fontWeight: 500,
+                                maxWidth: 180,
+                                whiteSpace: "nowrap", // ⬅️ allow wrap
+                                wordBreak: "break-word", // ⬅️ prevents weird splits
+                                fontKerning: "none", // ⬅️ key fix
                                 textOverflow: "ellipsis",
                                 overflow: "hidden",
                               }}
@@ -2293,29 +2379,37 @@ function ViewBudgetaryQuotationData(props) {
                             <TableCell
                               key={col.id}
                               align="left"
-                              sx={{ fontSize: 13 }}
+                              sx={{ fontSize: 13, onClick: "disabled" }}
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              {row.document ? (
-                                <Link
-                                  onClick={() =>
-                                    handleDocumentClick(
-                                      row.document.filePath,
-                                      row.document.filename
-                                    )
-                                  }
-                                  sx={{
-                                    cursor: "pointer",
-                                    color: "#1e40af",
-                                    fontWeight: 600,
-                                    textDecoration: "none",
-                                    "&:hover": {
-                                      textDecoration: "underline",
-                                      color: "#0d47a1",
-                                    },
-                                  }}
-                                >
-                                  📄 {row.document.filename}
-                                </Link>
+                              {row.FileName ? (
+                                <>
+                                  <Link
+                                    rel="noopener"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log("row : ", row);
+                                      
+                                      handleDocumentClick(
+                                        row.FileName,
+                                        row.HardDiskFileName
+                                      );
+                                    }}
+                                    sx={{
+                                      fontFamily: `"Inter", "Roboto", sans-serif`,
+                                      fontSize: 14,
+                                      fontWeight: 500,
+                                      maxWidth: 180,
+                                      whiteSpace: "nowrap", // ⬅️ allow wrap
+                                      wordBreak: "break-word", // ⬅️ prevents weird splits
+                                      fontKerning: "none", // ⬅️ key fix
+                                      textOverflow: "ellipsis",
+                                      overflow: "hidden",
+                                    }}
+                                  >
+                                    {row.FileName}
+                                  </Link>
+                                </>
                               ) : (
                                 <Typography
                                   sx={{
@@ -2335,7 +2429,17 @@ function ViewBudgetaryQuotationData(props) {
                           <TableCell
                             key={col.id}
                             align="left"
-                            sx={{ fontSize: 13 }}
+                            sx={{
+                              fontFamily: `"Inter", "Roboto", sans-serif`,
+                              fontSize: 14,
+                              fontWeight: 500,
+                              maxWidth: 180,
+                              whiteSpace: "nowrap", // ⬅️ allow wrap
+                              wordBreak: "break-word", // ⬅️ prevents weird splits
+                              fontKerning: "none", // ⬅️ key fix
+                              textOverflow: "ellipsis",
+                              overflow: "hidden",
+                            }}
                           >
                             {cellContent}
                           </TableCell>
@@ -2363,7 +2467,7 @@ function ViewBudgetaryQuotationData(props) {
         </TableContainer>
       </Box>
 
-      {/* EDIT DIALOG - VIEW MODE & EDIT MODE - PROFESSIONAL BLUE THEME */}
+      {/* EDIT DIALOG - VIEW MODE & EDIT MODE */}
       <Dialog
         open={editDialogOpen}
         onClose={handleEditCancel}
@@ -2389,11 +2493,12 @@ function ViewBudgetaryQuotationData(props) {
             justifyContent: "space-between",
             pr: 2,
             background: isEditMode
-              ? "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)" // ORANGE (Edit)
+              ? //? "linear-gradient(125deg, #013A63 10%, #A3CEF1 90%)" // ORANGE (Edit)
+                `linear-gradient(135deg,#778DA9 20%, #9CCEF0 100%,#6FAFD8 60%)` // GREYBLUE (Edit)
               : "linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%)", // BLUE (View)
             color: "#ffffff",
             borderBottom: isEditMode
-              ? "3px solid #fb923c"
+              ? "3px solid #33415C"
               : "3px solid #60a5fa",
             py: 2.5,
             transition: "all 0.3s ease", // smooth color change
@@ -2414,7 +2519,7 @@ function ViewBudgetaryQuotationData(props) {
                 variant="h6"
                 sx={{ fontWeight: 800, color: "#ffffff" }}
               >
-                {editingRow?.tenderName || "BQ Details"}
+                {"BQ Details"}
               </Typography>
               {/* <Typography variant="caption" sx={{ color: "#bfdbfe", mt: 0.5 }}>
                 Reference: {editingRow?.tenderReferenceNo || "N/A"}
@@ -2429,9 +2534,10 @@ function ViewBudgetaryQuotationData(props) {
               sx={{
                 fontWeight: 700,
                 fontSize: "0.75rem",
-                background: isEditMode ? "#fbbf24" : "#60a5fa",
-                color: isEditMode ? "#1f2937" : "#ffffff",
-                mr: 8,
+                background: isEditMode ? "#33415C" : "#60a5fa",
+                color: isEditMode ? "#ffffff" : "#ffffff",
+                //mr: 8,
+                ml: 2,
               }}
             />
             {/* Close Button */}
@@ -2439,6 +2545,7 @@ function ViewBudgetaryQuotationData(props) {
               onClick={handleEditCancel}
               sx={{
                 color: "#ffffff",
+                maxWidth: 40,
                 "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
               }}
             >
@@ -2446,22 +2553,6 @@ function ViewBudgetaryQuotationData(props) {
             </IconButton>
           </Box>
         </DialogTitle>
-
-
-
-        {/* defaultValues: {
-      bqTitle: "",
-      customerName: "",
-      customerAddress: "",
-      leadOwner: "",
-      defenceAndNonDefence: "",
-      estimateValueInCrWithoutGST: "",
-      submittedValueInCrWithoutGST: "",
-      dateOfLetterSubmission: "",
-      referenceNo: "",
-      JSON_competitors: "",
-      presentStatus: "",
-    }, */}
 
         {/* CONTENT - TABULAR MATRIX FORMAT */}
         <DialogContent
@@ -2909,7 +3000,6 @@ function ViewBudgetaryQuotationData(props) {
 
             {/* TIMELINE SECTION */}
             <Box sx={{ mb: 3 }}>
-
               <Box
                 sx={{
                   display: "grid",
@@ -2928,11 +3018,10 @@ function ViewBudgetaryQuotationData(props) {
                     key: "dateOfLetterSubmission",
                     isDate: true,
                   },
-                  { label: "Reference No", key: "referenceNo" },
-                  // {
-                  //   label: "Pre-Bid Meeting Date & Time",
-                  //   key: "prebidMeetingDateTime",
-                  // },
+                  {
+                    label: "Reference No",
+                    key: "referenceNo", // 🔒 Reference Number (Always Disabled)
+                  },
                 ].map((field) => (
                   <Box
                     key={field.key}
@@ -2948,6 +3037,7 @@ function ViewBudgetaryQuotationData(props) {
                       transition: "all 0.2s ease",
                     }}
                   >
+                    {/* Field Label */}
                     <Typography
                       variant="caption"
                       sx={{
@@ -2960,6 +3050,8 @@ function ViewBudgetaryQuotationData(props) {
                     >
                       {field.label}
                     </Typography>
+
+                    {/* EDIT MODE */}
                     {isEditMode ? (
                       <TextField
                         value={editingRow?.[field.key] || ""}
@@ -2969,6 +3061,8 @@ function ViewBudgetaryQuotationData(props) {
                         fullWidth
                         size="small"
                         type={field.isDate ? "datetime-local" : "text"}
+                        /* 🔒 Reference Number Disabled in Edit Mode */
+                        disabled={field.key === "referenceNo"}
                         InputLabelProps={
                           field.isDate ? { shrink: true } : undefined
                         }
@@ -2976,31 +3070,36 @@ function ViewBudgetaryQuotationData(props) {
                           mt: 1,
                           "& .MuiOutlinedInput-root": {
                             borderRadius: 1.5,
-                            background: "#ffffff",
+
+                            /* Grey background when disabled */
+                            background:
+                              field.key === "referenceNo"
+                                ? "#f1f5f9"
+                                : "#ffffff",
+
                             "& fieldset": {
                               borderColor: "#60a5fa",
                             },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
                           },
                           "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
                             fontWeight: 600,
+
+                            /* Muted text when disabled */
+                            color:
+                              field.key === "referenceNo"
+                                ? "#64748b"
+                                : "#1e293b",
                           },
                         }}
                       />
                     ) : (
+                      /* VIEW MODE (Already Non-Editable) */
                       <Typography
                         sx={{
                           mt: 1,
-                          color: "#1e293b",
                           fontWeight: 600,
                           fontSize: "0.95rem",
+                          color: "#1e293b",
                         }}
                       >
                         {editingRow?.[field.key] || "-"}
@@ -3126,202 +3225,7 @@ function ViewBudgetaryQuotationData(props) {
             {/* DOCUMENT UPLOAD SECTION - EDIT MODE ONLY */}
             {isEditMode && (
               <>
-                {/* <Box sx={{ mb: 3 }}>
-                  <Box
-                    sx={{
-                      background: "#ffffff",
-                      border: "2px dashed #60a5fa",
-                      borderRadius: 2,
-                      p: 2,
-                      "&:hover": {
-                        borderColor: "#1e40af",
-                        backgroundColor: "rgba(96,165,250,0.02)",
-                      },
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                      <CloudUploadOutlinedIcon
-                        sx={{ color: "#1e40af", fontSize: 22 }}
-                      />
-                      <Typography
-                        sx={{
-                          color: "#1e3a5f",
-                          fontWeight: 700,
-                          fontSize: "0.9rem",
-                        }}
-                      >
-                        📎 Document/Attachment
-                      </Typography>
-                    </Box>
-
-                    <input
-                      id="dialog-document-input"
-                      type="file"
-                      onChange={handleDialogFileSelect}
-                      style={{ display: "none" }}
-                    />
-
-                    <label
-                      htmlFor="dialog-document-input"
-                      style={{
-                        cursor: "pointer",
-                        display: "block",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          p: 1.5,
-                          backgroundColor: "#f0f9ff",
-                          borderRadius: 1.5,
-                          border: "1px dashed #60a5fa",
-                          textAlign: "center",
-                          cursor: "pointer",
-                          transition: "all 0.2s ease",
-                          "&:hover": {
-                            backgroundColor: "#e0f2fe",
-                            borderColor: "#1e40af",
-                          },
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            color: "#1e40af",
-                            fontWeight: 600,
-                            fontSize: "0.85rem",
-                          }}
-                        >
-                          Click to select document
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: "#64748b", display: "block", mt: 0.5 }}
-                        >
-                          PDF, DOC, DOCX, XLS, XLSX, PPT, TXT (Max 10MB)
-                        </Typography>
-                      </Box>
-                    </label>
-
-                    {/* Selected File Display 
-                    {documentFile && (
-                      <Box
-                        sx={{
-                          p: 1,
-                          backgroundColor: "#e0f2fe",
-                          borderRadius: 1.5,
-                          border: "1px solid #60a5fa",
-                          mb: 1,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontWeight: 600,
-                            color: "#1e40af",
-                            fontSize: "0.8rem",
-                            flex: 1,
-                          }}
-                        >
-                          📄 {documentFile.name}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: "#64748b", ml: 1 }}
-                        >
-                          ({(documentFile.size / 1024).toFixed(2)} KB)
-                        </Typography>
-                      </Box>
-                    )}
-
-                    {/* Uploaded Success Display 
-                    {uploadedDocument && (
-                      <Box
-                        sx={{
-                          p: 1,
-                          backgroundColor: "#dcfce7",
-                          borderRadius: 1.5,
-                          border: "1px solid #4caf50",
-                          mb: 1,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontWeight: 600,
-                            color: "#2e7d32",
-                            fontSize: "0.8rem",
-                            flex: 1,
-                          }}
-                        >
-                          ✅ {uploadedDocument.filename}
-                        </Typography>
-                      </Box>
-                    )}
-
-                    {/* Action Buttons 
-                    <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                      <Button
-                        onClick={handleDialogUploadDocument}
-                        disabled={!documentFile || isUploading}
-                        size="small"
-                        variant="contained"
-                        sx={{
-                          background: "linear-gradient(135deg, #1e40af, #1e3a5f)",
-                          color: "#ffffff",
-                          fontWeight: 600,
-                          fontSize: "0.75rem",
-                          textTransform: "none",
-                          borderRadius: 1.5,
-                          px: 2,
-                          py: 0.7,
-                          "&:hover": {
-                            background: "linear-gradient(135deg, #1e3a5f, #162e4a)",
-                          },
-                          "&:disabled": {
-                            background: "#bdbdbd",
-                            color: "#757575",
-                          },
-                        }}
-                      >
-                        {isUploading ? "Uploading..." : "Upload"}
-                      </Button>
-
-                      {(documentFile || uploadedDocument) && (
-                        <Button
-                          onClick={handleDialogClearDocument}
-                          disabled={isUploading}
-                          size="small"
-                          variant="outlined"
-                          sx={{
-                            borderColor: "#ef5350",
-                            color: "#ef5350",
-                            fontWeight: 600,
-                            fontSize: "0.75rem",
-                            textTransform: "none",
-                            borderRadius: 1.5,
-                            px: 2,
-                            py: 0.7,
-                            "&:hover": {
-                              borderColor: "#c62828",
-                              color: "#c62828",
-                              backgroundColor: "rgba(239, 83, 80, 0.05)",
-                            },
-                          }}
-                        >
-                          Clear
-                        </Button>
-                      )}
-                    </Box>
-
-                  </Box>
-                </Box> beware before removing this comment closing */}
-
-                {/* Backup The above block for document upload in edit mode only */}
+                {/* The above block for document upload in edit mode only */}
                 <Box sx={{ mb: 3 }}>
                   <Box
                     sx={{
@@ -3345,7 +3249,6 @@ function ViewBudgetaryQuotationData(props) {
                     }}
                   >
                     <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-
                       <Typography
                         sx={{
                           color: "#1e3a5f",
@@ -3454,20 +3357,22 @@ function ViewBudgetaryQuotationData(props) {
                             flex: 1,
                           }}
                         >
-                          ✅ {uploadedDocument.filename}
+                          {" "}
+                          Ajay testing ✅ {uploadedDocument.filename}
                         </Typography>
                       </Box>
                     )}
 
                     {/* Action Buttons */}
-                    <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
+                    <Box sx={{ display: "flex", gap: 1, mb: 4 }}>
                       <Button
                         onClick={handleDialogUploadDocument}
                         disabled={!documentFile || isUploading}
                         size="small"
                         variant="contained"
                         sx={{
-                          background: "linear-gradient(135deg, #1e40af, #1e3a5f)",
+                          background:
+                            "linear-gradient(135deg, #1e40af, #1e3a5f)",
                           color: "#ffffff",
                           fontWeight: 600,
                           fontSize: "0.75rem",
@@ -3476,7 +3381,8 @@ function ViewBudgetaryQuotationData(props) {
                           px: 2,
                           py: 0.7,
                           "&:hover": {
-                            background: "linear-gradient(135deg, #1e3a5f, #162e4a)",
+                            background:
+                              "linear-gradient(135deg, #1e3a5f, #162e4a)",
                           },
                           "&:disabled": {
                             background: "#bdbdbd",
@@ -3487,41 +3393,40 @@ function ViewBudgetaryQuotationData(props) {
                         {isUploading ? "Uploading..." : "Upload"}
                       </Button>
 
-                      {(documentFile || uploadedDocument) && (
-                        <Button
-                          onClick={handleDialogClearDocument}
-                          disabled={isUploading}
-                          size="small"
-                          variant="outlined"
-                          sx={{
-                            borderColor: "#ef5350",
-                            color: "#ef5350",
-                            fontWeight: 600,
-                            fontSize: "0.75rem",
-                            textTransform: "none",
-                            borderRadius: 1.5,
-                            px: 2,
-                            py: 0.7,
-                            "&:hover": {
-                              borderColor: "#c62828",
-                              color: "#c62828",
-                              backgroundColor: "rgba(239, 83, 80, 0.05)",
-                            },
-                          }}
-                        >
-                          Clear
-                        </Button>
-                      )}
+                      {/* {(documentFile || uploadedDocument) && ( */}
+                      <Button
+                        onClick={handleDialogClearDocument}
+                        disabled={isUploading}
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          borderColor: "#ef5350",
+                          color: "#ef5350",
+                          fontWeight: 600,
+                          fontSize: "0.75rem",
+                          textTransform: "none",
+                          borderRadius: 1.5,
+                          px: 2,
+                          // py: 0.7,
+                          minWidth: 200,
+                          "&:hover": {
+                            borderColor: "#c62828",
+                            color: "#c62828",
+                            backgroundColor: "rgba(239, 83, 80, 0.05)",
+                          },
+                        }}
+                      >
+                        Clear
+                      </Button>
+                      {/* )} */}
                     </Box>
-
                   </Box>
                 </Box>
-
               </>
             )}
 
             {/* DOCUMENT VIEW - VIEW MODE ONLY */}
-            {!isEditMode && editingRow?.document && (
+            {!isEditMode && editingRow?.FileName && (
               <Box sx={{ mb: 3 }}>
                 <Box
                   sx={{
@@ -3537,9 +3442,6 @@ function ViewBudgetaryQuotationData(props) {
                   }}
                 >
                   <Box display="flex" alignItems="center" gap={1} mb={1}>
-                    <CloudUploadOutlinedIcon
-                      sx={{ color: "#1e40af", fontSize: 20 }}
-                    />
                     <Typography
                       sx={{
                         color: "#1e3a5f",
@@ -3551,12 +3453,13 @@ function ViewBudgetaryQuotationData(props) {
                     </Typography>
                   </Box>
                   <Link
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleDocumentClick(
-                        editingRow.document.filePath,
-                        editingRow.document.filename
-                      )
-                    }
+                        editingRow.Filename,
+                        editingRow.HardDiskFileName
+                      );
+                    }}
                     sx={{
                       cursor: "pointer",
                       color: "#1e40af",
@@ -3569,7 +3472,7 @@ function ViewBudgetaryQuotationData(props) {
                       },
                     }}
                   >
-                    📄 {editingRow.document.filename}
+                    {editingRow.FileName}
                   </Link>
                 </Box>
               </Box>
@@ -3612,6 +3515,7 @@ function ViewBudgetaryQuotationData(props) {
                     label: "Present Status",
                     key: "presentStatus",
                   },
+
                   // {
                   //   label: "Corrigendums Date / File",
                   //   key: "corrigendumsDateFile",
@@ -3695,7 +3599,6 @@ function ViewBudgetaryQuotationData(props) {
           </Box>
         </DialogContent>
 
-
         {/* DIALOG ACTIONS */}
         <DialogActions
           sx={{
@@ -3758,14 +3661,17 @@ function ViewBudgetaryQuotationData(props) {
               <Button
                 onClick={handleCancelEdit}
                 sx={{
-                  color: "#64748b",
+                  color: "#ffffff",
+                  background:
+                    "linear-gradient(135deg, #999999 0%, #777777 100%)",
                   fontWeight: 700,
                   textTransform: "uppercase",
                   fontSize: "0.85rem",
-                  maxWidth: 180,
-                  letterSpacing: "0.5px",
+                  maxWidth: 160,
                   "&:hover": {
-                    backgroundColor: "#e2e8f0",
+                    background:
+                      "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
                   },
                 }}
               >
@@ -3782,7 +3688,7 @@ function ViewBudgetaryQuotationData(props) {
                   textTransform: "uppercase",
                   fontSize: "0.85rem",
                   letterSpacing: "0.5px",
-                  maxWidth: 220,
+                  maxWidth: 200,
                   px: 3,
                   "&:hover": {
                     background:
@@ -3831,9 +3737,9 @@ function ViewBudgetaryQuotationData(props) {
             <Typography sx={{ fontWeight: 800, color: "#1e3a5f" }}>
               Confirm Update
             </Typography>
-            <Typography variant="caption" sx={{ color: "#64748b" }}>
+            {/* <Typography variant="caption" sx={{ color: "#64748b" }}>
               Please review before saving
-            </Typography>
+            </Typography> */}
           </Box>
         </DialogTitle>
         <DialogContent sx={{ py: 3 }}>
@@ -3867,11 +3773,16 @@ function ViewBudgetaryQuotationData(props) {
           <Button
             onClick={() => setConfirmSaveOpen(false)}
             sx={{
-              color: "#64748b",
+              color: "#ffffff",
+              background: "linear-gradient(135deg, #999999 0%, #777777 100%)",
               fontWeight: 700,
               textTransform: "uppercase",
               fontSize: "0.85rem",
-              "&:hover": { backgroundColor: "#e2e8f0" },
+              maxWidth: 160,
+              "&:hover": {
+                background: "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
+              },
             }}
           >
             Cancel
@@ -3880,15 +3791,16 @@ function ViewBudgetaryQuotationData(props) {
             onClick={handleConfirmSave}
             variant="contained"
             sx={{
-              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
               color: "#ffffff",
               fontWeight: 700,
               textTransform: "uppercase",
               fontSize: "0.85rem",
+              maxWidth: 220,
               px: 3,
               "&:hover": {
-                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
-                boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
+                background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                boxShadow: "0 8px 24px rgba(16,185,129,0.35)",
               },
             }}
           >
@@ -3897,8 +3809,115 @@ function ViewBudgetaryQuotationData(props) {
         </DialogActions>
       </Dialog>
 
+      {/* DELETE CONFIRMATION DIALOG */}
+      <Dialog
+        open={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: "#ffffff",
+            boxShadow: "0 25px 50px rgba(0,0,0,0.2)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            color: "#1e3a5f",
+            background: "#f8fafc",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            borderBottom: "2px solid #fbbf24",
+          }}
+        >
+          <Box sx={{ fontSize: 28 }}>⚠️</Box>
+          <Box>
+            <Typography sx={{ fontWeight: 800, color: "#1e3a5f" }}>
+              Confirm Update
+            </Typography>
+            {/* <Typography variant="caption" sx={{ color: "#64748b" }}>
+              Please review before saving
+            </Typography> */}
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
+          <Typography sx={{ color: "#475569", lineHeight: 1.6 }}>
+            You are about to delete this tender record. This action will be
+            synced to the database immediately.
+          </Typography>
+          {/* <Box
+            sx={{
+              mt: 2.5,
+              p: 2,
+              background: "#f0f9ff",
+              border: "1px solid #bfdbfe",
+              borderRadius: 2,
+              color: "#1e3a5f",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+            }}
+          >
+            📌 Make sure all fields are correct before confirming.
+          </Box> */}
+        </DialogContent>
+        <DialogActions
+          sx={{
+            background: "#f8fafc",
+            borderTop: "1px solid #e0e7ff",
+            p: 2,
+            gap: 1,
+          }}
+        >
+          <Button
+            onClick={() => setConfirmDeleteOpen(false)}
+            sx={{
+              color: "#ffffff",
+              background: "linear-gradient(135deg, #999999 0%, #777777 100%)",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              maxWidth: 160,
+              "&:hover": {
+                background: "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => handleDeleteRow(idDeleteOpen)}
+            variant="contained"
+            sx={{
+              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              color: "#ffffff",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              maxWidth: 160,
+              px: 3,
+              "&:hover": {
+                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
+              },
+            }}
+          >
+            ✓ Yes, Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-
+      {/* Show pdf in object */}
+      <PdfViewerDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        pdfUrl={pdfUrl}
+        title={titleName}
+      />
     </>
   );
 }
@@ -3946,14 +3965,24 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
   // ----------------------------
   // HANDLE FILE UPLOAD
   // ----------------------------
+
+  // ✅ FIXED SAMPLE FILE DOWNLOAD (Bulk Upload)
+  const handleDownloadSampleExcel = () => {
+    const fileUrl = "/sample/Budgetary_Quotation_Sample.xlsx"; // fixed public path
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = "Budgetary_Quotation_Sample.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     setError("");
     setSuccess("");
-
-    //bqTitle	customerName	customerAddress	leadOwner	defenceAndNonDefence	estimateValueInCrWithoutGST	submittedValueInCrWithoutGST	dateOfLetterSubmission	referenceNo	JSON_competitors	presentStatus
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -3996,10 +4025,10 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
       const rows = jsonData.slice(1).map((row) => {
         const rowObj = {};
         DB_COLUMNS.forEach((col, index) => {
-          if (col === "") {
-            setError(`This field is blank`);
-            return;
-          }
+          // if (col==="") {
+          //   setError(`This field is blank`)
+          //   return;
+          // }
           if (col === "OperatorId") {
             rowObj[col] = user?.id || "291536";
             return;
@@ -4108,6 +4137,40 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
           boxShadow: "0 20px 45px rgba(0,0,0,0.12)",
         }}
       >
+        <Box sx={{ position: "absolute", top: 20, right: 19 }}>
+          <Button
+            variant="contained"
+            onClick={handleDownloadSampleExcel}
+            component="label"
+            sx={{
+              borderRadius: 999,
+              px: 2,
+              py: 1.2,
+              fontWeight: 900,
+              fontSize: 12,
+              textTransform: "none",
+              color: "#ffffff",
+              // background:
+              //   "linear-gradient(135deg, #42a5f5 0%, #2563eb 50%, #1e40af 100%)",
+              background: "linear-gradient(135deg, #f0f9ff, #e0f2fe)",
+              color: "#1e40af",
+              border: "1.5px solid #bae6fd",
+              transition: "all 0.25s ease",
+              "&:hover": {
+                background: "linear-gradient(135deg, #e0f2fe, #dbeafe)",
+                boxShadow: "0 14px 32px rgba(37,99,235,0.45)",
+                transform: "translateY(-2px) scale(1.03)",
+              },
+              "&:active": {
+                transform: "scale(0.96)",
+                boxShadow: "0 6px 14px rgba(37,99,235,0.35)",
+              },
+            }}
+          >
+            Sample format
+          </Button>
+        </Box>
+
         {/* TITLE */}
         <Typography
           variant="h5"
@@ -4116,9 +4179,10 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
             textAlign: "center",
             color: "#0d47a1",
             mb: 1,
+            mt: 8,
           }}
         >
-          Upload Export Leads Data
+          Upload Budgetary Quotation Data
         </Typography>
 
         <Typography

@@ -41,9 +41,7 @@ import {
   RestartAltRounded,
   EditRounded,
   DeleteRounded,
-  CloseRounded,
-  CheckRounded,
-  CheckCircleRounded,
+  CloseRounded
 } from "@mui/icons-material";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import { useForm, Controller } from "react-hook-form";
@@ -67,12 +65,7 @@ const STATUS_OPTIONS = [
   "On Hold",
 ];
 
-const TENDER_TYPE_OPTIONS = [
-
-  "ST",
-  "MT",
-  "LT"
-];
+const TENDER_TYPE_OPTIONS = ["ST", "MT", "LT"];
 
 const today = new Date().toLocaleDateString("en-CA");
 
@@ -100,10 +93,13 @@ const LeadSubmittedForm = () => {
         axios
           .get(response.data.project[0].ServerIP[0].NodeServerIP + API)
           .then((response) => {
-            console.log(" error while getting API : ", response);
+            console.log(" response while hitting API : ", response);
             setOrderData(response.data);
           })
-          .catch((error) => console.log(error.message));
+          .catch((error) => {
+            console.log("error of lead submitted : ", error);
+            console.log(error.message);
+          });
       })
       .catch(function (error) {
         // console.log("config.json BudgetaryQuotationFormerror", error);
@@ -215,9 +211,8 @@ const LeadSubmittedForm = () => {
     <Container
       maxWidth="xl"
       sx={{
-        mt:-7,
+        mt: 0,
         py: 1,
-        // mb: 6,
         minHeight: "85vh",
         background: "linear-gradient(135deg, #e3eeff 0%, #f8fbff 100%)",
         borderRadius: 4,
@@ -245,14 +240,13 @@ const LeadSubmittedForm = () => {
         }}
       />
 
-
       {/* ------------------------ TABS ------------------------ */}
       <Tabs
         value={value}
         onChange={(e, v) => setValue(v)}
         centered
         sx={{
-          md:4,
+          md: 4,
           mb: 4,
           "& .MuiTab-root": {
             fontWeight: 700,
@@ -271,20 +265,20 @@ const LeadSubmittedForm = () => {
         }}
       >
         <Tab
-            icon={<AddCircleOutlineRoundedIcon />}
-            iconPosition="start"
-            label="Create Data"
-          />
-          <Tab
-            icon={<VisibilityOutlinedIcon />}
-            iconPosition="start"
-            label="View Data"
-          />
-          <Tab
-            icon={<CloudUploadOutlinedIcon />}
-            iconPosition="start"
-            label="Bulk Upload"
-          />
+          icon={<AddCircleOutlineRoundedIcon />}
+          iconPosition="start"
+          label="Create Data"
+        />
+        <Tab
+          icon={<VisibilityOutlinedIcon />}
+          iconPosition="start"
+          label="View Data"
+        />
+        <Tab
+          icon={<CloudUploadOutlinedIcon />}
+          iconPosition="start"
+          label="Bulk Upload"
+        />
       </Tabs>
 
       {/* ------------------------ CREATE FORM ------------------------ */}
@@ -293,7 +287,7 @@ const LeadSubmittedForm = () => {
           <Paper
             elevation={10}
             sx={{
-              mt:-1,
+              mt: -1,
               p: { xs: 2, md: 5 },
               borderRadius: 2,
               background: "rgba(255,255,255,0.85)",
@@ -303,14 +297,12 @@ const LeadSubmittedForm = () => {
               // "&:hover": { transform: "scale(1.01)" },
             }}
           >
-            
-
             {/* ------------------- FORM START ------------------- */}
             <form onSubmit={handleSubmit(onSubmit)} noValidate>
               {/* ---------------- SECTION: TENDER DETAILS ---------------- */}
               <Card
                 sx={{
-                  mt:-5,
+                  mt: -5,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -530,7 +522,7 @@ const LeadSubmittedForm = () => {
               {/* ---------------- SECTION: BID OWNER & EMD ---------------- */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -624,7 +616,7 @@ const LeadSubmittedForm = () => {
               {/* ---------------- SECTION: RFP INFORMATION ---------------- */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -712,7 +704,7 @@ const LeadSubmittedForm = () => {
               {/* ---------------- SECTION: APPROVAL WORKFLOW ---------------- */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -799,7 +791,7 @@ const LeadSubmittedForm = () => {
               {/* ---------------- SECTION: STATUS & TRACKING ---------------- */}
               <Card
                 sx={{
-                  mt:-1,
+                  mt: -1,
                   mb: 3,
                   p: 3,
                   borderRadius: 4,
@@ -969,7 +961,7 @@ const LeadSubmittedForm = () => {
 
       {/* ------------------------ VIEW DATA ------------------------ */}
       {value === 1 && orderData && (
-        <ViewLeadSubmittedData ViewData={orderData} />
+        <ViewLeadSubmittedData ViewData={orderData} ServerIp={ServerIp} />
       )}
 
       {/* ------------------------ BULK UPLOAD ------------------------ */}
@@ -1027,7 +1019,20 @@ const lightTextFieldSx = {
 
 function ViewLeadSubmittedData(props) {
   console.log("data for view the table : ", props);
-  const data = props.ViewData?.data || [];
+  // Store data in local state for updates
+  const [tableData, setTableData] = useState(props.ViewData.data || []);
+
+  // Extract ServerIp from props
+  const ServerIp = props.ServerIp || "";
+
+  // Sync with parent data when it changes
+  useEffect(() => {
+    if (props.ViewData.data) {
+      setTableData(props.ViewData.data);
+    }
+  }, [props.ViewData.data]);
+
+  //States for search 
   const [searchTerm, setSearchTerm] = useState("");
   const [tenderTypeFilter, setTenderTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -1035,13 +1040,17 @@ function ViewLeadSubmittedData(props) {
   const [sortBy, setSortBy] = useState("dateCreated");
   const [sortDirection, setSortDirection] = useState("desc");
 
+    // for Dialog
   const [selectedRow, setSelectedRow] = useState(null);
-
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const [tempEditingRow, setTempEditingRow] = useState(null);
+  const [dialogOpenedFrom, setDialogOpenedFrom] = useState("rowClick"); // "rowClick" or "editIcon"
 
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [idDeleteOpen, setIdDeleteOpen] = useState(null);
+  
 
   // READ-ONLY VIEW DIALOG STATE
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -1051,7 +1060,7 @@ function ViewLeadSubmittedData(props) {
   const [isEditMode, setIsEditMode] = useState(false);
 
   // SAVE CONFIRMATION DIALOG STATE
-  const [saveConfirmationOpen, setSaveConfirmationOpen] = useState(false);
+  // const [saveConfirmationOpen, setSaveConfirmationOpen] = useState(false);
 
   // COLUMN SELECTION STATE
   const [columnMenuAnchor, setColumnMenuAnchor] = useState(null);
@@ -1107,6 +1116,35 @@ function ViewLeadSubmittedData(props) {
 
   const handleSortByChange = (e) => setSortBy(e.target.value);
 
+  // DELETE ROW
+  const handleDeleteRow = async (id) => {
+    // if (!window.confirm("Are you sure you want to delete this entry?")) return;
+
+    console.log("Deleting row with ID:", id);
+    const deleteData = {
+      id: id,
+    };
+    console.log("api for delete in lead submitted : ", `${ServerIp}/getLeadSubmitted` )
+    // TODO: delete logic here
+    try {
+      await axios.delete(`${ServerIp}/getLeadSubmitted`, {
+        data: deleteData, // Send the data in the request body
+        headers: {
+          "Content-Type": "application/json", // VERY IMPORTANT: Set the Content-Type
+        },
+      });
+      // Show success notification
+      setTableData(
+        tableData.filter((item) => item.id !== id) // Create a new array excluding the item with the given id
+      );
+      setConfirmDeleteOpen(false);
+      alert("✅ Deleted successfully!");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      alert("❌ Failed to Delete. Please try again.");
+    }
+  };
+
   // COLUMN SELECTION HANDLERS
   const handleColumnMenuOpen = (event) => {
     setColumnMenuAnchor(event.currentTarget);
@@ -1159,14 +1197,22 @@ function ViewLeadSubmittedData(props) {
     console.log(" work new book : ", workbook);
   };
 
-  // Row Selection
-  const handleRowSelect = (row) => {
-    setSelectedRow(row);
+   // OPEN DIALOG FROM ROW CLICK (VIEW MODE ONLY)
+   const handleRowClick = (row) => {
+    setTempEditingRow({ ...row }); // Store original data
+    setEditingRow({ ...row }); // Set for viewing
+    setIsEditMode(false); // Start in VIEW mode
+    setDialogOpenedFrom("rowClick"); // Mark as opened from row click
+    setEditDialogOpen(true);
   };
 
-  // OPEN EDIT DIALOG
+
+  // OPEN DIALOG FROM EDIT ICON (READY TO EDIT)
   const handleEditClick = (row) => {
-    setEditingRow({ ...row });
+    setTempEditingRow({ ...row }); // Store original data
+    setEditingRow({ ...row }); // Set for editing
+    setIsEditMode(false); // Start in VIEW mode but with edit option
+    setDialogOpenedFrom("editIcon"); // Mark as opened from edit icon
     setEditDialogOpen(true);
   };
 
@@ -1175,12 +1221,19 @@ function ViewLeadSubmittedData(props) {
     setEditingRow((prev) => ({ ...prev, [field]: value }));
   };
 
-  // CANCEL EDIT
+  // CANCEL / CLOSE DIALOG
   const handleEditCancel = () => {
     setEditDialogOpen(false);
     setEditingRow(null);
+    setTempEditingRow(null);
     setIsEditMode(false);
-    setConfirmSaveOpen(false);
+    setDialogOpenedFrom("rowClick");
+  };
+
+  // CANCEL EDIT MODE
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditingRow({ ...tempEditingRow }); // Reset to original data
   };
 
   // ENTER EDIT MODE
@@ -1194,105 +1247,76 @@ function ViewLeadSubmittedData(props) {
   };
 
   // OPEN SAVE CONFIRMATION DIALOG
-  const handleSaveClick = () => {
-    setSaveConfirmationOpen(true);
-  };
+  // const handleSaveClick = () => {
+  //   setSaveConfirmationOpen(true);
+  // };
 
   // CANCEL SAVE CONFIRMATION
-  const handleSaveCancel = () => {
-    setSaveConfirmationOpen(false);
-  };
+  // const handleSaveCancel = () => {
+  //   setSaveConfirmationOpen(false);
+  // };
 
   // SAVE EDITED VALUES - MOCK API CALL
   const handleEditSave = () => {
-    setSaveConfirmationOpen(false);
+    // setSaveConfirmationOpen(false);
+    setConfirmSaveOpen(true);
     console.log("Saving updated row:", editingRow);
+  };
 
-     // CONFIRM AND SAVE TO BACKEND
+  // CONFIRM AND SAVE TO BACKEND
   const handleConfirmSave = async () => {
     try {
-      console.log("Saving updated row:", editingRow);
+      console.log("Confirmed - Updating row:", editingRow);
 
-      // Mock API call - Replace with real API endpoint
-      const mockApiResponse = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            success: true,
-            message: "Record updated successfully",
-            data: editingRow,
-          });
-        }, 800);
-      });
+      // Call real update API
+      const updatePayload = {
+        id: editingRow.id, // Include ID for update
+        ...editingRow, // Rest of data to edit
+      };
 
-      if (mockApiResponse.success) {
-        console.log("Backend Response:", mockApiResponse);
-        alert("Changes saved successfully!");
+      // Replace with your actual API endpoint
+      // const API_ENDPOINT = `/getBudgetaryQuotation/${updatePayload?.id}`;
+
+      const response = await axios.put(
+        `${ServerIp}/getLeadSubmitted`,
+        updatePayload
+      );
+
+      console.log("res from server : ", response)
+
+      if (response.data.success || response.status === 200) {
+        console.log("Backend Response:", response.data);
+
+        // Update the local table data with the new values
+        const updatedTableData = tableData.map((row) =>
+          row.id === editingRow.id ? editingRow : row
+        );
+        setTableData(updatedTableData);
+
+        // Notify parent component about update if callback provided
+        if (props.onDataUpdate) {
+          props.onDataUpdate(updatedTableData);
+        }
+
+        // Show success notification
+        alert("✅ Changes saved successfully!");
         setConfirmSaveOpen(false);
         setEditDialogOpen(false);
         setIsEditMode(false);
         setEditingRow(null);
+        setTempEditingRow(null);
       }
     } catch (error) {
       console.error("Error saving changes:", error);
-      alert("Failed to save changes. Please try again.");
+      alert("❌ Failed to save changes. Please try again.");
     }
   };
 
-
-  // CANCEL EDIT MODE
-  const handleCancelEdit = () => {
-    setIsEditMode(false);
-    setEditingRow({ ...tempEditingRow });
-  };
-
-    // MOCK API CALL
-    // In production, replace this with actual API call
-    const mockApiCall = async () => {
-      try {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        console.log("Mock API Response: Row updated successfully");
-        console.log("Updated data:", editingRow);
-
-        // TODO: Replace with actual API endpoint
-        // const response = await fetch('/api/updateLeadSubmitted', {
-        //   method: 'PUT',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(editingRow),
-        // });
-        // const result = await response.json();
-
-        setEditDialogOpen(false);
-        setEditingRow(null);
-        setIsEditMode(false);
-
-        // Optional: Show success notification
-        alert("✅ Lead details updated successfully!");
-      } catch (error) {
-        console.error("Error saving data:", error);
-        alert("❌ Failed to save changes. Please try again.");
-      }
-    };
-
-    mockApiCall();
-  };
-
-
-  // CANCEL EDIT MODE
-  const handleCancelEdit = () => {
-    setIsEditMode(false);
-    setEditingRow({ ...tempEditingRow });
-  };
-
-
-  // DELETE ROW
+  // Delete VALUES - SHOW CONFIRMATION DIALOG
   const handleDeleteClick = (id) => {
-    if (!window.confirm("Are you sure you want to delete this entry?")) return;
-
-    console.log("Deleting row with ID:", id);
-
-    // TODO: delete logic here
+    console.log("Saving updated row:", editingRow);
+    setIdDeleteOpen(id);
+    setConfirmDeleteOpen(true); // Open confirmation dialog
   };
 
   // DOUBLE CLICK → OPEN READ-ONLY VIEW
@@ -1307,7 +1331,7 @@ function ViewLeadSubmittedData(props) {
     fontSize: 13,
     color: "#ecfeff",
     background: "linear-gradient(90deg, #001F54, #034078)",
-      // "linear-gradient(90deg, #0a47e0ff 0%, #1453b7ff 50%, #81a6daff 100%)",
+    // "linear-gradient(90deg, #0a47e0ff 0%, #1453b7ff 50%, #81a6daff 100%)",
     borderBottom: "none",
     whiteSpace: "nowrap",
   };
@@ -1329,13 +1353,13 @@ function ViewLeadSubmittedData(props) {
     ...headerCellStyle,
     textAlign: "center",
     minWidth: 140,
-    maxWidth: 150
+    maxWidth: 150,
   };
 
   // ---------------- FILTER + SORT LOGIC ----------------
   const filteredSortedData =
-    data &&
-    data
+    tableData &&
+    tableData
       .filter((row) => {
         const q = searchTerm.toLowerCase();
         const matchesSearch =
@@ -1395,150 +1419,175 @@ function ViewLeadSubmittedData(props) {
   return (
     <>
       {/* HEADER + CONTROLS */}
-      <Box
-        sx={{
-          mb: 3,
-          px: { xs: 1, sm: 0 },
-        }}
-      >
+      <Box sx={{ mb: 3, px: { xs: 1, sm: 0 } }}>
         <Box
           sx={{
-            borderRadius: 4,
+            borderRadius: 3,
             p: { xs: 2, sm: 3 },
-            boxShadow: 6,
-            background:
-              "linear-gradient(135deg, #e0f7ff 0%, #c8f0ff 40%, #a6e9ff 100%)",
-            color: "#06283D",
+            background: `linear-gradient(135deg,#EAF6FD 0%,#CFE9F7 5%,#B6DFF5 45%, #9CCEF0 100%,#6FAFD8 60%)`,
+            border: "1px solid rgba(111,182,232,0.5)",
+            boxShadow:
+              "0 16px 40px rgba(15,23,42,0.15), inset 0 1px 0 rgba(255,255,255,0.85)",
+            position: "relative",
+            overflow: "hidden",
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(circle at top right, rgba(255,255,255,0.35), transparent 55%)",
+              pointerEvents: "none",
+            },
           }}
         >
+          {/* =====================================================
+       TOP ROW : TITLE + SEARCH + COLUMN TOGGLE
+       ===================================================== */}
           <Box
             sx={{
+              position: "relative",
               display: "flex",
               flexWrap: "wrap",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 2,
+              zIndex: 1,
             }}
           >
+            {/* -------------------------------
+          PAGE TITLE
+         ------------------------------- */}
             <Box>
               <Typography
                 variant="h5"
                 sx={{
-                  fontWeight: 800,
-                  letterSpacing: 0.5,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
+                  fontWeight: 900,
+                  letterSpacing: 0.6,
+                  color: "#0F172A",
                 }}
               >
-                Lead Submitted List
+                Lead Submitted Data View
               </Typography>
-              {/* <Typography
-                variant="body2"
-                sx={{ opacity: 0.85, mt: 0.5, maxWidth: 520 }}
-              >
-                View, search, filter and manage all submitted tender leads in a
-                single, elegant dashboard.
-              </Typography> */}
+
+              
             </Box>
 
-            {/* SEARCH BOX */}
-            <TextField
-              variant="outlined"
-              size="small"
-              placeholder="Search by tender, customer, reference..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRounded />
-                  </InputAdornment>
-                ),
-              }}
+            {/* -------------------------------
+          SEARCH + COLUMN VISIBILITY
+         ------------------------------- */}
+            <Box
               sx={{
-                minWidth: { xs: "100%", sm: 260, md: 320 },
-                backgroundColor: "rgba(240,248,255,0.9)",
-                borderRadius: 3,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 3,
-                  color: "#0f172a",
-                  "& fieldset": {
-                    borderColor: "rgba(148,163,184,0.5)",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "rgba(100,116,139,0.8)",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#3b82f6",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  color: "#475569",
-                },
-              }}
-            />
-
-            {/* Column Selection Menu */}
-            <Tooltip title="Select columns to view in table">
-              <IconButton
-                onClick={handleColumnMenuOpen}
-                sx={{
-                  border: "2px solid #1e40af",
-                  borderRadius: 1.5,
-                  backgroundColor: "rgba(30, 64, 175, 0.06)",
-                  color: "#1e40af",
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    backgroundColor: "rgba(30, 64, 175, 0.12)",
-                    transform: "scale(1.05)",
-                  },
-                  maxWidth: 50
-                }}
-              >
-                <ViewColumnIcon />
-              </IconButton>
-            </Tooltip>
-
-            <Menu
-              anchorEl={columnMenuAnchor}
-              open={columnMenuOpen}
-              onClose={handleColumnMenuClose}
-              PaperProps={{
-                sx: {
-                  minWidth: 280,
-                  maxHeight: 400,
-                },
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                width: { xs: "100%", sm: "auto" },
               }}
             >
-              {leadColumns.map((col) => (
-                <MenuItem
-                  key={col.id}
-                  onClick={() => handleColumnToggle(col.id)}
+              {/* SEARCH FIELD */}
+              <TextField
+                size="small"
+                placeholder="Search title, customer, lead owner..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchRounded sx={{ color: "#2563EB" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  minWidth: { xs: "100%", sm: 290 },
+                  backgroundColor: "rgba(255,255,255,0.95)",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    "& fieldset": {
+                      borderColor: "#6FB6E8",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#3B82F6",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#2563EB",
+                      borderWidth: 2,
+                      boxShadow: "0 0 0 3px rgba(37,99,235,0.25)",
+                    },
+                  },
+                }}
+              />
+
+              {/* COLUMN TOGGLE */}
+              <Tooltip title="Show / Hide Columns">
+                <IconButton
+                  onClick={handleColumnMenuOpen}
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
+                    height: 44,
+                    width: 44,
+                    borderRadius: 2,
+                    background: "linear-gradient(145deg, #6FB6E8, #3B82F6)",
+                    color: "#ffffff",
+                    // boxShadow: "0 8px 20px rgba(37,99,235,0.45)",
+                    transition: "0.25s ease",
+                    "&:hover": {
+                      transform: "translateY(-2px) scale(1.05)",
+                      // boxShadow: "0 12px 28px rgba(37,99,235,0.6)",
+                    },
                   }}
                 >
-                  <Checkbox
-                    checked={visibleColumns[col.id]}
-                    // onChange={() => handleColumnToggle(col.id)}
-                    size="small"
-                  />
-                  <span>{col.label}</span>
-                </MenuItem>
-              ))}
-            </Menu>
+                  <ViewColumnIcon />
+                </IconButton>
+              </Tooltip>
+
+              {/* COLUMN MENU */}
+              <Menu
+                anchorEl={columnMenuAnchor}
+                open={columnMenuOpen}
+                onClose={handleColumnMenuClose}
+                PaperProps={{
+                  sx: {
+                    minWidth: 280,
+                    maxHeight: 400,
+                    borderRadius: 2,
+                    boxShadow: "0 16px 36px rgba(0,0,0,0.25)",
+                  },
+                }}
+              >
+                {leadColumns.map((col) => (
+                  <MenuItem
+                    key={col.id}
+                    onClick={() => handleColumnToggle(col.id)}
+                    sx={{ display: "flex", gap: 1 }}
+                  >
+                    <Checkbox
+                      checked={visibleColumns[col.id]}
+                      size="small"
+                      sx={{
+                        color: "#3B82F6",
+                        "&.Mui-checked": { color: "#2563EB" },
+                      }}
+                    />
+                    {col.label}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Box>
           </Box>
 
-          {/* FILTERS + SORT */}
+          {/* =====================================================
+       FILTERS + SORTING CONTROLS
+       ===================================================== */}
           <Box
             sx={{
-              mt: 2.5,
+              position: "relative",
+              mt: 3,
               display: "flex",
               flexWrap: "wrap",
               gap: 1.5,
+              alignItems: "center",
+              zIndex: 1,
             }}
           >
             {/* TENDER TYPE FILTER */}
@@ -1645,81 +1694,46 @@ function ViewLeadSubmittedData(props) {
               <MenuItem value="valueEMDInCrore">EMD Value</MenuItem>
             </TextField>
 
-            {/* SORT ICON BUTTON */}
-            <Tooltip
-              title={`Sort ${
-                sortDirection === "asc" ? "Descending" : "Ascending"
-              }`}
-            >
-              <IconButton
-                onClick={toggleSortDirection}
-                sx={{
-                  ml: 0.5,
-                  borderRadius: 2.5,
-                  border: "1px solid rgba(148,163,184,0.7)",
-                  backgroundColor: "rgba(240,248,255,0.9)",
-                  color: "#0f172a",
-                  "&:hover": {
-                    backgroundColor: "rgba(224,242,254,1)",
-                  },
-                  maxWidth: 50
-                }}
-              >
-                {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
-              </IconButton>
-            </Tooltip>
-
-            {/* DOWNLOAD BUTTON */}
-            {/* <Button
-              variant="contained"
-              onClick={handleDownloadAllData}
+            {/* SORT DIRECTION */}
+            <IconButton
+              onClick={toggleSortDirection}
               sx={{
-                borderRadius: 999,
-                background: "linear-gradient(135deg,#16a34a,#22c55e)",
-                color: "#fff",
-                textTransform: "none",
-                px: 3,
-                py: 0.9,
-                fontWeight: 700,
-                boxShadow: "0 6px 16px rgba(22,163,74,0.35)",
+                borderRadius: 2,
+                background: "linear-gradient(145deg, #93C5FD, #60A5FA)",
+                color: "#0F172A",
+                maxWidth:45,
+                boxShadow: "0 6px 16px rgba(59,130,246,0.35)",
                 "&:hover": {
-                  background: "linear-gradient(135deg,#15803d,#16a34a)",
+                  transform: "scale(1.08)",
                 },
               }}
             >
-              Download All Data
-            </Button> */}
+              {sortDirection === "asc" ? <SouthRounded /> : <NorthRounded />}
+            </IconButton>
 
-            {/* RESET BUTTON */}
+            {/* RESET */}
             <Button
-              variant="outlined"
+              variant="contained"
               onClick={handleResetFilters}
               startIcon={<RestartAltRounded />}
               sx={{
                 ml: { xs: 0, sm: "auto" },
                 borderRadius: 999,
-                border: "2px solid #0E4C92",
-                color: "#0E4C92",
-                textTransform: "none",
                 px: 3,
                 py: 0.8,
-                fontWeight: 600,
-                backgroundColor: "rgba(255,255,255,0.85)",
-                backdropFilter: "blur(6px)",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
-                transition: "0.2s ease",
+                fontWeight: 700,
+                background: "linear-gradient(135deg, #2563EB, #3B82F6)",
+                maxWidth:120,
                 "&:hover": {
-                  backgroundColor: "#d0eaff",
-                  borderColor: "#0A3C7D",
-                  color: "#0A3C7D",
-                  boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                  background: "linear-gradient(135deg, #1D4ED8, #2563EB)",
                 },
-                maxWidth: 130
               }}
             >
               Reset
             </Button>
           </Box>
+
+           
         </Box>
       </Box>
 
@@ -1729,7 +1743,7 @@ function ViewLeadSubmittedData(props) {
           width: "100%",
           maxWidth: "1800px",
           mx: "auto",
-          mt: 2,
+          mt: 1,
         }}
       >
         <TableContainer
@@ -1739,7 +1753,7 @@ function ViewLeadSubmittedData(props) {
             boxShadow: 8,
             overflowX: "auto",
             overflowY: "auto",
-            maxHeight: "50vh",
+            maxHeight: "48vh",
             minWidth: "100%",
           }}
         >
@@ -1759,7 +1773,7 @@ function ViewLeadSubmittedData(props) {
           >
             <TableHead>
               <TableRow>
-              <TableCell sx={actionHeaderStyle}>Actions</TableCell>
+                <TableCell sx={actionHeaderStyle}>Actions</TableCell>
                 {leadColumns.map((col) =>
                   visibleColumns[col.id] ? (
                     <TableCell
@@ -1773,7 +1787,6 @@ function ViewLeadSubmittedData(props) {
                     </TableCell>
                   ) : null
                 )}
-                
               </TableRow>
             </TableHead>
 
@@ -1784,8 +1797,8 @@ function ViewLeadSubmittedData(props) {
                     key={row.id}
                     hover
                     selected={selectedRow?.id === row.id}
-                    onClick={() => handleRowSelect(row)}
-                    onDoubleClick={() => handleRowDoubleClick(row)}
+                    onClick={() => handleRowClick(row)}
+                    // onDoubleClick={() => handleRowDoubleClick(row)}
                     sx={{
                       cursor: "pointer",
                       transition: "all 0.18s ease-out",
@@ -1816,7 +1829,8 @@ function ViewLeadSubmittedData(props) {
                               backgroundColor: "rgba(59,130,246,0.12)",
                               "&:hover": {
                                 backgroundColor: "rgba(59,130,246,0.25)",
-                              },maxWidth: 40,
+                              },
+                              maxWidth: 40,
                             }}
                           >
                             <EditRounded fontSize="small" />
@@ -1973,8 +1987,6 @@ function ViewLeadSubmittedData(props) {
                         </TableCell>
                       );
                     })}
-
-                    
                   </TableRow>
                 ))
               ) : (
@@ -1997,7 +2009,6 @@ function ViewLeadSubmittedData(props) {
         </TableContainer>
       </Box>
 
-      
       {/* EDIT DIALOG - VIEW MODE & EDIT MODE - PROFESSIONAL BLUE THEME */}
       <Dialog
         open={editDialogOpen}
@@ -2024,15 +2035,15 @@ function ViewLeadSubmittedData(props) {
             justifyContent: "space-between",
             pr: 2,
             background: isEditMode
-            ? "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)" // ORANGE (Edit)
-            : "linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%)", // BLUE (View)
+              ? `linear-gradient(135deg,#778DA9 20%, #9CCEF0 100%,#6FAFD8 60%)` // GREYBLUE (Edit)
+              : "linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%)", // BLUE (View)
             color: "#ffffff",
             borderBottom: isEditMode
-            ? "3px solid #fb923c"
-            : "3px solid #60a5fa",
+              ? "3px solid #33415C"
+              : "3px solid #60a5fa",
             py: 2.5,
             transition: "all 0.3s ease", // smooth color change
-            }}
+          }}
         >
           {/* title and heading */}
           <Box display="flex" alignItems="center" gap={4}>
@@ -2049,7 +2060,7 @@ function ViewLeadSubmittedData(props) {
                 variant="h6"
                 sx={{ fontWeight: 800, color: "#ffffff" }}
               >
-                {editingRow?.tenderName || "Lead Details"}
+                {"Lead Details"}
               </Typography>
               {/* <Typography variant="caption" sx={{ color: "#bfdbfe", mt: 0.5 }}>
                 Reference: {editingRow?.tenderReferenceNo || "N/A"}
@@ -2064,22 +2075,23 @@ function ViewLeadSubmittedData(props) {
               sx={{
                 fontWeight: 700,
                 fontSize: "0.75rem",
-                background: isEditMode ? "#fbbf24" : "#60a5fa",
-                color: isEditMode ? "#1f2937" : "#ffffff",
-                mr: 8,
+                background: isEditMode ? "#33415C" : "#60a5fa",
+                color: isEditMode ? "#ffffff" : "#ffffff",
+                
+                ml:2,
               }}
             />
             {/* This is for close the dialog box "x" */}
-            {/* <IconButton
+            <IconButton
               onClick={handleEditCancel}
               sx={{
                 color: "#ffffff",
-                mr: 8,
+                maxWidth: 40,
                 "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
               }}
             >
               <CloseRounded />
-            </IconButton> */}
+            </IconButton>
           </Box>
         </DialogTitle>
 
@@ -2106,10 +2118,7 @@ function ViewLeadSubmittedData(props) {
             },
           }}
         >
-
-
-
-{/* defaultValues: {
+          {/* defaultValues: {
       tenderName: "",
       customerName: "",
       customerAddress: "",
@@ -2129,8 +2138,6 @@ function ViewLeadSubmittedData(props) {
       tenderType: "",
       website: "",
       presentStatus: "", */}
-
-
 
           <Box sx={{ p: 1.5 }}>
             {/* TENDER INFORMATION SECTION */}
@@ -2157,9 +2164,6 @@ function ViewLeadSubmittedData(props) {
                   display: "grid",
                   gridTemplateColumns: {
                     xs: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(2, 1fr)",
-                    lg: "repeat(4, 1fr)",
                   },
                   gap: 1.5,
                 }}
@@ -2167,7 +2171,7 @@ function ViewLeadSubmittedData(props) {
                 {[
                   { label: "Tender Name", key: "tenderName" },
                   { label: "Tender Reference No", key: "tenderReferenceNo" },
-                  { label: "Tender Type", key: "tenderType" },
+
                   // { label: "Tender Dated", key: "tenderDated", isDate: true },
                 ].map((field) => (
                   <Box
@@ -2196,7 +2200,8 @@ function ViewLeadSubmittedData(props) {
                     >
                       {field.label}
                     </Typography>
-                    {isEditMode ? (
+                     {/* EDIT MODE */}
+                     {isEditMode ? (
                       <TextField
                         value={editingRow?.[field.key] || ""}
                         onChange={(e) =>
@@ -2204,7 +2209,9 @@ function ViewLeadSubmittedData(props) {
                         }
                         fullWidth
                         size="small"
-                        type={field.isDate ? "date" : "text"}
+                        type={field.isDate ? "datetime-local" : "text"}
+                        /* 🔒 Reference Number Disabled in Edit Mode */
+                        disabled={field.key === "tenderReferenceNo"}
                         InputLabelProps={
                           field.isDate ? { shrink: true } : undefined
                         }
@@ -2212,21 +2219,25 @@ function ViewLeadSubmittedData(props) {
                           mt: 1,
                           "& .MuiOutlinedInput-root": {
                             borderRadius: 1.5,
-                            background: "#ffffff",
+
+                            /* Grey background when disabled */
+                            background:
+                              field.key === "tenderReferenceNo"
+                                ? "#f1f5f9"
+                                : "#ffffff",
+
                             "& fieldset": {
                               borderColor: "#60a5fa",
                             },
-                            "&:hover fieldset": {
-                              borderColor: "#1e40af",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#1e40af",
-                              borderWidth: 2,
-                            },
                           },
                           "& .MuiOutlinedInput-input": {
-                            color: "#1e293b",
                             fontWeight: 600,
+
+                            /* Muted text when disabled */
+                            color:
+                              field.key === "tenderReferenceNo"
+                                ? "#64748b"
+                                : "#1e293b",
                           },
                         }}
                       />
@@ -2262,6 +2273,7 @@ function ViewLeadSubmittedData(props) {
                 }}
               >
                 {[
+                  { label: "Tender Type", key: "tenderType" },
                   { label: "Customer Name", key: "customerName" },
                   { label: "Customer Address", key: "customerAddress" },
                   { label: "Lead Owner", key: "bidOwner" },
@@ -2336,11 +2348,12 @@ function ViewLeadSubmittedData(props) {
                         {editingRow?.[field.key] || "-"}
                       </Typography>
                     )}
+                    
                   </Box>
                 ))}
               </Box>
 
-              {/* Customer Address - Full Width */}
+              {/* Customer Address - Full Width
               <Box
                 sx={{
                   background: "#ffffff",
@@ -2400,7 +2413,7 @@ function ViewLeadSubmittedData(props) {
                     {editingRow?.customerAddress || "-"}
                   </Typography>
                 )}
-              </Box>
+              </Box> */}
             </Box>
 
             {/* FINANCIAL DETAILS SECTION
@@ -2545,12 +2558,24 @@ function ViewLeadSubmittedData(props) {
                   { label: "RFP Received On", key: "rfpReceivedOn" },
                   { label: "Value EMD In Crore", key: "valueEMDInCrore" },
                   { label: "RFP Due Date", key: "rfpDueDate" },
-                  { label: "Dmktg In Principal Approval Rxd On", key: "dmktgInPrincipalApprovalRxdOn" },
-                  { label: "Selling In Principal Approval Rxd On", key: "sellingPriceApprovalInitiatedOn" },
+                  {
+                    label: "Dmktg In Principal Approval Rxd On",
+                    key: "dmktgInPrincipalApprovalRxdOn",
+                  },
+                  {
+                    label: "Selling In Principal Approval Rxd On",
+                    key: "sellingPriceApprovalInitiatedOn",
+                  },
                   { label: "Bid Submitted On", key: "bidSubmittedOn" },
-                  { label: "Approval SBU  Finance On", key: "approvalSBUFinanceOn" },
+                  {
+                    label: "Approval SBU  Finance On",
+                    key: "approvalSBUFinanceOn",
+                  },
                   { label: "Approval GM On", key: "approvalGMOn" },
-                  { label: "Sent to Finance GM Dmktg Approval Rxd On", key: "sentToFinanceGMDmktgApprovalRxdOn" },
+                  {
+                    label: "Sent to Finance GM Dmktg Approval Rxd On",
+                    key: "sentToFinanceGMDmktgApprovalRxdOn",
+                  },
                   { label: "Dmktg Approval Rxd On", key: "dmktgApprovalRxdOn" },
 
                   // {
@@ -2867,7 +2892,6 @@ function ViewLeadSubmittedData(props) {
           </Box>
         </DialogContent>
 
-
         {/* DIALOG ACTIONS */}
         <DialogActions
           sx={{
@@ -2879,7 +2903,7 @@ function ViewLeadSubmittedData(props) {
         >
           {!isEditMode ? (
             <>
-              <Button
+              {/* <Button
                 onClick={handleEditCancel}
                 sx={{
                   color: "#64748b",
@@ -2895,46 +2919,50 @@ function ViewLeadSubmittedData(props) {
                 }}
               >
                 Close
-              </Button>
-              <Button
-                onClick={handleEnterEditMode}
-                variant="contained"
-                sx={{
-                  background:
-                    "linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)",
-                  color: "#ffffff",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  maxWidth: 180,
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
-                  px: 3,
-                  "&:hover": {
+              </Button> */}
+              {/* Show Edit button only if dialog opened from edit icon */}
+              {dialogOpenedFrom === "editIcon" && (
+                <Button
+                  onClick={handleEnterEditMode}
+                  variant="contained"
+                  sx={{
                     background:
-                      "linear-gradient(135deg, #1e3a5f 0%, #162e4a 100%)",
-                    boxShadow: "0 8px 24px rgba(30,64,95,0.3)",
-                  },
-                  "&:active": {
-                    transform: "scale(0.98)",
-                  },
-                }}
-              >
-                ✏️ Edit Details
-              </Button>
+                      "linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)",
+                    color: "#ffffff",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    maxWidth: 180,
+                    fontSize: "0.85rem",
+                    letterSpacing: "0.5px",
+                    px: 3,
+                    "&:hover": {
+                      background:
+                        "linear-gradient(135deg, #1e3a5f 0%, #162e4a 100%)",
+                      boxShadow: "0 8px 24px rgba(30,64,95,0.3)",
+                    },
+                    "&:active": {
+                      transform: "scale(0.98)",
+                    },
+                  }}
+                >
+                  ✏️ Edit Details
+                </Button>
+              )}
             </>
           ) : (
             <>
               <Button
                 onClick={handleCancelEdit}
                 sx={{
-                  color: "#64748b",
+                  color: "#ffffff",
+                  background: "linear-gradient(135deg, #999999 0%, #777777 100%)",
                   fontWeight: 700,
                   textTransform: "uppercase",
-                  maxWidth: 180,
                   fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
+                  maxWidth:160,
                   "&:hover": {
-                    backgroundColor: "#e2e8f0",
+                    background: "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)", 
                   },
                 }}
               >
@@ -2948,7 +2976,7 @@ function ViewLeadSubmittedData(props) {
                     "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                   color: "#ffffff",
                   fontWeight: 700,
-                  maxWidth: 220,
+                  maxWidth: 200,
                   textTransform: "uppercase",
                   fontSize: "0.85rem",
                   letterSpacing: "0.5px",
@@ -3036,28 +3064,36 @@ function ViewLeadSubmittedData(props) {
           <Button
             onClick={() => setConfirmSaveOpen(false)}
             sx={{
-              color: "#64748b",
+              color: "#ffffff",
+              background: "linear-gradient(135deg, #999999 0%, #777777 100%)",
               fontWeight: 700,
               textTransform: "uppercase",
               fontSize: "0.85rem",
-              "&:hover": { backgroundColor: "#e2e8f0" },
+              maxWidth:160,
+              "&:hover": {
+                background: "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)", 
+              },
             }}
           >
             Cancel
           </Button>
           <Button
-            onClick={ () => console.log("hello")}
+            onClick={()=> {
+              
+              handleConfirmSave()}}
             variant="contained"
             sx={{
-              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
               color: "#ffffff",
               fontWeight: 700,
               textTransform: "uppercase",
               fontSize: "0.85rem",
+              maxWidth:220,
               px: 3,
               "&:hover": {
-                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
-                boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
+                background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                boxShadow: "0 8px 24px rgba(16,185,129,0.35)",
               },
             }}
           >
@@ -3066,103 +3102,104 @@ function ViewLeadSubmittedData(props) {
         </DialogActions>
       </Dialog>
 
-      {/* READ-ONLY VIEW DIALOG */}
+      {/* DELETE CONFIRMATION DIALOG */}
       <Dialog
-        open={viewDialogOpen}
-        onClose={() => setViewDialogOpen(false)}
-        maxWidth="md"
+        open={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        maxWidth="sm"
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 4,
-            overflow: "hidden",
-            background:
-              "linear-gradient(135deg, #f8fbff 0%, #eef5ff 50%, #e3eeff 100%)",
-            color: "#0f172a",
-            boxShadow: "0 25px 60px rgba(59,130,246,0.25)",
+            borderRadius: 3,
+            background: "#ffffff",
+            boxShadow: "0 25px 50px rgba(0,0,0,0.2)",
           },
         }}
       >
-        {/* ---------------- TITLE ---------------- */}
         <DialogTitle
           sx={{
             fontWeight: 800,
+            color: "#1e3a5f",
+            background: "#f8fafc",
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            px: 3,
-            py: 2,
-            color: "#0d47a1",
-            background: "linear-gradient(90deg,#e3f2fd,#f8fbff)",
+            gap: 2,
+            borderBottom: "2px solid #fbbf24",
           }}
         >
-          Budgetary Quotation – View Only
-          <IconButton
-            onClick={() => setViewDialogOpen(false)}
+          <Box sx={{ fontSize: 28 }}>⚠️</Box>
+          <Box>
+            <Typography sx={{ fontWeight: 800, color: "#1e3a5f" }}>
+              Confirm Update
+            </Typography>
+            {/* <Typography variant="caption" sx={{ color: "#64748b" }}>
+              Please review before saving
+            </Typography> */}
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
+          <Typography sx={{ color: "#475569", lineHeight: 1.6 }}>
+            You are about to delete this tender record. This action will be
+            synced to the database immediately.
+          </Typography>
+          {/* <Box
             sx={{
-              color: "#1e40af",
-              "&:hover": { backgroundColor: "rgba(59,130,246,0.15)" },
+              mt: 2.5,
+              p: 2,
+              background: "#f0f9ff",
+              border: "1px solid #bfdbfe",
+              borderRadius: 2,
+              color: "#1e3a5f",
+              fontSize: "0.9rem",
+              fontWeight: 600,
             }}
           >
-            <CloseRounded />
-          </IconButton>
-        </DialogTitle>
-
-        {/* ---------------- CONTENT ---------------- */}
-        <DialogContent
-          dividers
-          sx={{
-            background: "#f8fbff",
-            borderColor: "rgba(59,130,246,0.25)",
-            px: 3,
-            py: 2.5,
-          }}
-        >
-          {viewRow && (
-            <Grid container spacing={2}>
-              {Object.entries(viewRow).map(([key, value]) => (
-                <Grid item xs={12} sm={6} key={key}>
-                  <TextField
-                    label={key}
-                    value={value ?? ""}
-                    fullWidth
-                    size="small"
-                    InputProps={{ readOnly: true }}
-                    sx={lightReadOnlyFieldSx}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          )}
+            📌 Make sure all fields are correct before confirming.
+          </Box> */}
         </DialogContent>
-
-        {/* ---------------- ACTIONS ---------------- */}
         <DialogActions
           sx={{
-            px: 3,
-            py: 2,
-            background: "#f1f5ff",
-            borderTop: "1px solid rgba(59,130,246,0.25)",
+            background: "#f8fafc",
+            borderTop: "1px solid #e0e7ff",
+            p: 2,
+            gap: 1,
           }}
         >
           <Button
-            variant="contained"
-            onClick={() => setViewDialogOpen(false)}
+            onClick={() => setConfirmDeleteOpen(false)}
             sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 4,
+              color: "#ffffff",
+              background: "linear-gradient(135deg, #999999 0%, #777777 100%)",
               fontWeight: 700,
-              background:
-                "linear-gradient(135deg,#2563eb 0%,#3b82f6 50%,#1d4ed8 100%)",
-              boxShadow: "0 10px 25px rgba(59,130,246,0.45)",
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              maxWidth:160,
               "&:hover": {
-                background:
-                  "linear-gradient(135deg,#1d4ed8 0%,#2563eb 50%,#1e40af 100%)",
+                background: "linear-gradient(135deg, #555555 0%, #333333 100%)",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)", 
               },
             }}
           >
-            Close
+            Cancel
+          </Button>
+          <Button
+            onClick={() => handleDeleteRow(idDeleteOpen)}
+            variant="contained"
+            sx={{
+              background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+              color: "#ffffff",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              fontSize: "0.85rem",
+              maxWidth:160,
+              px: 3,
+              "&:hover": {
+                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                boxShadow: "0 8px 24px rgba(239,68,68,0.3)",
+              },
+            }}
+          >
+            ✓ Yes, Delete
           </Button>
         </DialogActions>
       </Dialog>
@@ -3179,6 +3216,17 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [excelData, setExcelData] = useState([]);
+
+  // ✅ FIXED SAMPLE FILE DOWNLOAD (Bulk Upload)
+  const handleDownloadSampleExcel = () => {
+    const fileUrl = "/sample/Lead_Submitted_Sample.xlsx"; // fixed public path
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = "Lead_Submitted_Sample.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const DB_COLUMNS = [
     "tenderName",
@@ -3370,199 +3418,256 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
 
   return (
     <Box
-    sx={{
-      mb: 5,
-      minHeight: "70vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "linear-gradient(135deg, #eef5ff 0%, #f8fbff 100%)",
-      borderRadius: 4,
-      p: 3,
-    }}
-  >
-    <Paper
-      elevation={8}
       sx={{
-        mb:8,
-        width: "100%",
-        maxWidth: 720,
-        p: 4,
+        mb: 5,
+        minHeight: "70vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #eef5ff 0%, #f8fbff 100%)",
         borderRadius: 4,
-        background: "rgba(255,255,255,0.9)",
-        backdropFilter: "blur(12px)",
-        boxShadow: "0 20px 45px rgba(0,0,0,0.12)",
+        p: 3,
       }}
     >
-      {/* TITLE */}
-      <Typography
-        variant="h5"
+      <Paper
+        elevation={8}
         sx={{
-          fontWeight: 800,
-          textAlign: "center",
-          color: "#0d47a1",
-          mb: 1,
+          mb: 8,
+          width: "100%",
+          maxWidth: 720,
+          p: 4,
+          borderRadius: 4,
+          position: "relative", // ✅ REQUIRED FOR TOP-RIGHT BUTTON
+          background: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 20px 45px rgba(0,0,0,0.12)",
         }}
       >
-        Upload Export Leads Data
-      </Typography>
+        {/* DOWNLOAD SAMPLE BUTTON */}
 
-      <Typography
-        variant="body2"
-        sx={{
-          textAlign: "center",
-          color: "#64748b",
-          mb: 3,
-        }}
-      >
-        Upload Excel file (.xlsx / .xls) to bulk insert records into the
-        system
-      </Typography>
+        {/* <Box sx={{ position: "absolute", top: 16, right: 16 }}>
+<Button
+  // startIcon={<CloudQueueRoundedIcon />}
+  onClick={handleDownloadSampleExcel}
+  sx={{
+    borderRadius: 999,
+    px: 3,
+    py: 0.9,
+    fontWeight: 700,
+    fontSize: 13,
+    textTransform: "none",
 
-      {/* UPLOAD BOX */}
-      {excelData.length === 0 && (
-        <Box
-          sx={{
-            mb:5,
-            border: "2px dashed #93c5fd",
-            borderRadius: 4,
-            p: { xs: 4, sm: 6 }, // ⬅️ MORE INNER SPACE
-            minHeight: 280, // ⬅️ INCREASED HEIGHT
+    color: "#2563eb",
+    backgroundColor: "#eff6ff",
+    border: "1px solid #bfdbfe",
 
-            textAlign: "center",
-            background: "linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)",
-            transition: "all 0.25s ease",
-            "&:hover": {
-              background: "linear-gradient(180deg, #eef5ff 0%, #e0f2fe 100%)",
-              borderColor: "#3b82f6",
-              boxShadow: "0 10px 30px rgba(59,130,246,0.15)",
-            },
-          }}
-        >
-          {/* ICON */}
-          <Box
-            sx={{
-              mb: 4,
-              animation: "float 3s ease-in-out infinite",
-              "@keyframes float": {
-                "0%": { transform: "translateY(0px)" },
-                "50%": { transform: "translateY(-8px)" },
-                "100%": { transform: "translateY(0px)" },
-              },
-            }}
-          >
-            <CloudQueueRoundedIcon
-              sx={{
-                fontSize: 64,
-                background: "linear-gradient(135deg, #93c5fd, #3b82f6)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                filter: "drop-shadow(0 8px 16px rgba(59,130,246,0.35))",
-              }}
-            />
-          </Box>
+    boxShadow: "0 4px 12px rgba(37,99,235,0.15)",
+    transition: "all 0.2s ease",
 
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 700, color: "#0f172a", mb: 0.5 }}
-          >
-            Drag & drop your file here
-          </Typography>
+    "&:hover": {
+      backgroundColor: "#dbeafe",
+      borderColor: "#60a5fa",
+      transform: "translateY(-1px)",
+    },
+  }}
+>
+  Download Sample Excel
+</Button>
+</Box> */}
 
-          <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
-            or click to browse (.xlsx or .xls)
-          </Typography>
-
-          {/* BROWSE FILE BUTTON */}
+        <Box sx={{ position: "absolute", top: 16, right: 16 }}>
           <Button
             variant="contained"
+            onClick={handleDownloadSampleExcel}
             component="label"
             sx={{
               borderRadius: 999,
-              px: 4,
+              px: 2,
               py: 1.2,
-              fontWeight: 700,
-              fontSize: 14,
+              fontWeight: 900,
+              fontSize: 12,
               textTransform: "none",
               color: "#ffffff",
-
-              background:
-                "linear-gradient(135deg, #42a5f5 0%, #2563eb 50%, #1e40af 100%)",
-              boxShadow: "0 8px 22px rgba(37,99,235,0.35)",
-
+              // background:
+              //   "linear-gradient(135deg, #42a5f5 0%, #2563eb 50%, #1e40af 100%)",
+              background: "linear-gradient(135deg, #f0f9ff, #e0f2fe)",
+              color: "#1e40af",
+              border: "1.5px solid #bae6fd",
               transition: "all 0.25s ease",
-
               "&:hover": {
-                background:
-                  "linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #1d4ed8 100%)",
+                background: "linear-gradient(135deg, #e0f2fe, #dbeafe)",
                 boxShadow: "0 14px 32px rgba(37,99,235,0.45)",
                 transform: "translateY(-2px) scale(1.03)",
               },
-
               "&:active": {
                 transform: "scale(0.96)",
                 boxShadow: "0 6px 14px rgba(37,99,235,0.35)",
               },
             }}
           >
-            📁 Browse File
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              hidden
-              onChange={handleFileUpload}
-            />
+            Sample format
           </Button>
         </Box>
-      )}
 
-      {/* STATUS MESSAGES */}
-      {error && (
-        <Alert severity="error" sx={{ mt: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      {success && (
-        <Alert severity="success" sx={{ mt: 3 }}>
-          {success}
-        </Alert>
-      )}
-
-      {/* PUSH BUTTON (UNCHANGED LOGIC) */}
-      {excelData.length > 0 && (
-        <Box
+        {/* TITLE */}
+        <Typography
+          variant="h5"
           sx={{
-            mt: 4,
-            display: "flex",
-            justifyContent: "center",
+            fontWeight: 800,
+            textAlign: "center",
+            color: "#0d47a1",
+            mb: 1,
+            mt: 8, // ✅ prevents overlap with button
           }}
         >
-          <Button
-            variant="contained"
-            color="success"
-            size="large"
-            onClick={handleUploadToServer}
-            disabled={loading}
+          Upload Lead Submitted Data
+        </Typography>
+
+        <Typography
+          variant="body2"
+          sx={{
+            textAlign: "center",
+            color: "#64748b",
+            mb: 3,
+          }}
+        >
+          Upload Excel file (.xlsx / .xls) to bulk insert records into the
+          system
+        </Typography>
+
+        {/* UPLOAD BOX */}
+        {excelData.length === 0 && (
+          <Box
             sx={{
-              px: 5,
-              py: 1.4,
-              borderRadius: 999,
-              fontWeight: 700,
-              textTransform: "none",
-              boxShadow: "0 8px 20px rgba(22,163,74,0.35)",
+              mb: 5,
+              border: "2px dashed #93c5fd",
+              borderRadius: 4,
+              p: { xs: 4, sm: 6 },
+              minHeight: 280,
+              textAlign: "center",
+              background: "linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)",
+              transition: "all 0.25s ease",
+              "&:hover": {
+                background: "linear-gradient(180deg, #eef5ff 0%, #e0f2fe 100%)",
+                borderColor: "#3b82f6",
+                boxShadow: "0 10px 30px rgba(59,130,246,0.15)",
+              },
             }}
           >
-            {loading ? (
-              <CircularProgress size={26} sx={{ color: "#fff" }} />
-            ) : (
-              "Push Data to Database"
-            )}
-          </Button>
-        </Box>
-      )}
-    </Paper>
-  </Box>
+            {/* ICON */}
+            <Box
+              sx={{
+                mb: 4,
+                animation: "float 3s ease-in-out infinite",
+                "@keyframes float": {
+                  "0%": { transform: "translateY(0px)" },
+                  "50%": { transform: "translateY(-8px)" },
+                  "100%": { transform: "translateY(0px)" },
+                },
+              }}
+            >
+              <CloudQueueRoundedIcon
+                sx={{
+                  fontSize: 64,
+                  background: "linear-gradient(135deg, #93c5fd, #3b82f6)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  filter: "drop-shadow(0 8px 16px rgba(59,130,246,0.35))",
+                }}
+              />
+            </Box>
+
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 700, color: "#0f172a", mb: 0.5 }}
+            >
+              Drag & drop your file here
+            </Typography>
+
+            <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
+              or click to browse (.xlsx or .xls)
+            </Typography>
+
+            {/* BROWSE FILE BUTTON */}
+            <Button
+              variant="contained"
+              component="label"
+              sx={{
+                borderRadius: 999,
+                px: 4,
+                py: 1.2,
+                fontWeight: 700,
+                fontSize: 14,
+                textTransform: "none",
+                color: "#ffffff",
+                background:
+                  "linear-gradient(135deg, #42a5f5 0%, #2563eb 50%, #1e40af 100%)",
+                boxShadow: "0 8px 22px rgba(37,99,235,0.35)",
+                transition: "all 0.25s ease",
+                "&:hover": {
+                  background:
+                    "linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #1d4ed8 100%)",
+                  boxShadow: "0 14px 32px rgba(37,99,235,0.45)",
+                  transform: "translateY(-2px) scale(1.03)",
+                },
+                "&:active": {
+                  transform: "scale(0.96)",
+                  boxShadow: "0 6px 14px rgba(37,99,235,0.35)",
+                },
+              }}
+            >
+              📁 Browse File
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                hidden
+                onChange={handleFileUpload}
+              />
+            </Button>
+          </Box>
+        )}
+
+        {/* STATUS MESSAGES */}
+        {error && (
+          <Alert severity="error" sx={{ mt: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" sx={{ mt: 3 }}>
+            {success}
+          </Alert>
+        )}
+
+        {/* PUSH BUTTON */}
+        {excelData.length > 0 && (
+          <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+            <Button
+              variant="contained"
+              color="success"
+              size="large"
+              onClick={handleUploadToServer}
+              disabled={loading}
+              sx={{
+                px: 5,
+                py: 1.4,
+                borderRadius: 999,
+                fontWeight: 700,
+                textTransform: "none",
+                boxShadow: "0 8px 20px rgba(22,163,74,0.35)",
+              }}
+            >
+              {loading ? (
+                <CircularProgress size={26} sx={{ color: "#fff" }} />
+              ) : (
+                "Push Data to Database"
+              )}
+            </Button>
+          </Box>
+        )}
+      </Paper>
+    </Box>
   );
 }
 

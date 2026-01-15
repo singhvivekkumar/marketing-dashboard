@@ -42,7 +42,7 @@ export const OrderReceivedDocumentRouter = (app) => {
 	);
 
 	app.get(
-		"/documents/:document_id/download",
+		"/documents/:documentId/download",
 		downloadDocument
 	);
 
