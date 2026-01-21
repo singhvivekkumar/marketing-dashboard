@@ -16,6 +16,7 @@ import { InHouseRDModel } from './inhouserd_model.js';
 import { OrderReceivedDocumentModel } from './order_received_document_model.js';
 import { TpcrDocumentModel } from './tpcr_document_model.js';
 import { CpdsDocumentModel } from './cpds_document_model.js';
+import OperationHistoryModel from './history_model.js';
 
 
 // const Sequelize = require("sequelize");
@@ -30,6 +31,8 @@ export const  sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PAS
     idle: dbConfig.pool.idle
   }
 });
+
+
 
 
 const db = {};
@@ -52,5 +55,6 @@ db.OrderReceivedDocumentModel= OrderReceivedDocumentModel(sequelize,Sequelize);
 db.TpcrDocumentModel= TpcrDocumentModel(sequelize,Sequelize);
 db.CpdsDocumentModel= CpdsDocumentModel(sequelize,Sequelize);
 
+db.OperationHistory = OperationHistoryModel(sequelize);
 
 export default db

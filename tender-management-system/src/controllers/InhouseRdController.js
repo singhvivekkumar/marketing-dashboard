@@ -1,15 +1,33 @@
 import db from "../models/index.js";
+import {
+  logHistory,
+  logBulkHistory,
+} from "../services/historyService.js";
+
 const InHouseRDModel = db.InHouseRDModel;
+const OperationHistory = db.OperationHistory;
+
+const MODEL_NAME = "InHouseRD";
 
 
 export const CreateInHouseRDBulk = async (req, res) => {
   try {
     const BulkData = req.body.excelData;
+    const { OperatorId, OperatorName } = req.body;
     console.log("CreateInHouseRDBulk service Bulk called", BulkData);
 
     const insertedRecords = await InHouseRDModel.bulkCreate(BulkData, {
       validate: true,
     });
+
+    // Log bulk history
+    await logBulkHistory(
+      OperationHistory,
+      MODEL_NAME,
+      insertedRecords,
+      OperatorId,
+      OperatorName
+    );
 
     res.status(200).json({
       success: true,
@@ -20,11 +38,9 @@ export const CreateInHouseRDBulk = async (req, res) => {
   } catch (error) {
     console.error("Error has encountered...");
     if (error.name === "SequelizeUniqueConstraintError") {
-      // Handle unique constraint violation error
       console.error(
         "Error CreateInHouseRDBulk: Duplicate key value violates unique constraint"
       );
-      // Return appropriate error response to client
       res.status(400).json({
         success: false,
         data: [],
@@ -32,9 +48,7 @@ export const CreateInHouseRDBulk = async (req, res) => {
         error: error,
       });
     } else {
-      // Handle other errors
       console.error("Error CreateInHouseRDBulk :", error);
-      // Return appropriate error response to client
       res.status(500).json({
         success: false,
         data: [],
@@ -61,48 +75,49 @@ export const GetInHouseRDData = (request, response) => {
     });
 };
 
-export const CreateInHouseRD = (req, res) => {
+export const CreateInHouseRD = async (req, res) => {
+  try {
+    const InHouseRDModelEx = {
+      projectName: req.body.projectName,
+      teamMembers: req.body.teamMembers,
+      dateOfInitiation: req.body.dateOfInitiation,
+      dateOfCompletion: req.body.dateOfCompletion,
+      description: req.body.description,
+      projectValue: req.body.projectValue,
+      OperatorId: req.body.OperatorId,
+      OperatorName: req.body.OperatorName,
+      OperatorRole: req.body.OperatorRole,
+      OperatorSBU: req.body.OperatorSBU,
+    };
 
+    const data = await InHouseRDModel.create(InHouseRDModelEx);
 
-  // defaultValues: {
-  //   projectName: "",
-  //   teamMembers: "",
-  //   dateOfInitiation: "",
-  //   dateOfCompletion: "",
-  //   description: "",
-  //   projectValue: "",
+    // Log to history
+    await logHistory(
+      OperationHistory,
+      MODEL_NAME,
+      data.id,
+      "added",
+      req.body.OperatorId,
+      req.body.OperatorName,
+      null,
+      data.toJSON()
+    );
 
-
-  const InHouseRDModelEx = {
-    projectName: req.body.projectName,
-    teamMembers: req.body.teamMembers,
-    dateOfInitiation: req.body.dateOfInitiation,
-    dateOfCompletion: req.body.dateOfCompletion,
-    description: req.body.description,
-    projectValue: req.body.projectValue,
-    //submittedAt: req.body.submittedAt,
-    OperatorId: req.body.OperatorId,
-    OperatorName: req.body.OperatorName,
-    OperatorRole: req.body.OperatorRole,
-    OperatorSBU: req.body.OperatorSBU,
-
-  };
-
-  InHouseRDModel.create(InHouseRDModelEx)
-    .then((data) => {
-      // res.send(data);
-      console.log("Success");
-      res.send(data);
-    })
-    .catch((err) => {
-      console.log("Error while saving", err);
-      res.status(500).send({
-        message:
-          err.message ||
-          "Some error occurred while Create Domestic Leads Data.",
-      });
+    console.log("Success");
+    res.status(201).json({
+      success: true,
+      data: data,
+      message: "InHouse RD created successfully"
     });
-
-  // console.log(" UploadPdfFile into Harddisk");
+  } catch (err) {
+    console.log("Error while saving", err);
+    res.status(500).send({
+      message:
+        err.message ||
+        "Some error occurred while Create InHouse RD Data.",
+    });
+  }
 };
+
 

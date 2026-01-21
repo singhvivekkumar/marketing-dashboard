@@ -1,16 +1,34 @@
 import db from "../models/index.js";
+import {
+  logHistory,
+  logBulkHistory,
+  getRecordHistory,
+} from "../services/historyService.js";
+
 const BudgetaryQuotationModel = db.BudgetaryQuotationModel;
-//import multer from "multer";
-//import path from "path";
+const OperationHistory = db.OperationHistory;
+
+const MODEL_NAME = "BudgetaryQuotation";
 
 export const CreateBudgetaryQuotationBulk = async (req, res) => {
   try {
     const BulkData = req.body.excelData;
+    const { OperatorId, OperatorName } = req.body;
+
     console.log("CreateBudgetaryQuotationBulk service Bulk called", BulkData);
 
     const insertedRecords = await BudgetaryQuotationModel.bulkCreate(BulkData, {
       validate: true,
     });
+
+    // Log bulk history
+    await logBulkHistory(
+      OperationHistory,
+      MODEL_NAME,
+      insertedRecords,
+      OperatorId,
+      OperatorName
+    );
 
     res.status(200).json({
       success: true,
@@ -21,11 +39,9 @@ export const CreateBudgetaryQuotationBulk = async (req, res) => {
   } catch (error) {
     console.error("Error has encountered...");
     if (error.name === "SequelizeUniqueConstraintError") {
-      // Handle unique constraint violation error
       console.error(
         "Error CreateBudgetaryQuotationBulk: Duplicate key value violates unique constraint"
       );
-      // Return appropriate error response to client
       res.status(400).json({
         success: false,
         data: [],
@@ -33,9 +49,7 @@ export const CreateBudgetaryQuotationBulk = async (req, res) => {
         error: error,
       });
     } else {
-      // Handle other errors
       console.error("Error CreateBudgetaryQuotationBulk :", error);
-      // Return appropriate error response to client
       res.status(500).json({
         success: false,
         data: [],
@@ -61,71 +75,60 @@ export const GetBudgetaryQuotation = (request, response) => {
     });
 };
 
-export const CreateBudgetaryQuotation = (req, res) => {
-  const BudgetaryQuotationModelEx = {
-    bqTitle: req.body.bqTitle,
-    customerName: req.body.customerName,
-    customerAddress: req.body.customerAddress,
-    leadOwner: req.body.leadOwner,
-    defenceAndNonDefence: req.body.defenceAndNonDefence,
-    estimateValueInCrWithoutGST: req.body.estimateValueInCrWithoutGST,
+export const CreateBudgetaryQuotation = async (req, res) => {
+  try {
+    const BudgetaryQuotationModelEx = {
+      bqTitle: req.body.bqTitle,
+      customerName: req.body.customerName,
+      customerAddress: req.body.customerAddress,
+      leadOwner: req.body.leadOwner,
+      defenceAndNonDefence: req.body.defenceAndNonDefence,
+      estimateValueInCrWithoutGST: req.body.estimateValueInCrWithoutGST,
+      submittedValueInCrWithoutGST: req.body.submittedValueInCrWithoutGST,
+      dateOfLetterSubmission: req.body.dateOfLetterSubmission,
+      referenceNo: req.body.referenceNo,
+      JSON_competitors: req.body.JSON_competitors,
+      presentStatus: req.body.presentStatus,
+      OperatorId: req.body.OperatorId,
+      OperatorName: req.body.OperatorName,
+      OperatorRole: req.body.OperatorRole,
+      OperatorSBU: req.body.OperatorSBU,
+    };
 
-    submittedValueInCrWithoutGST: req.body.submittedValueInCrWithoutGST,
-    dateOfLetterSubmission: req.body.dateOfLetterSubmission,
-    referenceNo: req.body.referenceNo,
-    JSON_competitors: req.body.JSON_competitors,
-    presentStatus: req.body.presentStatus,
-    // submittedAt: req.body.submittedAt,
-    // // new fields
-    OperatorId: req.body.OperatorId,
-    OperatorName: req.body.OperatorName,
-    OperatorRole: req.body.OperatorRole,
-    OperatorSBU: req.body.OperatorSBU,
+    const data = await BudgetaryQuotationModel.create(BudgetaryQuotationModelEx);
 
-    // bqTitle: data.bqTitle,
-    // customer: data.customer,
-    // leadOwner: data.leadOwner,
-    // classification: data.classification,
-    // estimatedValueWithoutGST: parseFloat(
-    //   parseFloat(data.estimatedValueWithoutGST).toFixed(2)
-    // ),
-    // estimatedValueWithGST: parseFloat(
-    //   parseFloat(data.estimatedValueWithGST).toFixed(2)
-    // ),
-    // dateLetterSubmission: data.dateLetterSubmission,
-    // referenceNumber: data.referenceNumber,
-    // competitor: data.competitor,
-    // presentStatus: data.presentStatus,
-    // submittedAt: new Date().toISOString(),
-    // OperatorId: "291536",
-    // OperatorName: "Vivek Kumar Singh",
-    // OperatorRole:"Lead Owner",
-    // OperatorSBU: "Software SBU",
-  };
+    // Log to history
+    await logHistory(
+      OperationHistory,
+      MODEL_NAME,
+      data.id,
+      "added",
+      req.body.OperatorId,
+      req.body.OperatorName,
+      null,
+      data.toJSON()
+    );
 
-  BudgetaryQuotationModel.create(BudgetaryQuotationModelEx)
-    .then((data) => {
-      // res.send(data);
-      console.log("Success");
-      res.send(data);
-    })
-    .catch((err) => {
-      console.log("Error while saving", err);
-      res.status(500).send({
-        message:
-          err.message ||
-          "Some error occurred while Create Budgetary Quotation Data.",
-      });
+    console.log("Success");
+    res.status(201).json({
+      success: true,
+      data: data,
+      message: "Budgetary Quotation created successfully"
     });
-
-  // console.log(" UploadPdfFile into Harddisk");
+  } catch (err) {
+    console.log("Error while saving", err);
+    res.status(500).send({
+      message:
+        err.message ||
+        "Some error occurred while Create Budgetary Quotation Data.",
+    });
+  }
 };
 
 export const UpdateBudgetaryQuotation = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Validate that id is provided
     if (!id) {
       return res.status(400).json({
         success: false,
@@ -134,7 +137,6 @@ export const UpdateBudgetaryQuotation = async (req, res) => {
       });
     }
 
-    // Find the quotation
     const quotation = await BudgetaryQuotationModel.findByPk(id);
 
     if (!quotation) {
@@ -145,7 +147,9 @@ export const UpdateBudgetaryQuotation = async (req, res) => {
       });
     }
 
-    // Prepare update data
+    // Store old data before update
+    const previousData = quotation.toJSON();
+
     const updateData = {
       bqTitle: req.body.bqTitle || quotation.bqTitle,
       customerName: req.body.customerName || quotation.customerName,
@@ -164,8 +168,19 @@ export const UpdateBudgetaryQuotation = async (req, res) => {
       OperatorSBU: req.body.OperatorSBU || quotation.OperatorSBU
     };
 
-    // Update the quotation
     const updatedQuotation = await quotation.update(updateData);
+
+    // Log to history with old and new data
+    await logHistory(
+      OperationHistory,
+      MODEL_NAME,
+      id,
+      "updated",
+      updateData.OperatorId,
+      updateData.OperatorName,
+      previousData,
+      updatedQuotation.toJSON()
+    );
 
     res.status(200).json({
       success: true,
@@ -206,7 +221,6 @@ export const DeleteBudgetaryQuotation = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Validate that id is provided
     if (!id) {
       return res.status(400).json({
         success: false,
@@ -215,7 +229,6 @@ export const DeleteBudgetaryQuotation = async (req, res) => {
       });
     }
 
-    // Find and delete the quotation
     const quotation = await BudgetaryQuotationModel.findByPk(id);
 
     if (!quotation) {
@@ -225,6 +238,20 @@ export const DeleteBudgetaryQuotation = async (req, res) => {
         message: `Quotation with ID ${id} not found`
       });
     }
+
+    const recordData = quotation.toJSON();
+
+    // Log to history before delete
+    await logHistory(
+      OperationHistory,
+      MODEL_NAME,
+      id,
+      "deleted",
+      quotation.OperatorId,
+      quotation.OperatorName,
+      recordData,
+      null
+    );
 
     await quotation.destroy();
 
@@ -240,6 +267,47 @@ export const DeleteBudgetaryQuotation = async (req, res) => {
       success: false,
       data: null,
       message: "Error deleting budgetary quotation",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Get complete history for a quotation
+ */
+export const GetBudgetaryQuotationHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: "Quotation ID is required"
+      });
+    }
+
+    const history = await OperationHistory.findAll({
+      where: {
+        model_name: MODEL_NAME,
+        record_id: id
+      },
+      order: [["timestamp", "DESC"]],
+      raw: true
+    });
+
+    res.status(200).json({
+      success: true,
+      data: history,
+      message: "Quotation history retrieved successfully"
+    });
+  } catch (error) {
+    console.error("Error fetching quotation history:", error);
+
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: "Error fetching quotation history",
       error: error.message
     });
   }

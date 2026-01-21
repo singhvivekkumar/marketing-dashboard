@@ -1,16 +1,32 @@
 import db from "../models/index.js";
+import {
+  logHistory,
+  logBulkHistory,
+} from "../services/historyService.js";
+
 const CRMLeadsModel = db.CRMLeadsModel;
-//import multer from "multer";
-//import path from "path";
+const OperationHistory = db.OperationHistory;
+
+const MODEL_NAME = "CRMLead";
 
 export const CreateCRMLeadsBulk = async (req, res) => {
   try {
     const BulkData = req.body.excelData;
+    const { OperatorId, OperatorName } = req.body;
     console.log("CreateCRMLeadsBulk service Bulk called", BulkData);
 
     const insertedRecords = await CRMLeadsModel.bulkCreate(BulkData, {
       validate: true,
     });
+
+    // Log bulk history
+    await logBulkHistory(
+      OperationHistory,
+      MODEL_NAME,
+      insertedRecords,
+      OperatorId,
+      OperatorName
+    );
 
     res.status(200).json({
       success: true,
@@ -21,11 +37,9 @@ export const CreateCRMLeadsBulk = async (req, res) => {
   } catch (error) {
     console.error("Error has encountered...");
     if (error.name === "SequelizeUniqueConstraintError") {
-      // Handle unique constraint violation error
       console.error(
         "Error CreateCRMLeadsBulk: Duplicate key value violates unique constraint"
       );
-      // Return appropriate error response to client
       res.status(400).json({
         success: false,
         data: [],
@@ -33,9 +47,7 @@ export const CreateCRMLeadsBulk = async (req, res) => {
         error: error,
       });
     } else {
-      // Handle other errors
       console.error("Error CreateCRMLeadsBulk :", error);
-      // Return appropriate error response to client
       res.status(500).json({
         success: false,
         data: [],
@@ -62,62 +74,56 @@ export const GetCRMLeads = (request, response) => {
     });
 };
 
-export const CreateCRMLeads = (req, res) => {
+export const CreateCRMLeads = async (req, res) => {
+  try {
+    const CRMLeadsModelEx = {
+      leadID: req.body.leadID,
+      issueDate: req.body.issueDate,
+      tenderName: req.body.tenderName,
+      organisation: req.body.organisation,
+      documentType: req.body.documentType,
+      tenderType: req.body.tenderType,
+      emdInCrore: req.body.emdInCrore,
+      approxTenderValueCrore: req.body.approxTenderValueCrore,
+      lastDateSubmission: req.body.lastDateSubmission,
+      preBidDate: req.body.preBidDate,
+      teamAssigned: req.body.teamAssigned,
+      remarks: req.body.remarks,
+      corrigendumInfo: req.body.corrigendumInfo,
+      OperatorId: req.body.OperatorId,
+      OperatorName: req.body.OperatorName,
+      OperatorRole: req.body.OperatorRole,
+      OperatorSBU: req.body.OperatorSBU,
+    };
 
+    const data = await CRMLeadsModel.create(CRMLeadsModelEx);
 
-  const CRMLeadsModelEx = {
-    leadID: req.body.leadID,
-    issueDate: req.body.issueDate,
-    tenderName: req.body.tenderName,
-    organisation: req.body.organisation,
-    documentType: req.body.documentType,
-    tenderType: req.body.tenderType,
+    // Log to history
+    await logHistory(
+      OperationHistory,
+      MODEL_NAME,
+      data.id,
+      "added",
+      req.body.OperatorId,
+      req.body.OperatorName,
+      null,
+      data.toJSON()
+    );
 
-    emdInCrore: req.body.emdInCrore,
-    approxTenderValueCrore: req.body.approxTenderValueCrore,
-    lastDateSubmission: req.body.lastDateSubmission,
-    preBidDate: req.body.preBidDate,
-    teamAssigned: req.body.teamAssigned,
-    remarks: req.body.remarks,
-    corrigendumInfo: req.body.corrigendumInfo,
-    // submittedAt: req.body.submittedAt,
-    // // new fields
-    OperatorId: req.body.OperatorId,
-    OperatorName: req.body.OperatorName,
-    OperatorRole: req.body.OperatorRole,
-    OperatorSBU: req.body.OperatorSBU,
-
-    // leadID: '',
-    //   issueDate: '',
-    //   tenderName: '',
-    //   organisation: '',
-    //   documentType: '',
-    //   tenderType: '',
-    //   emdInCrore: '',
-    //   approxTenderValueCrore: '',
-    //   lastDateSubmission: '',
-    //   preBidDate: '',
-    //   teamAssigned: '',
-    //   remarks: '',
-    //   corrigendumInfo: ''
-  };
-
-  CRMLeadsModel.create(CRMLeadsModelEx)
-    .then((data) => {
-      // res.send(data); 
-      console.log("Success");
-      res.send(data);
-    })
-    .catch((err) => {
-      console.log("Error while saving", err);
-      res.status(500).send({
-        message:
-          err.message ||
-          "Some error occurred while Create Budgetary Quotation Data.",
-      });
+    console.log("Success");
+    res.status(201).json({
+      success: true,
+      data: data,
+      message: "CRM Lead created successfully"
     });
-
-  // console.log(" UploadPdfFile into Harddisk");
+  } catch (err) {
+    console.log("Error while saving", err);
+    res.status(500).send({
+      message:
+        err.message ||
+        "Some error occurred while Create CRM Lead Data.",
+    });
+  }
 };
 
 export const UploadPdfFile = (req, res) => {

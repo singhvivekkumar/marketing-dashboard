@@ -1,14 +1,32 @@
 import db from "../models/index.js";
+import {
+  logHistory,
+  logBulkHistory,
+} from "../services/historyService.js";
+
 const LeadSubmittedModel = db.LeadSubmittedModel;
+const OperationHistory = db.OperationHistory;
+
+const MODEL_NAME = "LeadSubmitted";
 
 export const CreateLeadSubmittedBulk = async (req, res) => {
   try {
     const BulkData = req.body.excelData;
+    const { OperatorId, OperatorName } = req.body;
     console.log("CreateLeadSubmittedBulk service Bulk called", BulkData);
 
     const insertedRecords = await LeadSubmittedModel.bulkCreate(BulkData, {
       validate: true,
     });
+
+    // Log bulk history
+    await logBulkHistory(
+      OperationHistory,
+      MODEL_NAME,
+      insertedRecords,
+      OperatorId,
+      OperatorName
+    );
 
     res.status(200).json({
       success: true,
@@ -19,11 +37,9 @@ export const CreateLeadSubmittedBulk = async (req, res) => {
   } catch (error) {
     console.error("Error has encountered...");
     if (error.name === "SequelizeUniqueConstraintError") {
-      // Handle unique constraint violation error
       console.error(
         "Error CreateLeadSubmittedBulk: Duplicate key value violates unique constraint"
       );
-      // Return appropriate error response to client
       res.status(400).json({
         success: false,
         data: [],
@@ -31,9 +47,7 @@ export const CreateLeadSubmittedBulk = async (req, res) => {
         error: error,
       });
     } else {
-      // Handle other errors
       console.error("Error CreateLeadSubmittedBulk :", error);
-      // Return appropriate error response to client
       res.status(500).json({
         success: false,
         data: [],
@@ -59,76 +73,63 @@ export const GetLeadSubmitted = (request, response) => {
     });
 };
 
-export const CreateLeadSubmitted = (req, res) => {
-  const LeadSubmittedModelEx = {
-    tenderName: req.body.tenderName,
-    customerName: req.body.customerName,
-    customerAddress: req.body.customerAddress,
-    tenderDate: req.body.tenderDate,
-    bidOwner: req.body.bidOwner,
-    rfpReceivedOn: req.body.rfpReceivedOn,
+export const CreateLeadSubmitted = async (req, res) => {
+  try {
+    const LeadSubmittedModelEx = {
+      tenderName: req.body.tenderName,
+      customerName: req.body.customerName,
+      customerAddress: req.body.customerAddress,
+      tenderDate: req.body.tenderDate,
+      bidOwner: req.body.bidOwner,
+      rfpReceivedOn: req.body.rfpReceivedOn,
+      valueEMDInCrore: req.body.valueEMDInCrore,
+      rfpDueDate: req.body.rfpDueDate,
+      dmktgInPrincipalApprovalRxdOn: req.body.dmktgInPrincipalApprovalRxdOn,
+      sellingPriceApprovalInitiatedOn: req.body.sellingPriceApprovalInitiatedOn,
+      bidSubmittedOn: req.body.bidSubmittedOn,
+      approvalSBUFinanceOn: req.body.approvalSBUFinanceOn,
+      approvalGMOn: req.body.approvalGMOn,
+      sentToFinanceGMDmktgApprovalRxdOn:
+        req.body.sentToFinanceGMDmktgApprovalRxdOn,
+      dmktgApprovalRxdOn: req.body.dmktgApprovalRxdOn,
+      tenderReferenceNo: req.body.tenderReferenceNo,
+      tenderType: req.body.tenderType,
+      website: req.body.website,
+      presentStatus: req.body.presentStatus,
+      competitorsInfo: req.body.competitorsInfo,
+      participatedWithPartner: req.body.participatedWithPartner,
+      OperatorId: req.body.OperatorId,
+      OperatorName: req.body.OperatorName,
+      OperatorRole: req.body.OperatorRole,
+      OperatorSBU: req.body.OperatorSBU,
+    };
 
-    valueEMDInCrore: req.body.valueEMDInCrore,
-    rfpDueDate: req.body.rfpDueDate,
-    dmktgInPrincipalApprovalRxdOn: req.body.dmktgInPrincipalApprovalRxdOn,
-    sellingPriceApprovalInitiatedOn: req.body.sellingPriceApprovalInitiatedOn,
-    bidSubmittedOn: req.body.bidSubmittedOn,
-    approvalSBUFinanceOn: req.body.approvalSBUFinanceOn,
-    approvalGMOn: req.body.approvalGMOn,
-    sentToFinanceGMDmktgApprovalRxdOn:
-      req.body.sentToFinanceGMDmktgApprovalRxdOn,
-    sellingPriceApprovalInitiatedOn: req.body.sellingPriceApprovalInitiatedOn,
-    dmktgApprovalRxdOn: req.body.dmktgApprovalRxdOn,
-    tenderReferenceNo: req.body.tenderReferenceNo,
-    tenderType: req.body.tenderType,
-    website: req.body.website,
-    presentStatus: req.body.presentStatus,
-    // new fields
+    const data = await LeadSubmittedModel.create(LeadSubmittedModelEx);
 
-    competitorsInfo: req.body.competitorsInfo,
-    participatedWithPartner: req.body.participatedWithPartner,
+    // Log to history
+    await logHistory(
+      OperationHistory,
+      MODEL_NAME,
+      data.id,
+      "added",
+      req.body.OperatorId,
+      req.body.OperatorName,
+      null,
+      data.toJSON()
+    );
 
-    // user data fields
-    OperatorId: req.body.OperatorId,
-    OperatorName: req.body.OperatorName,
-    OperatorRole: req.body.OperatorRole,
-    OperatorSBU: req.body.OperatorSBU,
-
-    // bqTitle: data.bqTitle,
-    // customer: data.customer,
-    // leadOwner: data.leadOwner,
-    // classification: data.classification,
-    // estimatedValueWithoutGST: parseFloat(
-    //   parseFloat(data.estimatedValueWithoutGST).toFixed(2)
-    // ),
-    // estimatedValueWithGST: parseFloat(
-    //   parseFloat(data.estimatedValueWithGST).toFixed(2)
-    // ),
-    // dateLetterSubmission: data.dateLetterSubmission,
-    // referenceNumber: data.referenceNumber,
-    // competitor: data.competitor,
-    // presentStatus: data.presentStatus,
-    // submittedAt: new Date().toISOString(),
-    // OperatorId: "291536",
-    // OperatorName: "Vivek Kumar Singh",
-    // OperatorRole:"Lead Owner",
-    // OperatorSBU: "Software SBU",
-  };
-
-  LeadSubmittedModel.create(LeadSubmittedModelEx)
-    .then((data) => {
-      // res.send(data);
-      console.log("Success");
-      res.send(data);
-    })
-    .catch((err) => {
-      console.log("Error while saving", err);
-      res.status(500).send({
-        message:
-          err.message ||
-          "Some error occurred while Create Lead Submitted Data.",
-      });
+    console.log("Success");
+    res.status(201).json({
+      success: true,
+      data: data,
+      message: "Lead Submitted created successfully"
     });
-
-  // console.log(" UploadPdfFile into Harddisk");
+  } catch (err) {
+    console.log("Error while saving", err);
+    res.status(500).send({
+      message:
+        err.message ||
+        "Some error occurred while Create Lead Submitted Data.",
+    });
+  }
 };
