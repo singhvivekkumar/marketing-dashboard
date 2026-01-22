@@ -1,11 +1,13 @@
 /**
- * History Service - Centralized history logging utility
- * Handles all operations tracking with error handling and transactions
+ * History Service - Entity-specific history logging
+ * Provides separate history tables for each entity
  */
 
+/**
+ * Log operation to entity-specific history table
+ */
 export const logHistory = async (
-  OperationHistory,
-  modelName,
+  HistoryModel,
   recordId,
   status,
   operatorId,
@@ -14,15 +16,15 @@ export const logHistory = async (
   newData = null
 ) => {
   try {
-    // Calculate changes object for updates
     let changes = null;
     if (status === "updated" && previousData && newData) {
       changes = calculateChanges(previousData, newData);
     }
 
-    await OperationHistory.create({
-      model_name: modelName,
-      record_id: recordId,
+    const idField = getIdField(HistoryModel.name);
+
+    await HistoryModel.create({
+      [idField]: recordId,
       status,
       operator_id: operatorId,
       operator_name: operatorName,
@@ -35,54 +37,24 @@ export const logHistory = async (
     return { success: true };
   } catch (error) {
     console.error("Error logging history:", error);
-    // Return error but don't throw - operation should not fail due to history logging
     return { success: false, error: error.message };
   }
 };
 
 /**
- * Calculate what fields changed between two objects
- */
-function calculateChanges(oldData, newData) {
-  const changes = {};
-
-  // Compare all fields in newData
-  for (const key in newData) {
-    if (oldData[key] !== newData[key]) {
-      changes[key] = {
-        old: oldData[key],
-        new: newData[key],
-      };
-    }
-  }
-
-  // Check for deleted fields
-  for (const key in oldData) {
-    if (!(key in newData)) {
-      changes[key] = {
-        old: oldData[key],
-        new: undefined,
-      };
-    }
-  }
-
-  return Object.keys(changes).length > 0 ? changes : null;
-}
-
-/**
  * Log bulk create operations
  */
 export const logBulkHistory = async (
-  OperationHistory,
-  modelName,
+  HistoryModel,
   records,
   operatorId,
   operatorName
 ) => {
   try {
+    const idField = getIdField(HistoryModel.name);
+    
     const historyRecords = records.map((record) => ({
-      model_name: modelName,
-      record_id: record.id,
+      [idField]: record.id,
       status: "added",
       operator_id: operatorId,
       operator_name: operatorName,
@@ -92,7 +64,7 @@ export const logBulkHistory = async (
       timestamp: new Date(),
     }));
 
-    await OperationHistory.bulkCreate(historyRecords);
+    await HistoryModel.bulkCreate(historyRecords);
     return { success: true };
   } catch (error) {
     console.error("Error logging bulk history:", error);
@@ -103,12 +75,13 @@ export const logBulkHistory = async (
 /**
  * Get history for a specific record
  */
-export const getRecordHistory = async (OperationHistory, modelName, recordId) => {
+export const getRecordHistory = async (HistoryModel, recordId) => {
   try {
-    const history = await OperationHistory.findAll({
+    const idField = getIdField(HistoryModel.name);
+    
+    const history = await HistoryModel.findAll({
       where: {
-        model_name: modelName,
-        record_id: recordId,
+        [idField]: recordId,
       },
       order: [["timestamp", "DESC"]],
       raw: true,
@@ -124,13 +97,13 @@ export const getRecordHistory = async (OperationHistory, modelName, recordId) =>
  * Get history by operator
  */
 export const getOperatorHistory = async (
-  OperationHistory,
+  HistoryModel,
   operatorId,
   limit = 100,
   offset = 0
 ) => {
   try {
-    const history = await OperationHistory.findAll({
+    const history = await HistoryModel.findAll({
       where: { operator_id: operatorId },
       order: [["timestamp", "DESC"]],
       limit,
@@ -138,7 +111,7 @@ export const getOperatorHistory = async (
       raw: true,
     });
 
-    const total = await OperationHistory.count({
+    const total = await HistoryModel.count({
       where: { operator_id: operatorId },
     });
 
@@ -153,13 +126,13 @@ export const getOperatorHistory = async (
  * Get history by status
  */
 export const getHistoryByStatus = async (
-  OperationHistory,
+  HistoryModel,
   status,
   limit = 100,
   offset = 0
 ) => {
   try {
-    const history = await OperationHistory.findAll({
+    const history = await HistoryModel.findAll({
       where: { status },
       order: [["timestamp", "DESC"]],
       limit,
@@ -167,7 +140,7 @@ export const getHistoryByStatus = async (
       raw: true,
     });
 
-    const total = await OperationHistory.count({
+    const total = await HistoryModel.count({
       where: { status },
     });
 
@@ -177,3 +150,57 @@ export const getHistoryByStatus = async (
     return { success: false, error: error.message };
   }
 };
+
+/**
+ * Calculate what fields changed between two objects
+ */
+function calculateChanges(oldData, newData) {
+  const changes = {};
+
+  for (const key in newData) {
+    const oldVal = oldData[key];
+    const newVal = newData[key];
+
+    const oldDate =
+      oldVal instanceof Date ? oldVal.getTime() : oldVal;
+    const newDate =
+      newVal instanceof Date ? newVal.getTime() : newVal;
+
+    if (oldDate !== newDate) {
+      changes[key] = {
+        old: oldVal,
+        new: newVal,
+      };
+    }
+  }
+
+  for (const key in oldData) {
+    if (!(key in newData)) {
+      changes[key] = {
+        old: oldData[key],
+        new: undefined,
+      };
+    }
+  }
+
+  return Object.keys(changes).length > 0 ? changes : null;
+}
+
+/**
+ * Map Sequelize model name to its ID field name
+ */
+function getIdField(modelName) {
+  const idFieldMap = {
+    "BudgetaryQuotationHistory": "budgetary_quotation_id",
+    "DomesticLeadsHistory": "domestic_leads_id",
+    "ExportLeadsHistory": "export_leads_id",
+    "LostFormHistory": "lost_form_id",
+    "CRMLeadHistory": "crm_lead_id",
+    "LeadSubmittedHistory": "lead_submitted_id",
+    "InHouseRDHistory": "inhouse_rd_id",
+    "MarketingOrderReceivedDomExpHistory": "marketing_order_received_dom_exp_id",
+    "OrderReceivedDocumentHistory": "order_received_document_id",
+  };
+
+  return idFieldMap[modelName] || "record_id";
+}

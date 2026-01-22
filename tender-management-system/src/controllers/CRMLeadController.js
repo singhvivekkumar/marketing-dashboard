@@ -5,9 +5,7 @@ import {
 } from "../services/historyService.js";
 
 const CRMLeadsModel = db.CRMLeadsModel;
-const OperationHistory = db.OperationHistory;
-
-const MODEL_NAME = "CRMLead";
+const CRMLeadHistory = db.CRMLeadHistory;
 
 export const CreateCRMLeadsBulk = async (req, res) => {
   try {
@@ -21,8 +19,7 @@ export const CreateCRMLeadsBulk = async (req, res) => {
 
     // Log bulk history
     await logBulkHistory(
-      OperationHistory,
-      MODEL_NAME,
+      CRMLeadHistory,
       insertedRecords,
       OperatorId,
       OperatorName
@@ -100,8 +97,7 @@ export const CreateCRMLeads = async (req, res) => {
 
     // Log to history
     await logHistory(
-      OperationHistory,
-      MODEL_NAME,
+      CRMLeadHistory,
       data.id,
       "added",
       req.body.OperatorId,

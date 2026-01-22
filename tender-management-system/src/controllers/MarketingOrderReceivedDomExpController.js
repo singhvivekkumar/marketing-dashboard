@@ -1,16 +1,31 @@
 import db from "../models/index.js";
+import {
+  logHistory,
+  logBulkHistory,
+} from "../services/historyService.js";
+
 const MarketingOrderReceivedDomExp = db.MarketingOrderReceivedDomExp;
+const MarketingOrderReceivedDomExpHistory = db.MarketingOrderReceivedDomExpHistory;
 import multer from "multer";
 import path from "path";
 
 export const CreateMarketingOrderReceivedDomExpBulk = async (req, res) => {
   try {
     const BulkData = req.body.excelData;
+    const { OperatorId, OperatorName } = req.body;
     console.log("CreateMarketingOrderReceivedDomExpBulk service Bulk called", BulkData);
 
     const insertedRecords = await MarketingOrderReceivedDomExp.bulkCreate(BulkData, {
       validate: true,
     });
+
+    // Log bulk history
+    await logBulkHistory(
+      MarketingOrderReceivedDomExpHistory,
+      insertedRecords,
+      OperatorId,
+      OperatorName
+    );
 
     res.status(200).json({
       success: true,
@@ -21,11 +36,9 @@ export const CreateMarketingOrderReceivedDomExpBulk = async (req, res) => {
   } catch (error) {
     console.error("Error has encountered...");
     if (error.name === "SequelizeUniqueConstraintError") {
-      // Handle unique constraint violation error
       console.error(
         "Error CreateMarketingOrderReceivedDomExpBulk: Duplicate key value violates unique constraint"
       );
-      // Return appropriate error response to client
       res.status(400).json({
         success: false,
         data: [],
@@ -33,9 +46,7 @@ export const CreateMarketingOrderReceivedDomExpBulk = async (req, res) => {
         error: error,
       });
     } else {
-      // Handle other errors
       console.error("Error CreateMarketingOrderReceivedDomExpBulk :", error);
-      // Return appropriate error response to client
       res.status(500).json({
         success: false,
         data: [],
@@ -78,59 +89,58 @@ export const GetOrderReceivedData = (request, response) => {
     });
 };
 
-export const CreateGetOrderReceivedData = (req, res) => {
-  //console.log(" MarketingOrderReceivedDomExp service called for req", req);
+export const CreateGetOrderReceivedData = async (req, res) => {
+  try {
+    const OrderReceivedReqData = {
+      contractName: req.body.contractName,
+      customerName: req.body.customerName,
+      customerAddress: req.body.customerAddress,
+      orderReceicedDate: req.body.orderReceivedDate,
+      purchaseOrder: req.body.PoCoWoNo,
+      typeOfTender: req.body.typeOfTender,
+      valueWithoutGST: req.body.valueWithoutGST,
+      valueWithGST: req.body.valueWithGST,
+      JSON_competitors: req.body.JSON_competitors,
+      remarks: req.body.remarks,
+      contractCopy: req.body.attachment,
+      submittedAt: req.body.submittedAt,
+      OperatorId: req.body.OperatorId,
+      OperatorName: req.body.OperatorName,
+      OperatorRole: req.body.OperatorRole,
+      OperatorSBU: req.body.OperatorSBU,
+      FileName: req.body.fileName,
+      FilePath: req.body.filePath,
+      HardDiskFileName: req.body.hardDiskFileName,
+      Dom_or_Export: req.body.Dom_or_Export,
+    };
 
-  // console.log(
-  //   " MarketingOrderReceivedDomExp service called for req body",
-  //   req.body
-  // );
+    const data = await MarketingOrderReceivedDomExp.create(OrderReceivedReqData);
 
-  const __dirname = path.resolve();
-  let UPLOADS_DIR = path.join(__dirname, "Mar_uploads");
-  console.log("UPLOADS_DIR", UPLOADS_DIR);
+    // Log to history
+    await logHistory(
+      MarketingOrderReceivedDomExpHistory,
+      data.id,
+      "added",
+      req.body.OperatorId,
+      req.body.OperatorName,
+      null,
+      data.toJSON()
+    );
 
-
-  const OrderReceivedReqData = {
-    contractName: req.body.contractName,
-    customerName: req.body.customerName,
-    customerAddress: req.body.customerAddress,
-    orderReceicedDate: req.body.orderReceivedDate,
-    purchaseOrder: req.body.PoCoWoNo,
-    typeOfTender: req.body.typeOfTender,
-
-    valueWithoutGST: req.body.valueWithoutGST,
-    valueWithGST: req.body.valueWithGST,
-    JSON_competitors: req.body.JSON_competitors,
-    remarks: req.body.remarks,
-    contractCopy: req.body.attachment,
-    submittedAt: req.body.submittedAt,
-    // new fields
-    OperatorId: req.body.OperatorId,
-    OperatorName: req.body.OperatorName,
-    OperatorRole: req.body.OperatorRole,
-    OperatorSBU: req.body.OperatorSBU,
-    FileName: req.body.fileName,
-    FilePath: req.body.filePath,
-    HardDiskFileName: req.body.hardDiskFileName,
-    Dom_or_Export:req.body.Dom_or_Export,
-  };
-
-  MarketingOrderReceivedDomExp.create(OrderReceivedReqData)
-    .then((data) => {
-      console.log("Success");
-      res.send(data);
-    })
-    .catch((err) => {
-      console.log("Error while saving", err);
-      res.status(500).send({
-        message:
-          err.message ||
-          "Some error occurred while Create OrderReceived Data.",
-      });
+    console.log("Success");
+    res.status(201).json({
+      success: true,
+      data: data,
+      message: "Order Received created successfully"
     });
-
-  console.log(" create into Harddisk");
+  } catch (err) {
+    console.log("Error while saving", err);
+    res.status(500).send({
+      message:
+        err.message ||
+        "Some error occurred while Create OrderReceived Data.",
+    });
+  }
 };
 
 export const UploadPdfFile = (req, res) => {

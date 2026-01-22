@@ -17,6 +17,15 @@ import { OrderReceivedDocumentModel } from './order_received_document_model.js';
 import { TpcrDocumentModel } from './tpcr_document_model.js';
 import { CpdsDocumentModel } from './cpds_document_model.js';
 import OperationHistoryModel from './history_model.js';
+import BudgetaryQuotationHistoryModel from './budgetary_quotation_history_model.js';
+import DomesticLeadsHistoryModel from './domestic_leads_history_model.js';
+import ExportLeadsHistoryModel from './export_leads_history_model.js';
+import LostFormHistoryModel from './lost_form_history_model.js';
+import CRMLeadHistoryModel from './crm_lead_history_model.js';
+import LeadSubmittedHistoryModel from './lead_submitted_history_model.js';
+import InHouseRDHistoryModel from './inhouse_rd_history_model.js';
+import MarketingOrderReceivedDomExpHistoryModel from './marketing_order_received_dom_exp_history_model.js';
+import OrderReceivedDocumentHistoryModel from './order_received_document_history_model.js';
 
 
 // const Sequelize = require("sequelize");
@@ -56,5 +65,14 @@ db.TpcrDocumentModel= TpcrDocumentModel(sequelize,Sequelize);
 db.CpdsDocumentModel= CpdsDocumentModel(sequelize,Sequelize);
 
 db.OperationHistory = OperationHistoryModel(sequelize);
+db.BudgetaryQuotationHistory = BudgetaryQuotationHistoryModel(sequelize);
+db.DomesticLeadsHistory = DomesticLeadsHistoryModel(sequelize);
+db.ExportLeadsHistory = ExportLeadsHistoryModel(sequelize);
+db.LostFormHistory = LostFormHistoryModel(sequelize);
+db.CRMLeadHistory = CRMLeadHistoryModel(sequelize);
+db.LeadSubmittedHistory = LeadSubmittedHistoryModel(sequelize);
+db.InHouseRDHistory = InHouseRDHistoryModel(sequelize);
+db.MarketingOrderReceivedDomExpHistory = MarketingOrderReceivedDomExpHistoryModel(sequelize);
+db.OrderReceivedDocumentHistory = OrderReceivedDocumentHistoryModel(sequelize);
 
 export default db

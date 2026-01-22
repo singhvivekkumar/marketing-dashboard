@@ -5,9 +5,7 @@ import {
 } from "../services/historyService.js";
 
 const LostFormModel = db.LostFormModel;
-const OperationHistory = db.OperationHistory;
-
-const MODEL_NAME = "LostForm";
+const LostFormHistory = db.LostFormHistory;
 
 export const CreateLostFormBulk = async (req, res) => {
   try {
@@ -21,8 +19,7 @@ export const CreateLostFormBulk = async (req, res) => {
 
     // Log bulk history
     await logBulkHistory(
-      OperationHistory,
-      MODEL_NAME,
+      LostFormHistory,
       insertedRecords,
       OperatorId,
       OperatorName
@@ -103,8 +100,7 @@ export const CreateLostForm = async (req, res) => {
 
     // Log to history
     await logHistory(
-      OperationHistory,
-      MODEL_NAME,
+      LostFormHistory,
       data.id,
       "added",
       req.body.OperatorId,

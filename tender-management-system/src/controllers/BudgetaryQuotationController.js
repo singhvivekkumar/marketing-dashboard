@@ -6,9 +6,7 @@ import {
 } from "../services/historyService.js";
 
 const BudgetaryQuotationModel = db.BudgetaryQuotationModel;
-const OperationHistory = db.OperationHistory;
-
-const MODEL_NAME = "BudgetaryQuotation";
+const BudgetaryQuotationHistory = db.BudgetaryQuotationHistory;
 
 export const CreateBudgetaryQuotationBulk = async (req, res) => {
   try {
@@ -23,8 +21,7 @@ export const CreateBudgetaryQuotationBulk = async (req, res) => {
 
     // Log bulk history
     await logBulkHistory(
-      OperationHistory,
-      MODEL_NAME,
+      BudgetaryQuotationHistory,
       insertedRecords,
       OperatorId,
       OperatorName
@@ -99,8 +96,7 @@ export const CreateBudgetaryQuotation = async (req, res) => {
 
     // Log to history
     await logHistory(
-      OperationHistory,
-      MODEL_NAME,
+      BudgetaryQuotationHistory,
       data.id,
       "added",
       req.body.OperatorId,
@@ -172,8 +168,7 @@ export const UpdateBudgetaryQuotation = async (req, res) => {
 
     // Log to history with old and new data
     await logHistory(
-      OperationHistory,
-      MODEL_NAME,
+      BudgetaryQuotationHistory,
       id,
       "updated",
       updateData.OperatorId,
@@ -243,8 +238,7 @@ export const DeleteBudgetaryQuotation = async (req, res) => {
 
     // Log to history before delete
     await logHistory(
-      OperationHistory,
-      MODEL_NAME,
+      BudgetaryQuotationHistory,
       id,
       "deleted",
       quotation.OperatorId,
@@ -287,10 +281,9 @@ export const GetBudgetaryQuotationHistory = async (req, res) => {
       });
     }
 
-    const history = await OperationHistory.findAll({
+    const history = await BudgetaryQuotationHistory.findAll({
       where: {
-        model_name: MODEL_NAME,
-        record_id: id
+        budgetary_quotation_id: id
       },
       order: [["timestamp", "DESC"]],
       raw: true

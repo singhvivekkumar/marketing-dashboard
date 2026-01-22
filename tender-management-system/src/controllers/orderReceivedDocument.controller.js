@@ -1,27 +1,15 @@
-// ✅ BEST & INDUSTRY-STANDARD (Recommended)
-// Way-1: Create LEAD first (Draft / Pending), then upload documents
-
-// Backend flow
-
-// 2. POST /leads/{leadId}/documents
-//    → upload files
-//    → save metadata with leadId
-
-// 1. POST /leads
-//    → create lead with status = DRAFT
-//    → return leadId
-
-// 3. PUT /leads/{leadId}
-//    → submit / finalize lead
-//    → status = SUBMITTED
-
 import db from "../models/index.js";
+import {
+  logHistory,
+} from "../services/historyService.js";
+
 const OrderReceivedDocumentModel = db.OrderReceivedDocumentModel;
+const OrderReceivedDocumentHistory = db.OrderReceivedDocumentHistory;
 
 
 export const uploadDocument = async (req, res) => {
   try {
-    const { documentType, uploadedBy } = req.body;
+    const { documentType, uploadedBy, OperatorId, OperatorName } = req.body;
     const file = req.file;
 
     if (!file) {
@@ -34,9 +22,19 @@ export const uploadDocument = async (req, res) => {
       storedFileName: file.filename,
       filePath: file.path,
       fileSize: file.size,
-      // mime_type: file.mimetype,
       uploadedBy
     });
+
+    // Log to history
+    await logHistory(
+      OrderReceivedDocumentHistory,
+      doc.id,
+      "added",
+      OperatorId,
+      OperatorName,
+      null,
+      doc.toJSON()
+    );
 
     res.status(201).json(doc);
   } catch (err) { 
@@ -47,8 +45,7 @@ export const uploadDocument = async (req, res) => {
 export const updateDocument = async (req, res) => {
   try {
     console.log("req.body from updateDocument controller : ", req.body);
-    // const { leadId } = req.params;
-    const { leadId, documentId } = req.body;
+    const { leadId, documentId, OperatorId, OperatorName } = req.body;
 
     const doc = await OrderReceivedDocumentModel.findByPk(documentId);
     console.log("doc", doc);
@@ -56,16 +53,21 @@ export const updateDocument = async (req, res) => {
       return res.status(404).json({ message: "Document not found" });
     }
 
+    const previousData = doc.toJSON();
     const updatedDoc = await doc.update({
       leadId,
-      // documentType,
-      // originalFileName: file.originalName,
-      // storedFileName: file.fileName,
-      // filePath: file.path,
-      // fileSize: file.size,
-      // mime_type: file.mimetype,
-      // uploadedBy
     });
+
+    // Log to history
+    await logHistory(
+      OrderReceivedDocumentHistory,
+      documentId,
+      "updated",
+      OperatorId,
+      OperatorName,
+      previousData,
+      updatedDoc.toJSON()
+    );
 
     res.status(201).json(updatedDoc);
   } catch (err) {

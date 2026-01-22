@@ -5,9 +5,7 @@ import {
 } from "../services/historyService.js";
 
 const ExportLeadsModel = db.ExportLeadsModel;
-const OperationHistory = db.OperationHistory;
-
-const MODEL_NAME = "ExportLeads";
+const ExportLeadsHistory = db.ExportLeadsHistory;
 
 
 export const CreateExportLeadsBulk = async (req, res) => {
@@ -22,8 +20,7 @@ export const CreateExportLeadsBulk = async (req, res) => {
 
     // Log bulk history
     await logBulkHistory(
-      OperationHistory,
-      MODEL_NAME,
+      ExportLeadsHistory,
       insertedRecords,
       OperatorId,
       OperatorName
@@ -111,8 +108,7 @@ export const CreateExportLeads = async (req, res) => {
 
     // Log to history
     await logHistory(
-      OperationHistory,
-      MODEL_NAME,
+      ExportLeadsHistory,
       data.id,
       "added",
       req.body.OperatorId,
