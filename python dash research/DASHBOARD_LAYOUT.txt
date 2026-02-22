@@ -1,0 +1,208 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CRM ANALYTICS DASHBOARD - VISUAL LAYOUT
+═══════════════════════════════════════════════════════════════════════════════
+
+                           📊 CRM ANALYTICS DASHBOARD
+                        Internal Review & Performance Analytics
+
+═══════════════════════════════════════════════════════════════════════════════
+                              FILTERS SECTION
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────┬──────────┬──────────┬──────────┬──────────┬──────────────────────┐
+│ 🏢 SBU  │ 👥 Cust  │ 📅 Year  │ 🎯 Type  │ 📈 Stage │ ✅ Status            │
+│(Multi)  │(Multi)   │(Multi)   │(Multi)   │(Multi)   │(Multi)               │
+└─────────┴──────────┴──────────┴──────────┴──────────┴──────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+                          KPI CARDS SECTION (ROW 1)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌────────────────┐ ┌────────────────┐ ┌────────────────┐ ┌────────────────┐ ┌──────────┐ ┌──────────┐
+│ 📊 Total Leads │ │ 💰 Pipeline    │ │ 🎯 Active      │ │ 👥 Top Owner   │ │ 📈 Stage │ │ 🏢 Top  │
+│ [125]          │ │ ₹2,500 Lakhs   │ │ SBUs [4]       │ │ John Doe (25)  │ │ Planned  │ │ Defence │
+│                │ │                │ │                │ │                │ │ vs Done  │ │ SBU [45]│
+└────────────────┘ └────────────────┘ └────────────────┘ └────────────────┘ └──────────┘ └──────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+           TOP ROW — EXECUTIVE OVERVIEW (Donut + Funnel)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────────┬──────────────────────────────────────┐
+│                                      │                                      │
+│    📊 Lead Status Distribution      │    📈 Pipeline Stages Funnel         │
+│                                      │                                      │
+│        ╭─────────────────╮           │    ┌────────────────────────┐       │
+│       ╱                   ╲          │    │ Planned ████████ [40]  │       │
+│      │   50% Won    ▓▓▓▓  │         │    │ Achieved    ██████ [25]│       │
+│      │   30% Pending▓▓▓   │         │    │ Closed        ██ [5]   │       │
+│      │   15% Lost ▓▓      │         │    └────────────────────────┘       │
+│      │   5% Others▓       │         │                                      │
+│       ╲                   ╱          │    Conversion Rate: 62.5%             │
+│        ╰─────────────────╯           │    Bottleneck: Planned → Achieved   │
+│                                      │                                      │
+└──────────────────────────────────────┴──────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+        MIDDLE ROW — FINANCIAL INSIGHTS (Horizontal Bar + Line)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────────┬──────────────────────────────────────┐
+│                                      │                                      │
+│  💼 Top 10 Customers by Value       │  📊 Revenue Trend & Forecast        │
+│                                      │                                      │
+│  Customer A        ────────── 500₹  │   ▲ 600₹L │        ╱╲               │
+│  Customer B        ────── 450₹      │   │ 500₹L │     ╱╲  ╲╱╲      [FGT] │
+│  Customer C        ──── 350₹        │   │ 400₹L │  ╱╲  ╲╱╱╲╱╲   ╱       │
+│  Customer D        ──── 300₹        │   │ 300₹L │_╱_________________╲    │
+│  Customer E        ─── 280₹         │   │       │ J  F  M  A  M  Jun    │
+│  ...                                │   │       │ ← Historical  Forecast │
+│                                      │   │                                │
+│  More revenue concentration          │   Monthly trend: +8% month-on-month  │
+│                                      │                                      │
+└──────────────────────────────────────┴──────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+       BOTTOM ROW — PERFORMANCE ANALYTICS (Bubble + Stacked Bar)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────────┬──────────────────────────────────────┐
+│                                      │                                      │
+│  👥 Owner Performance (Bubble)       │  🏢 Business Unit Breakdown         │
+│                                      │                                      │
+│   Won  │                             │  Defence  [Won███] [Pending██]      │
+│   Deals│        ●(Owner A: 20L)       │  Civil    [Won██████] [Pending███] │
+│   8 ├──┤    ●(Owner B: 15L)           │  IT       [Won███] [Pending█]      │
+│   6 │  │ ●(Owner C: 8L)               │  Other    [Won██] [Pending█]       │
+│   4 │  │  ●(Owner D: 5L)              │                                     │
+│   2 │  │ ●(Owner E: 2L)               │  Legend: [Won] [Pending] [Lost]    │
+│   0 └──┴────────────────────          │                                     │
+│     0   5  10   15   20               │  SBU Performance:                   │
+│     Total Leads (X-axis)              │  • Defence leads slightly                   
+│                                      │  • Civil has more pending                   
+│  Bubble size = Total Value (₹L)      │  • Need focus on IT unit           │
+│                                      │                                      │
+└──────────────────────────────────────┴──────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+           ADDITIONAL METRICS (Collapsible - Initially Hidden)
+═══════════════════════════════════════════════════════════════════════════════
+
+[📊 Show Additional Metrics] ← Click to toggle
+
+┌──────────────────────────────────────┬──────────────────────────────────────┐
+│                                      │                                      │
+│  Lead Status by Stage                │  ❌ Reasons for Lost Leads          │
+│                                      │                                      │
+│  Stage  │ Won ██  │ Pending ██       │      Price High    ▓▓▓▓▓▓ 45%       │
+│  Planned│ ██ │ ██████ │ ██████       │      Technical    ▓▓ 15%           │
+│  ────── │ ██ │ ██     │ ██           │      Competitor   ▓▓▓▓ 30%         │
+│  Achieved│ ████ │ ██  │ █            │      Others       ▓ 10%            │
+│                                      │                                      │
+│  Shows conversion at each stage      │  Insight: Price is top issue (45%)  │
+│                                      │                                      │
+└──────────────────────────────────────┴──────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+                    RAW DATA TABLE (Collapsible - Initially Hidden)
+═══════════════════════════════════════════════════════════════════════════════
+
+[📋 Show Raw Data] ← Click to toggle
+
+┌─────────┬──────────────┬──────────┬────────┬────────────┬──────────┬────────┐
+│ Lead_Id │ Lead_Name    │ Status   │ Value  │ Owner      │ Customer │ Stage  │
+├─────────┼──────────────┼──────────┼────────┼────────────┼──────────┼────────┤
+│ L001    │ Project A    │ Won      │ 150    │ John Doe   │ Cust1    │ Achieved
+│ L002    │ Project B    │ Pending  │ 200    │ Jane Smith │ Cust2    │ Planned
+│ L003    │ Project C    │ Lost     │ 100    │ Bob Wilson │ Cust1    │ Planned
+│ L004    │ Project D    │ Won      │ 250    │ John Doe   │ Cust3    │ Achieved
+│ ...     │ ...          │ ...      │ ...    │ ...        │ ...      │ ...
+├─────────┼──────────────┼──────────┼────────┼────────────┼──────────┼────────┤
+│ Filter  │ 🔍 Search... │ Sort ↑↓  │ All    │ All        │ All      │ All
+└─────────┴──────────────┴──────────┴────────┴────────────┴──────────┴────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+                              USER INTERACTION FLOW
+═══════════════════════════════════════════════════════════════════════════════
+
+1. DASHBOARD OPENS
+   ↓
+   User sees: KPI cards + 6 main charts
+   ↓
+2. APPLY FILTERS
+   ↓
+   User selects: SBU, Customer, Year, etc.
+   ↓
+3. CHARTS UPDATE IN REAL-TIME
+   ↓
+   All 6 charts + KPI cards update instantly
+   ↓
+4. DEEP DIVE
+   ↓
+   Click "Show Additional Metrics" for detail charts
+   ↓
+5. REVIEW DATA
+   ↓
+   Click "Show Raw Data" to view individual leads
+   ↓
+6. EXPORT / ANALYZE
+   ↓
+   Search, sort, and copy data as needed
+
+═══════════════════════════════════════════════════════════════════════════════
+                            COLOR CODING SYSTEM
+═══════════════════════════════════════════════════════════════════════════════
+
+KPI Cards (Top Row):
+  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+  │ Blue Border  │ │ Green Border │ │ Yellow Border│ │ Cyan Border  │
+  │ Primary Data │ │ Success/+ve  │ │ Warning      │ │ Information  │
+  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
+  
+  ┌──────────────┐ ┌──────────────┐
+  │ Red Border   │ │ Purple Border│
+  │ Alert/Action │ │ Secondary    │
+  └──────────────┘ └──────────────┘
+
+Charts:
+  • Donut: Multi-color (status categories)
+  • Funnel: Blue gradient (progression)
+  • Bar: Green gradient (positive trend)
+  • Line: Blue line with markers
+  • Bubble: Viridis scale (value indication)
+  • Stacked: Status-specific colors
+
+═══════════════════════════════════════════════════════════════════════════════
+                            RESPONSIVE DESIGN
+═══════════════════════════════════════════════════════════════════════════════
+
+Desktop View (Standard):
+  KPI Cards:  6 items in 1 row
+  Charts:     2 items per row (50% width each)
+  
+Tablet View (Medium):
+  KPI Cards:  3 items per row
+  Charts:     2 items per row (50% width)
+  
+Mobile View (Small):
+  KPI Cards:  1 item per row (100% width)
+  Charts:     1 item per row (100% width)
+
+═══════════════════════════════════════════════════════════════════════════════
+                        QUICK REFERENCE GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+Need to find...              → Look at...
+────────────────────────────────────────────────────────────────────────────
+Overall health              → KPI Cards + Donut Chart
+Pipeline bottlenecks        → Funnel Chart
+Key customers               → Horizontal Bar Chart
+Revenue outlook             → Line Chart
+Best performers             → Bubble Chart
+SBU comparison              → Stacked Bar Chart
+Conversion rates            → Lead Status by Stage
+Why deals are lost          → Lost Reasons Pie Chart
+Specific lead details       → Raw Data Table
+
+═══════════════════════════════════════════════════════════════════════════════
+Ready to present to management! 📊

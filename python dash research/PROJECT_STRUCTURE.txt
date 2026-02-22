@@ -1,0 +1,200 @@
+📦 CRM Analytics Dashboard - Project Structure
+
+dash/
+│
+├── 📄 START_HERE.md ⭐⭐⭐
+│   └─ Read this first! Complete guide to setup & run
+│
+├── 📄 QUICKSTART.md
+│   └─ Step-by-step setup instructions
+│
+├── 📄 README.md
+│   └─ Full feature documentation
+│
+├── 📄 CONFIG.md
+│   └─ Advanced configuration & customization
+│
+├── 📄 DATA_TEMPLATE.md
+│   └─ Excel data structure & sample
+│
+├── 📄 SETUP_COMPLETE.md
+│   └─ Setup summary & overview
+│
+├── 🐍 app.py (updated)
+│   └─ Main entry point - Run with: python app.py
+│
+├── 🐍 check_install.py
+│   └─ Verify installation - Run with: python check_install.py
+│
+├── 📋 requirements.txt (updated)
+│   └─ Python dependencies
+│
+├── ⚙️ .env
+│   └─ Configuration variables (host, port, debug mode)
+│
+├── 🔨 .gitignore
+│   └─ Git ignore file
+│
+├── 🪟 setup.bat
+│   └─ Windows setup script (first time)
+│
+├── 🪟 run.bat
+│   └─ Windows run script (quick start)
+│
+├── 📁 src/
+│   ├── 🐍 CRM_ERP_DASHBOARD.py
+│   │   └─ Main dashboard application (existing, unchanged)
+│   │
+│   └── 📁 Leads_Data/ (create & add your Excel files here)
+│       ├── leads_2024.xlsx
+│       ├── leads_2023.xlsx
+│       └── leads_archive.xlsx
+│
+├── 📁 assets/
+│   ├── style.css (optional - for custom styling)
+│   └── custom.js (optional - for custom interactivity)
+│
+└── 📁 venv/
+    └─ Virtual environment (created during setup)
+
+
+═══════════════════════════════════════════════════════════
+
+🚀 QUICK START (Copy & Paste)
+
+# 1. Open PowerShell in dash folder
+cd "c:\VIVEK  TECH\Python\dash"
+
+# 2. Setup (first time only)
+python -m venv venv
+venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+# 3. Run
+python app.py
+
+# 4. Open browser to: http://localhost:8050
+
+═══════════════════════════════════════════════════════════
+
+📊 DASHBOARD COMPONENTS
+
+Executive KPIs:
+├── Total Leads
+├── Pipeline Value (₹ Lakhs)
+├── Top Lead Owner
+├── Top SBU
+├── Vendor Split
+├── Approval Breakdown
+└── Non-Approval Breakdown
+
+Lead Analysis:
+├── Lead Status Distribution (Pie)
+├── Civil vs Defence (Pie)
+├── SBU Performance (Bar)
+└── Owner Performance (Bar)
+
+Financial Analysis:
+├── Planned vs Achieved (Bar)
+├── Lost Reason (Pie)
+├── Financial Summary (Bar)
+└── Yearly Trend (Line)
+
+Risk Management:
+├── Date-based Trends (Line)
+└── Overdue Heatmap
+
+Data View:
+├── Top 10 Leads (Bar)
+└── Raw Data Table (Searchable & Sortable)
+
+Filters (Multi-select):
+├── UNIT/SBU
+├── Main Customer
+├── Year
+├── Lead Type
+├── Lead Stage
+└── Lead Status
+
+═══════════════════════════════════════════════════════════
+
+📂 ADDING DATA
+
+1. Create Excel files with required columns (see DATA_TEMPLATE.md)
+2. Save to: src/Leads_Data/
+3. Restart dashboard: python app.py
+4. Data loads automatically!
+
+Required Columns:
+- Lead_Id, Lead_Name, Lead_Status, Lead_Stages
+- UNIT_SBU, Lead_Owner, Main_Customer, Lead_Type
+- Value_in_Rs_(Lakhs), Creation_Date, Due_date
+- Reason, Single_Multi_Vendor, Lead_Assignement_Status
+- Optional: Tech_Bid_Open_Date, Commercial_Bid_Opening_Date, etc.
+
+═══════════════════════════════════════════════════════════
+
+⚙️ CONFIGURATION (.env)
+
+DASH_DEBUG=True             # Debug mode (errors & live reload)
+DASH_HOST=0.0.0.0          # Network accessible
+DASH_PORT=8050             # Port number
+DATA_FOLDER=src/Leads_Data # Data location
+
+═══════════════════════════════════════════════════════════
+
+🆘 TROUBLESHOOTING
+
+No module named 'dash'?
+→ pip install -r requirements.txt
+
+Port already in use?
+→ Change DASH_PORT in .env
+
+No data showing?
+→ Check src/Leads_Data/ has Excel files
+→ Verify column names match exactly
+
+Permission denied?
+→ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+═══════════════════════════════════════════════════════════
+
+📞 SUPPORT
+
+✅ Browser console errors: Press F12 → Console
+✅ Terminal output: Check for Python errors
+✅ Excel structure: See DATA_TEMPLATE.md
+✅ Configuration: See CONFIG.md
+
+═══════════════════════════════════════════════════════════
+
+✨ WHAT'S INCLUDED
+
+✅ Production-ready Dash application
+✅ Bootstrap responsive UI
+✅ Multi-level filtering
+✅ 11+ visualization charts
+✅ Executive KPI dashboard
+✅ Risk management heatmap
+✅ Searchable data table
+✅ Environment configuration
+✅ Virtual environment setup
+✅ Comprehensive documentation
+✅ Data template & sample
+✅ Installation checker
+✅ Windows batch scripts
+
+═══════════════════════════════════════════════════════════
+
+🎯 READY TO START?
+
+1. READ: START_HERE.md
+2. RUN: python app.py
+3. OPEN: http://localhost:8050
+4. ADD: Your Excel data to src/Leads_Data/
+5. ANALYZE: Use filters and charts!
+
+═══════════════════════════════════════════════════════════
+
+Last Updated: January 29, 2026
