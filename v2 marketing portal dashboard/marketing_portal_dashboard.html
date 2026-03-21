@@ -1,0 +1,670 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f7f8fa;--surface:#ffffff;--surface2:#f1f3f7;
+    --border:#e4e8ef;--border2:#d0d5e0;
+    --text1:#0f1117;--text2:#525868;--text3:#8892a4;
+    --blue:#2563eb;--blue-bg:#eff4ff;--blue-lt:#dbeafe;
+    --teal:#0d9488;--teal-bg:#f0fdfa;
+    --amber:#d97706;--amber-bg:#fffbeb;
+    --red:#dc2626;--red-bg:#fef2f2;
+    --green:#16a34a;--green-bg:#f0fdf4;
+    --purple:#7c3aed;--purple-bg:#f5f3ff;
+    --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+    --r:10px;--r2:14px;
+  }
+  body{font-family:var(--font);background:var(--bg);color:var(--text1);font-size:14px;line-height:1.5}
+
+  .shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+  .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:20px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .logo{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:12px}
+  .logo-mark{font-size:15px;font-weight:600;color:var(--text1);letter-spacing:-.3px}
+  .logo-sub{font-size:11px;color:var(--text3);font-family:var(--mono)}
+  .nav-section{padding:8px 12px 4px;font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:7px 12px;margin:1px 8px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;border:none;background:none;width:calc(100% - 16px);text-align:left}
+  .nav-item:hover{background:var(--surface2);color:var(--text1)}
+  .nav-item.active{background:var(--blue-bg);color:var(--blue);font-weight:500}
+  .nav-item .icon{width:16px;height:16px;opacity:.7;flex-shrink:0}
+  .nav-item.active .icon{opacity:1}
+  .nav-badge{margin-left:auto;background:var(--blue);color:#fff;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;font-family:var(--mono)}
+
+  .main{overflow-x:hidden}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+  .topbar-title{font-size:16px;font-weight:500;color:var(--text1)}
+  .topbar-right{display:flex;align-items:center;gap:12px}
+  .tab-row{display:flex;gap:2px;background:var(--surface2);padding:3px;border-radius:8px}
+  .tab{padding:5px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:400;color:var(--text2);border:none;background:none;transition:all .15s}
+  .tab.active{background:var(--surface);color:var(--text1);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .fy-select{font-size:13px;padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text1);font-family:var(--font);cursor:pointer}
+
+  .content{padding:24px 28px;display:flex;flex-direction:column;gap:20px}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px}
+  .kpi-label{font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .kpi-val{font-size:22px;font-weight:600;color:var(--text1);font-family:var(--mono);letter-spacing:-.5px}
+  .kpi-delta{font-size:11px;margin-top:4px;display:flex;align-items:center;gap:3px;font-family:var(--mono)}
+  .kpi-delta.up{color:var(--green)}
+  .kpi-delta.down{color:var(--red)}
+  .kpi-delta.neutral{color:var(--text3)}
+
+  .charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+  .charts-grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .charts-grid3{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px}
+  .card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+  .card-title{font-size:13px;font-weight:500;color:var(--text1)}
+  .card-sub{font-size:11px;color:var(--text3);margin-top:2px}
+  .chip{font-size:10px;padding:3px 8px;border-radius:5px;font-weight:500;font-family:var(--mono)}
+  .chip.blue{background:var(--blue-bg);color:var(--blue)}
+  .chip.green{background:var(--green-bg);color:var(--green)}
+  .chip.amber{background:var(--amber-bg);color:var(--amber)}
+  .chip.red{background:var(--red-bg);color:var(--red)}
+
+  .legend-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+  .legend-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+
+  .chart-wrap{position:relative;width:100%}
+  .h200{height:200px}
+  .h220{height:220px}
+  .h240{height:240px}
+  .h260{height:260px}
+  .h180{height:180px}
+
+  .month-report{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+  .report-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .month-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));border-bottom:1px solid var(--border)}
+  .month-col{padding:10px 8px;text-align:center;border-right:1px solid var(--border);cursor:pointer;transition:background .12s}
+  .month-col:last-child{border-right:none}
+  .month-col:hover{background:var(--surface2)}
+  .month-col.active{background:var(--blue-bg)}
+  .month-name{font-size:10px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+  .month-val{font-size:13px;font-weight:600;color:var(--text1);font-family:var(--mono);margin-top:2px}
+  .month-bar{height:4px;border-radius:2px;margin-top:6px;background:var(--blue)}
+  .month-col.active .month-name{color:var(--blue)}
+  .month-detail{padding:16px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .md-item{padding:12px 14px;background:var(--surface2);border-radius:8px}
+  .md-label{font-size:10px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+  .md-val{font-size:18px;font-weight:600;color:var(--text1);font-family:var(--mono);margin-top:3px}
+  .md-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+  .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+  .tbl{width:100%;border-collapse:collapse;font-size:12px}
+  .tbl th{padding:9px 14px;text-align:left;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .tbl td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
+  .tbl tr:last-child td{border-bottom:none}
+  .tbl tr:hover td{background:var(--surface2)}
+  .tbl .num{font-family:var(--mono);color:var(--text1);font-weight:500}
+  .tbl .status{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px}
+  .tbl .won{background:var(--green-bg);color:var(--green)}
+  .tbl .lost{background:var(--red-bg);color:var(--red)}
+  .tbl .active{background:var(--blue-bg);color:var(--blue)}
+  .tbl .pending{background:var(--amber-bg);color:var(--amber)}
+
+  .section-title{font-size:12px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding-bottom:4px;border-bottom:2px solid var(--border);margin-bottom:16px}
+
+  .monitoring-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+  .monitor-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:16px}
+  .monitor-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+  .monitor-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.2)}
+  .monitor-val{font-size:26px;font-weight:600;font-family:var(--mono);letter-spacing:-.5px;color:var(--text1)}
+  .monitor-label{font-size:11px;color:var(--text3);margin-top:2px}
+  .sparkline{height:36px;margin-top:10px}
+
+  .views{display:none}
+  .views.visible{display:contents}
+</style>
+
+<div class="shell">
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">Marketing Portal</div>
+      <div class="logo-sub">v2.0 &mdash; Analytics Suite</div>
+    </div>
+    <div class="nav-section">Modules</div>
+    <button class="nav-item" onclick="showSection('bq')">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>
+      BQ Management
+    </button>
+    <button class="nav-item" onclick="showSection('leads')">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M2 13c0-3 2-4 4-4s4 1 4 4"/><path d="M11 7l2 2 3-3" stroke-width="1.5"/></svg>
+      Lead Management <span class="nav-badge">42</span>
+    </button>
+    <button class="nav-item" onclick="showSection('orders')">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h10l-1.5 7H4.5L3 3z"/><circle cx="6" cy="13" r="1"/><circle cx="11" cy="13" r="1"/></svg>
+      Orders Received
+    </button>
+    <button class="nav-item" onclick="showSection('rd')">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2v4L4 9h8l-2-3V2M6 14h4"/><path d="M5 2h6"/></svg>
+      In-House R&D
+    </button>
+    <div class="nav-section" style="margin-top:8px">Analytics</div>
+    <button class="nav-item active" onclick="showSection('dashboard')">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="showSection('monitoring')">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10l3-5 3 3 2-4 4 6"/><path d="M2 13h12"/></svg>
+      Monitoring
+    </button>
+    <button class="nav-item" onclick="showSection('reports')">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h8l2 2v10H2V4l2-2z"/><path d="M5 7h6M5 10h4"/></svg>
+      Monthly Reports
+    </button>
+    <button class="nav-item" onclick="showSection('yearly')">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M5 1v4M11 1v4M2 7h12"/></svg>
+      Yearly Analysis
+    </button>
+    <div class="nav-section" style="margin-top:8px">Admin</div>
+    <button class="nav-item" onclick="showSection('settings')">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.42-1.41"/></svg>
+      Settings
+    </button>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="page-title">Analytics Dashboard</span>
+      <div class="topbar-right">
+        <div class="tab-row" id="tab-row">
+          <button class="tab active" onclick="switchTab(this,'overview')">Overview</button>
+          <button class="tab" onclick="switchTab(this,'analysis')">Analysis</button>
+          <button class="tab" onclick="switchTab(this,'pipeline')">Pipeline</button>
+        </div>
+        <select class="fy-select" id="fy-select" onchange="updateFY(this.value)">
+          <option value="2026">FY 2025–26</option>
+          <option value="2025">FY 2024–25</option>
+          <option value="2024">FY 2023–24</option>
+          <option value="2023">FY 2022–23</option>
+          <option value="2022">FY 2021–22</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="content" id="dashboard-view">
+      <div id="overview-view">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">Leads in Queue</div><div class="kpi-val" id="k-queue">42</div><div class="kpi-delta up">+8 vs last FY</div></div>
+          <div class="kpi"><div class="kpi-label">Total Orders</div><div class="kpi-val" id="k-orders">128</div><div class="kpi-delta up">+23 vs last FY</div></div>
+          <div class="kpi"><div class="kpi-label">Order Value (Cr)</div><div class="kpi-val" id="k-value">₹247</div><div class="kpi-delta up">+₹38 vs last FY</div></div>
+          <div class="kpi"><div class="kpi-label">BQs Submitted</div><div class="kpi-val" id="k-bq">67</div><div class="kpi-delta neutral">same as last FY</div></div>
+          <div class="kpi"><div class="kpi-label">Win Rate</div><div class="kpi-val" id="k-wr">34%</div><div class="kpi-delta up">+6% vs last FY</div></div>
+          <div class="kpi"><div class="kpi-label">Lost Leads</div><div class="kpi-val" id="k-lost">38</div><div class="kpi-delta down">+5 vs last FY</div></div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">5-year order history</div><div class="card-sub">Order count &amp; value (Cr) by financial year</div></div>
+              <span class="chip blue">5 years</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>Orders (count)</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#7c3aed"></span>Value (Cr)</span>
+            </div>
+            <div class="chart-wrap h240"><canvas id="c-5yr"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">Lead outcomes</div><div class="card-sub">All-time distribution</div></div>
+              <span class="chip green">Current FY</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span>Won 34%</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>Lost 22%</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>Participated 30%</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#d97706"></span>Not-Part. 14%</span>
+            </div>
+            <div class="chart-wrap h240"><canvas id="c-outcome"></canvas></div>
+          </div>
+        </div>
+
+        <div class="charts-grid2">
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Monthly order trend</div><div class="card-sub">Count + cumulative value (Cr)</div></div><span class="chip blue">2 years</span></div>
+            <div class="legend-row">
+              <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>FY 25-26</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#d1d5db"></span>FY 24-25</span>
+            </div>
+            <div class="chart-wrap h200"><canvas id="c-trend"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Civil vs. Defence</div><div class="card-sub">Lead &amp; order split</div></div><span class="chip amber">Mix</span></div>
+            <div class="legend-row">
+              <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>Civil</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#7c3aed"></span>Defence</span>
+            </div>
+            <div class="chart-wrap h200"><canvas id="c-civdef"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Lead sub-types</div><div class="card-sub">Distribution this FY</div></div><span class="chip blue">5 types</span></div>
+            <div class="legend-row">
+              <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>Submitted</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#0d9488"></span>Domestic</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#7c3aed"></span>Export</span>
+            </div>
+            <div class="chart-wrap h200"><canvas id="c-subtypes"></canvas></div>
+          </div>
+        </div>
+
+        <div class="charts-grid3">
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Win / loss by business domain</div><div class="card-sub">Stacked by outcome</div></div><span class="chip green">Domain view</span></div>
+            <div class="legend-row">
+              <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span>Won</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>Lost</span>
+            </div>
+            <div class="chart-wrap h220"><canvas id="c-domain"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Top 10 customers</div><div class="card-sub">By total order value (Cr)</div></div><span class="chip blue">All-time</span></div>
+            <div class="chart-wrap h220"><canvas id="c-top10"></canvas></div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="report-header">
+            <div><div class="card-title">Lost lead analysis</div><div class="card-sub" style="font-size:11px;color:var(--text3);margin-top:2px">Detailed breakdown of all lost opportunities</div></div>
+            <button onclick="sendPrompt('Give me a detailed analysis of our lost leads and suggest strategies to improve win rate')" style="font-size:12px;padding:6px 12px;border:1px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text2);cursor:pointer;font-family:var(--font)">Analyse with AI ↗</button>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Tender Name</th><th>Customer</th><th>Domain</th><th>Value (Cr)</th><th>Competitor</th><th>Reason</th><th>Date</th></tr></thead>
+            <tbody>
+              <tr><td>Coastal Radar Network</td><td>Indian Navy</td><td>Defence</td><td class="num">₹45.20</td><td>DRDO Pvt</td><td>Higher price quoted</td><td class="num">Jan '26</td></tr>
+              <tr><td>Urban CCTV Phase 3</td><td>Delhi Police</td><td>Civil</td><td class="num">₹12.80</td><td>TechVision</td><td>Technical spec mismatch</td><td class="num">Dec '25</td></tr>
+              <tr><td>Border Telecom Grid</td><td>BSF</td><td>Defence</td><td class="num">₹78.50</td><td>BEL</td><td>L2 — price difference ₹3.2Cr</td><td class="num">Nov '25</td></tr>
+              <tr><td>Port Surveillance System</td><td>Mumbai Port Trust</td><td>Civil</td><td class="num">₹22.40</td><td>Honeywell</td><td>Not participated — resource constraint</td><td class="num">Oct '25</td></tr>
+              <tr><td>Airfield Security NIT</td><td>AAI</td><td>Civil</td><td class="num">₹18.90</td><td>G4S</td><td>Lost on delivery timeline</td><td class="num">Sep '25</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="analysis-view" style="display:none">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">Avg Deal Size (Cr)</div><div class="kpi-val">₹19.3</div><div class="kpi-delta up">+₹2.1 vs last FY</div></div>
+          <div class="kpi"><div class="kpi-label">BQ Conversion</div><div class="kpi-val">48%</div><div class="kpi-delta up">+4% vs last FY</div></div>
+          <div class="kpi"><div class="kpi-label">Pipeline Value (Cr)</div><div class="kpi-val">₹312</div><div class="kpi-delta neutral">Active leads</div></div>
+          <div class="kpi"><div class="kpi-label">Avg Lead Age (days)</div><div class="kpi-val">47</div><div class="kpi-delta down">+6 vs last FY</div></div>
+          <div class="kpi"><div class="kpi-label">Export Leads</div><div class="kpi-val">18</div><div class="kpi-delta up">+5 vs last FY</div></div>
+          <div class="kpi"><div class="kpi-label">Sole Bidding</div><div class="kpi-val">62%</div><div class="kpi-delta up">+8% vs last FY</div></div>
+        </div>
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">BQ conversion funnel</div><div class="card-sub">BQs submitted → Leads → Orders won</div></div><span class="chip blue">Funnel</span></div>
+            <div class="chart-wrap h240"><canvas id="c-funnel"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Order value distribution</div><div class="card-sub">By deal size band (Cr)</div></div><span class="chip amber">Distribution</span></div>
+            <div class="chart-wrap h240"><canvas id="c-dist"></canvas></div>
+          </div>
+        </div>
+        <div class="charts-grid2">
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Quarter-on-quarter orders</div><div class="card-sub">Q1–Q4 current vs previous FY</div></div></div>
+            <div class="chart-wrap h200"><canvas id="c-qoq"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Tender type breakdown</div><div class="card-sub">Open / Limited / Single Source etc.</div></div></div>
+            <div class="chart-wrap h200"><canvas id="c-ttype"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Lead owner performance</div><div class="card-sub">Won value per team member (Cr)</div></div></div>
+            <div class="chart-wrap h200"><canvas id="c-owner"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="pipeline-view" style="display:none">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">Open Leads</div><div class="kpi-val">42</div><div class="kpi-delta neutral">Across 5 stages</div></div>
+          <div class="kpi"><div class="kpi-label">Pre-bid Pending</div><div class="kpi-val">8</div><div class="kpi-delta amber">This month</div></div>
+          <div class="kpi"><div class="kpi-label">Submissions Due</div><div class="kpi-val">5</div><div class="kpi-delta down">Next 7 days</div></div>
+          <div class="kpi"><div class="kpi-label">Corrigendums</div><div class="kpi-val">12</div><div class="kpi-delta neutral">Active tenders</div></div>
+          <div class="kpi"><div class="kpi-label">Consortium Deals</div><div class="kpi-val">11</div><div class="kpi-delta up">+3 vs last FY</div></div>
+          <div class="kpi"><div class="kpi-label">Expected Win (Cr)</div><div class="kpi-val">₹98</div><div class="kpi-delta up">Weighted pipeline</div></div>
+        </div>
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Pipeline by present status</div><div class="card-sub">All open leads grouped by current stage</div></div><span class="chip blue">Live</span></div>
+            <div class="chart-wrap h240"><canvas id="c-pipeline"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Pipeline value by domain (Cr)</div><div class="card-sub">Expected value of open leads per domain</div></div></div>
+            <div class="legend-row">
+              <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>Civil</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#7c3aed"></span>Defence</span>
+            </div>
+            <div class="chart-wrap h240"><canvas id="c-pipedom"></canvas></div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="report-header"><div><div class="card-title">Upcoming submission deadlines</div><div class="card-sub" style="font-size:11px;color:var(--text3);margin-top:2px">Next 30 days — action required</div></div></div>
+          <table class="tbl">
+            <thead><tr><th>Tender Name</th><th>Customer</th><th>Type</th><th>Value (Cr)</th><th>Deadline</th><th>Owner</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Army Comms Upgrade</td><td>MoD</td><td>Open</td><td class="num">₹92.00</td><td class="num" style="color:#dc2626">22 Mar '26</td><td>Rajan K</td><td><span class="status active">In progress</span></td></tr>
+              <tr><td>Highway Surveillance</td><td>NHAI</td><td>Limited</td><td class="num">₹28.50</td><td class="num" style="color:#d97706">28 Mar '26</td><td>Priya S</td><td><span class="status pending">Pending docs</span></td></tr>
+              <tr><td>Port Radar System</td><td>Paradip Port</td><td>Open</td><td class="num">₹41.20</td><td class="num">05 Apr '26</td><td>Anil M</td><td><span class="status active">In progress</span></td></tr>
+              <tr><td>Airbase CCTV Upgrade</td><td>IAF</td><td>Single Source</td><td class="num">₹15.80</td><td class="num">10 Apr '26</td><td>Rajan K</td><td><span class="status won">Draft ready</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="content" id="monitoring-view" style="display:none">
+      <div class="section-title">Live system monitoring</div>
+      <div class="monitoring-grid">
+        <div class="monitor-card"><div class="monitor-top"><div><div class="monitor-label">System Status</div></div><div class="pulse"></div></div><div class="monitor-val" style="color:var(--green)">Online</div><div class="monitor-label">All systems operational</div></div>
+        <div class="monitor-card"><div class="monitor-top"><div><div class="monitor-label">Active Users</div></div><span class="chip blue">Live</span></div><div class="monitor-val">7</div><div class="monitor-label">Marketing team online</div></div>
+        <div class="monitor-card"><div class="monitor-top"><div><div class="monitor-label">Records Today</div></div><span class="chip green">+12</span></div><div class="monitor-val">12</div><div class="monitor-label">New entries added today</div></div>
+        <div class="monitor-card"><div class="monitor-top"><div><div class="monitor-label">Docs Uploaded</div></div><span class="chip amber">Today</span></div><div class="monitor-val">5</div><div class="monitor-label">PDF files stored</div></div>
+      </div>
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Data entry activity — last 30 days</div><div class="card-sub">Records added per day across all modules</div></div></div>
+          <div class="legend-row">
+            <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>BQ</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#0d9488"></span>Leads</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#7c3aed"></span>Orders</span>
+          </div>
+          <div class="chart-wrap h240"><canvas id="c-activity"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Module usage breakdown</div><div class="card-sub">Record count per module this month</div></div></div>
+          <div class="chart-wrap h240"><canvas id="c-modules"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content" id="reports-view" style="display:none">
+      <div class="section-title">Monthly reports — select a month</div>
+      <div class="month-report">
+        <div class="report-header">
+          <div><div class="card-title">FY 2025–26 monthly breakdown</div><div class="card-sub" style="font-size:11px;color:var(--text3);margin-top:2px">Click any month to see detailed report</div></div>
+          <button onclick="sendPrompt('Generate a detailed monthly performance report for the Marketing Portal for the month I selected')" style="font-size:12px;padding:6px 12px;border:1px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text2);cursor:pointer;font-family:var(--font)">Generate Report ↗</button>
+        </div>
+        <div class="month-grid" id="month-grid"></div>
+        <div class="month-detail" id="month-detail"></div>
+      </div>
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Monthly order value (Cr)</div><div class="card-sub">This financial year — month by month</div></div></div>
+          <div class="chart-wrap h240"><canvas id="c-monthly-val"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Monthly leads vs BQs</div><div class="card-sub">Comparison this financial year</div></div>
+          <div class="legend-row" style="margin-top:8px">
+            <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>Leads</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#7c3aed"></span>BQs</span>
+          </div>
+          </div>
+          <div class="chart-wrap h240"><canvas id="c-monthly-lb"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content" id="yearly-view" style="display:none">
+      <div class="section-title">Yearly analysis — all financial years</div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Best Year (Orders)</div><div class="kpi-val">FY 24-25</div><div class="kpi-delta up">128 orders</div></div>
+        <div class="kpi"><div class="kpi-label">Best Year (Value)</div><div class="kpi-val">FY 25-26</div><div class="kpi-delta up">₹247 Cr</div></div>
+        <div class="kpi"><div class="kpi-label">5-yr CAGR</div><div class="kpi-val">18.4%</div><div class="kpi-delta up">Order value</div></div>
+        <div class="kpi"><div class="kpi-label">Total 5-yr Value</div><div class="kpi-val">₹892 Cr</div><div class="kpi-delta neutral">All orders</div></div>
+        <div class="kpi"><div class="kpi-label">Peak Win Rate</div><div class="kpi-val">38%</div><div class="kpi-delta neutral">FY 23-24</div></div>
+        <div class="kpi"><div class="kpi-label">Avg Orders/Year</div><div class="kpi-val">102</div><div class="kpi-delta up">+15% trend</div></div>
+      </div>
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Year-on-year order value growth</div><div class="card-sub">Value in Crores — 5 financial years</div></div><span class="chip green">CAGR 18.4%</span></div>
+          <div class="chart-wrap h260"><canvas id="c-yoy-val"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Win rate trend</div><div class="card-sub">Percentage of leads won per year</div></div></div>
+          <div class="chart-wrap h260"><canvas id="c-yoy-wr"></canvas></div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="report-header"><div><div class="card-title">Year-on-year summary table</div><div class="card-sub" style="font-size:11px;color:var(--text3);margin-top:2px">All key metrics by financial year</div></div></div>
+        <table class="tbl">
+          <thead><tr><th>Financial Year</th><th>BQs</th><th>Leads</th><th>Orders</th><th>Order Value (Cr)</th><th>Win Rate</th><th>Lost Leads</th><th>Growth</th></tr></thead>
+          <tbody>
+            <tr><td class="num">FY 2025–26</td><td class="num">67</td><td class="num">112</td><td class="num">128</td><td class="num">₹247</td><td class="num">34%</td><td class="num">38</td><td><span class="status won">+18.7%</span></td></tr>
+            <tr><td class="num">FY 2024–25</td><td class="num">58</td><td class="num">98</td><td class="num">105</td><td class="num">₹208</td><td class="num">31%</td><td class="num">33</td><td><span class="status won">+14.3%</span></td></tr>
+            <tr><td class="num">FY 2023–24</td><td class="num">52</td><td class="num">89</td><td class="num">92</td><td class="num">₹182</td><td class="num">38%</td><td class="num">28</td><td><span class="status won">+12.1%</span></td></tr>
+            <tr><td class="num">FY 2022–23</td><td class="num">45</td><td class="num">76</td><td class="num">82</td><td class="num">₹162</td><td class="num">29%</td><td class="num">31</td><td><span class="status active">+9.5%</span></td></tr>
+            <tr><td class="num">FY 2021–22</td><td class="num">38</td><td class="num">64</td><td class="num">75</td><td class="num">₹148</td><td class="num">27%</td><td class="num">26</td><td><span class="status pending">Baseline</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="content" id="other-views" style="display:none">
+      <div style="padding:60px;text-align:center;color:var(--text3)">
+        <div style="font-size:32px;margin-bottom:12px">&#9685;</div>
+        <div style="font-size:15px;font-weight:500;color:var(--text2);margin-bottom:6px">Module coming soon</div>
+        <div style="font-size:13px">Navigate to Dashboard, Monitoring, Monthly Reports, or Yearly Analysis using the sidebar.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const MONTHS = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const monthData = [
+  {orders:8,leads:9,bqs:5,value:18.2,won:3,lost:2},
+  {orders:6,leads:7,bqs:4,value:14.5,won:2,lost:2},
+  {orders:10,leads:11,bqs:6,value:22.8,won:4,lost:3},
+  {orders:9,leads:10,bqs:5,value:19.4,won:3,lost:2},
+  {orders:12,leads:13,bqs:7,value:28.1,won:5,lost:3},
+  {orders:8,leads:9,bqs:5,value:16.9,won:3,lost:2},
+  {orders:11,leads:12,bqs:6,value:24.3,won:4,lost:3},
+  {orders:13,leads:14,bqs:8,value:30.2,won:5,lost:4},
+  {orders:9,leads:10,bqs:5,value:18.7,won:3,lost:2},
+  {orders:14,leads:15,bqs:8,value:32.5,won:6,lost:4},
+  {orders:10,leads:11,bqs:6,value:21.4,won:4,lost:3},
+  {orders:18,leads:1,bqs:8,value:0,won:0,lost:0}
+];
+let selMonth = 9;
+let charts = {};
+let chartsInit = {};
+
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function makeChart(id, cfg){
+  const el = document.getElementById(id);
+  if(!el) return;
+  destroyChart(id);
+  charts[id] = new Chart(el, cfg);
+}
+
+const gridColor = '#e4e8ef';
+const baseOpts = {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},scales:{x:{grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}}}}};
+
+function initOverview(){
+  if(chartsInit.overview) return; chartsInit.overview=true;
+
+  makeChart('c-5yr',{type:'bar',data:{labels:['FY 21-22','FY 22-23','FY 23-24','FY 24-25','FY 25-26'],datasets:[{label:'Orders',data:[75,82,92,105,128],backgroundColor:'#2563eb',borderRadius:4,order:2},{label:'Value (Cr)',data:[148,162,182,208,247],type:'line',borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.1)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#7c3aed',order:1,yAxisID:'y2'}]},options:{...baseOpts,scales:{x:{grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}}},y2:{position:'right',grid:{display:false},ticks:{color:'#7c3aed',font:{size:11}}}}}});
+
+  makeChart('c-outcome',{type:'doughnut',data:{labels:['Won','Lost','Participated','Not-Part.'],datasets:[{data:[34,22,30,14],backgroundColor:['#16a34a','#dc2626','#2563eb','#d97706'],borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}});
+
+  makeChart('c-trend',{type:'line',data:{labels:MONTHS,datasets:[{label:'FY 25-26',data:[8,6,10,9,12,8,11,13,9,14,10,18],borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',tension:.4,fill:true,pointRadius:3},{label:'FY 24-25',data:[6,5,8,7,9,6,9,10,7,11,8,14],borderColor:'#d1d5db',borderDash:[4,3],tension:.4,fill:false,pointRadius:0}]},options:{...baseOpts}});
+
+  makeChart('c-civdef',{type:'bar',data:{labels:['Leads','Orders','BQs'],datasets:[{label:'Civil',data:[68,78,55],backgroundColor:'#2563eb',borderRadius:4},{label:'Defence',data:[44,50,30],backgroundColor:'#7c3aed',borderRadius:4}]},options:{...baseOpts,scales:{x:{stacked:false,grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}}},y:{stacked:false,grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}}}}}});
+
+  makeChart('c-subtypes',{type:'doughnut',data:{labels:['Submitted','Domestic','Export','CRM Lead','Lost Lead'],datasets:[{data:[28,35,18,14,17],backgroundColor:['#2563eb','#0d9488','#7c3aed','#d97706','#dc2626'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'60%'}});
+
+  makeChart('c-domain',{type:'bar',data:{labels:['Radar','Telecom','CCTV','Comms','Power','IT'],datasets:[{label:'Won',data:[12,8,15,6,5,9],backgroundColor:'#16a34a',borderRadius:4},{label:'Lost',data:[5,4,7,3,2,4],backgroundColor:'#dc2626',borderRadius:4}]},options:{...baseOpts,indexAxis:'x',scales:{x:{stacked:false,grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}}},y:{stacked:false,grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}}}}}});
+
+  makeChart('c-top10',{type:'bar',data:{labels:['MoD','BEL','ONGC','DRDO','NHAI','BSF','AAI','BSNL','RVNL','GAIL'],datasets:[{data:[82,68,54,48,42,38,34,28,22,18],backgroundColor:'rgba(37,99,235,.15)',borderColor:'#2563eb',borderWidth:1.5,borderRadius:4}]},options:{...baseOpts,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11},callback:v=>'₹'+v+'Cr'}},y:{grid:{display:false},ticks:{color:'#8892a4',font:{size:11}}}}}});
+}
+
+function initAnalysis(){
+  if(chartsInit.analysis) return; chartsInit.analysis=true;
+
+  makeChart('c-funnel',{type:'bar',data:{labels:['BQs Submitted','Converted to Lead','Submitted to Tender','Won Order'],datasets:[{data:[67,48,38,26],backgroundColor:['#dbeafe','#93c5fd','#3b82f6','#2563eb'],borderRadius:6,barPercentage:.6}]},options:{...baseOpts,indexAxis:'x',plugins:{legend:{display:false}}}});
+
+  makeChart('c-dist',{type:'bar',data:{labels:['<5 Cr','5–20 Cr','20–50 Cr','50–100 Cr','>100 Cr'],datasets:[{data:[12,38,45,25,8],backgroundColor:'rgba(124,58,237,.15)',borderColor:'#7c3aed',borderWidth:1.5,borderRadius:5,barPercentage:.7}]},options:{...baseOpts,plugins:{legend:{display:false}}}});
+
+  makeChart('c-qoq',{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'FY 25-26',data:[24,29,33,42],backgroundColor:'#2563eb',borderRadius:4},{label:'FY 24-25',data:[20,24,28,33],backgroundColor:'rgba(37,99,235,.25)',borderRadius:4}]},options:{...baseOpts}});
+
+  makeChart('c-ttype',{type:'doughnut',data:{labels:['Open','Limited','Single Source','Nomination','Rate Contract'],datasets:[{data:[38,22,18,12,10],backgroundColor:['#2563eb','#0d9488','#7c3aed','#d97706','#9ca3af'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'58%'}});
+
+  makeChart('c-owner',{type:'bar',data:{labels:['Rajan K','Priya S','Anil M','Deepa R','Sanjay V'],datasets:[{data:[68,52,44,38,28],backgroundColor:'rgba(13,148,136,.15)',borderColor:'#0d9488',borderWidth:1.5,borderRadius:4,barPercentage:.6}]},options:{...baseOpts,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11},callback:v=>'₹'+v+'Cr'}},y:{grid:{display:false},ticks:{color:'#8892a4',font:{size:11}}}}}});
+}
+
+function initPipeline(){
+  if(chartsInit.pipeline) return; chartsInit.pipeline=true;
+
+  makeChart('c-pipeline',{type:'bar',data:{labels:['Identified','In Prep','Submitted','Eval.','Pre-bid'],datasets:[{data:[12,9,11,6,4],backgroundColor:['#dbeafe','#93c5fd','#3b82f6','#1d4ed8','#1e3a8a'],borderRadius:5,barPercentage:.6}]},options:{...baseOpts,plugins:{legend:{display:false}}}});
+
+  makeChart('c-pipedom',{type:'bar',data:{labels:['Radar','Telecom','CCTV','Comms','Power'],datasets:[{label:'Civil',data:[18,24,32,14,8],backgroundColor:'#2563eb',borderRadius:4},{label:'Defence',data:[45,18,12,28,10],backgroundColor:'#7c3aed',borderRadius:4}]},options:{...baseOpts,scales:{x:{stacked:false,grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}}},y:{stacked:false,grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}},callback:v=>'₹'+v+'Cr'}}}});
+}
+
+function initMonitoring(){
+  if(chartsInit.monitoring) return; chartsInit.monitoring=true;
+
+  const days = Array.from({length:30},(_,i)=>{const d=new Date(); d.setDate(d.getDate()-29+i); return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});});
+  const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  makeChart('c-activity',{type:'bar',data:{labels:days,datasets:[{label:'BQ',data:days.map(()=>rnd(0,3)),backgroundColor:'rgba(37,99,235,.7)',borderRadius:2,stack:'s'},{label:'Leads',data:days.map(()=>rnd(1,5)),backgroundColor:'rgba(13,148,136,.7)',borderRadius:2,stack:'s'},{label:'Orders',data:days.map(()=>rnd(0,2)),backgroundColor:'rgba(124,58,237,.7)',borderRadius:2,stack:'s'}]},options:{...baseOpts,scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#8892a4',font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:10}},y:{stacked:true,grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11}}}}}});
+
+  makeChart('c-modules',{type:'doughnut',data:{labels:['Lead Mgmt','Orders','BQ','R&D'],datasets:[{data:[48,28,18,6],backgroundColor:['#2563eb','#0d9488','#7c3aed','#d97706'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'62%'}});
+}
+
+function initReports(){
+  if(chartsInit.reports) return; chartsInit.reports=true;
+
+  renderMonthGrid();
+
+  makeChart('c-monthly-val',{type:'bar',data:{labels:MONTHS,datasets:[{data:monthData.map(m=>m.value),backgroundColor:monthData.map((_,i)=>i===selMonth?'#2563eb':'rgba(37,99,235,.35)'),borderRadius:5,barPercentage:.7}]},options:{...baseOpts,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#8892a4',font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11},callback:v=>'₹'+v}}}}});
+
+  makeChart('c-monthly-lb',{type:'bar',data:{labels:MONTHS,datasets:[{label:'Leads',data:monthData.map(m=>m.leads),backgroundColor:'rgba(37,99,235,.8)',borderRadius:4},{label:'BQs',data:monthData.map(m=>m.bqs),backgroundColor:'rgba(124,58,237,.8)',borderRadius:4}]},options:{...baseOpts}});
+}
+
+function initYearly(){
+  if(chartsInit.yearly) return; chartsInit.yearly=true;
+
+  makeChart('c-yoy-val',{type:'bar',data:{labels:['FY 21-22','FY 22-23','FY 23-24','FY 24-25','FY 25-26'],datasets:[{label:'Value (Cr)',data:[148,162,182,208,247],backgroundColor:['rgba(37,99,235,.25)','rgba(37,99,235,.4)','rgba(37,99,235,.55)','rgba(37,99,235,.75)','#2563eb'],borderRadius:6,barPercentage:.65}]},options:{...baseOpts,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#8892a4',font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11},callback:v=>'₹'+v+'Cr'}}}}});
+
+  makeChart('c-yoy-wr',{type:'line',data:{labels:['FY 21-22','FY 22-23','FY 23-24','FY 24-25','FY 25-26'],datasets:[{data:[27,29,38,31,34],borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.08)',tension:.4,fill:true,pointRadius:5,pointBackgroundColor:'#16a34a',pointBorderColor:'#fff',pointBorderWidth:2}]},options:{...baseOpts,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#8892a4',font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:'#8892a4',font:{size:11},callback:v=>v+'%'},min:20,max:45}}}});
+}
+
+function renderMonthGrid(){
+  const grid = document.getElementById('month-grid');
+  if(!grid) return;
+  const maxV = Math.max(...monthData.map(m=>m.value));
+  grid.innerHTML = MONTHS.map((m,i)=>`
+    <div class="month-col ${i===selMonth?'active':''}" onclick="selectMonth(${i})">
+      <div class="month-name">${m}</div>
+      <div class="month-val">${monthData[i].orders}</div>
+      <div class="month-bar" style="width:${Math.round(monthData[i].value/maxV*100)}%;background:${i===selMonth?'#2563eb':'#93c5fd'}"></div>
+    </div>`).join('');
+  renderMonthDetail(selMonth);
+}
+
+function selectMonth(i){
+  selMonth=i;
+  renderMonthGrid();
+}
+
+function renderMonthDetail(i){
+  const d=monthData[i];
+  const el=document.getElementById('month-detail');
+  if(!el) return;
+  el.innerHTML=`
+    <div class="md-item"><div class="md-label">Orders</div><div class="md-val">${d.orders}</div><div class="md-sub">Received in ${MONTHS[i]}</div></div>
+    <div class="md-item"><div class="md-label">Order Value</div><div class="md-val">₹${d.value} Cr</div><div class="md-sub">Excl. GST</div></div>
+    <div class="md-item"><div class="md-label">Leads</div><div class="md-val">${d.leads}</div><div class="md-sub">New this month</div></div>
+    <div class="md-item"><div class="md-label">BQs Submitted</div><div class="md-val">${d.bqs}</div><div class="md-sub">Budgetary quotations</div></div>
+    <div class="md-item"><div class="md-label">Won</div><div class="md-val" style="color:var(--green)">${d.won}</div><div class="md-sub">Leads won</div></div>
+    <div class="md-item"><div class="md-label">Lost</div><div class="md-val" style="color:var(--red)">${d.lost}</div><div class="md-sub">Leads lost</div></div>
+    <div class="md-item"><div class="md-label">Win Rate</div><div class="md-val">${d.leads>0?Math.round(d.won/d.leads*100):0}%</div><div class="md-sub">This month</div></div>
+    <div class="md-item"><div class="md-label">Month</div><div class="md-val">${MONTHS[i]}</div><div class="md-sub">FY 2025–26</div></div>`;
+}
+
+const views = {
+  dashboard: {el:'dashboard-view', init:null, title:'Analytics Dashboard', tabs:['Overview','Analysis','Pipeline'], section:'dashboard'},
+  monitoring: {el:'monitoring-view', init:'monitoring', title:'System Monitoring', tabs:['Live'], section:'monitoring'},
+  reports: {el:'reports-view', init:'reports', title:'Monthly Reports', tabs:['FY 2025-26'], section:'reports'},
+  yearly: {el:'yearly-view', init:'yearly', title:'Yearly Analysis', tabs:['5-Year View'], section:'yearly'},
+  other: {el:'other-views', init:null, title:'Module', tabs:[], section:'other'}
+};
+
+const allViews = ['dashboard-view','monitoring-view','reports-view','yearly-view','other-views'];
+
+function showSection(sec){
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  const btn = [...document.querySelectorAll('.nav-item')].find(b=>b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+sec+"'"));
+  if(btn) btn.classList.add('active');
+
+  const vkey = ['dashboard','monitoring','reports','yearly'].includes(sec)?sec:'other';
+  const v = views[vkey];
+
+  allViews.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display = id===v.el?'':'none';
+  });
+
+  document.getElementById('page-title').textContent = v.title;
+
+  const tabRow = document.getElementById('tab-row');
+  if(v.tabs.length===0){tabRow.style.display='none';}
+  else{
+    tabRow.style.display='flex';
+    tabRow.innerHTML = v.tabs.map((t,i)=>`<button class="tab ${i===0?'active':''}" onclick="switchTab(this,'${t.toLowerCase().replace(/\s/g,'-')}')">${t}</button>`).join('');
+  }
+
+  if(v.init==='monitoring') setTimeout(initMonitoring,80);
+  else if(v.init==='reports') setTimeout(initReports,80);
+  else if(v.init==='yearly') setTimeout(initYearly,80);
+}
+
+function switchTab(btn, tab){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const views3=['overview','analysis','pipeline'];
+  if(views3.includes(tab)){
+    views3.forEach(v=>{
+      const el=document.getElementById(v+'-view');
+      if(el) el.style.display = v===tab?'':'none';
+    });
+    if(tab==='overview') setTimeout(initOverview,80);
+    else if(tab==='analysis') setTimeout(initAnalysis,80);
+    else if(tab==='pipeline') setTimeout(initPipeline,80);
+  }
+}
+
+function updateFY(val){
+  const fyData = {
+    '2026':{queue:42,orders:128,value:'₹247',bq:67,wr:'34%',lost:38},
+    '2025':{queue:35,orders:105,value:'₹208',bq:58,wr:'31%',lost:33},
+    '2024':{queue:28,orders:92,value:'₹182',bq:52,wr:'38%',lost:28},
+    '2023':{queue:22,orders:82,value:'₹162',bq:45,wr:'29%',lost:31},
+    '2022':{queue:18,orders:75,value:'₹148',bq:38,wr:'27%',lost:26}
+  };
+  const d=fyData[val]||fyData['2026'];
+  document.getElementById('k-queue').textContent=d.queue;
+  document.getElementById('k-orders').textContent=d.orders;
+  document.getElementById('k-value').textContent=d.value;
+  document.getElementById('k-bq').textContent=d.bq;
+  document.getElementById('k-wr').textContent=d.wr;
+  document.getElementById('k-lost').textContent=d.lost;
+}
+
+setTimeout(()=>{
+  initOverview();
+  document.getElementById('monitoring-view').style.display='none';
+  document.getElementById('reports-view').style.display='none';
+  document.getElementById('yearly-view').style.display='none';
+  document.getElementById('other-views').style.display='none';
+  document.getElementById('analysis-view').style.display='none';
+  document.getElementById('pipeline-view').style.display='none';
+},200);
+</script>
