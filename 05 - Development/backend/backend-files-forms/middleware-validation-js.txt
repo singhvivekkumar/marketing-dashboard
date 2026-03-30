@@ -1,0 +1,44 @@
+// middleware/validation.js - Input Validation
+
+const validateEmail = (email) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
+};
+
+const validateNumber = (value, min = 0, max = Infinity) => {
+  const num = parseFloat(value);
+  return !isNaN(num) && num >= min && num <= max;
+};
+
+const validateDate = (date) => {
+  const d = new Date(date);
+  return d instanceof Date && !isNaN(d);
+};
+
+const validateRequiredFields = (data, requiredFields) => {
+  const missing = requiredFields.filter(field => !data[field]);
+  return {
+    isValid: missing.length === 0,
+    missingFields: missing
+  };
+};
+
+const sanitizeInput = (data) => {
+  const sanitized = {};
+  for (const key in data) {
+    if (typeof data[key] === 'string') {
+      sanitized[key] = data[key].trim();
+    } else {
+      sanitized[key] = data[key];
+    }
+  }
+  return sanitized;
+};
+
+module.exports = {
+  validateEmail,
+  validateNumber,
+  validateDate,
+  validateRequiredFields,
+  sanitizeInput
+};

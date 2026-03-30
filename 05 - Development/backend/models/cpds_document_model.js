@@ -14,7 +14,7 @@ export const CpdsDocumentModel = (sequelize, DataTypes) => {
         // type: DataTypes.UUID,
         // allowNull: false
       },
-      documentType: {
+      documentYear: {
         type: DataTypes.STRING(50),
         // allowNull: false
       },

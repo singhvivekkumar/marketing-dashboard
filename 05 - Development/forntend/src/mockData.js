@@ -29,11 +29,11 @@ export const fiveYearData = [
   { fy: 'FY 22-23', orders: 82, value: 162 },
   { fy: 'FY 23-24', orders: 92, value: 182 },
   { fy: 'FY 24-25', orders: 105, value: 208 },
-  { fy: 'FY 25-26', orders: 128, value: 247 },
+  { fy: 'FY 25-26', orders: 128, value: 247 }, 
 ];
 
 export const leadOutcomesData = [
-  { name: 'Won', value: 34, color: '#16a34a' },
+  // { name: 'Won', value: 34, color: '#16a34a' },
   { name: 'Lost', value: 22, color: '#dc2626' },
   { name: 'Participated', value: 30, color: '#2563eb' },
   { name: 'Not-Part.', value: 14, color: '#d97706' },
@@ -54,10 +54,16 @@ export const monthlyTrendData = [
   { month: 'Mar', 'FY 25-26': 18, 'FY 24-25': 14 },
 ];
 
-export const civilDefenceData = [
-  { category: 'Leads', Civil: 68, Defence: 44 },
-  { category: 'Orders', Civil: 78, Defence: 50 },
-  { category: 'BQs', Civil: 55, Defence: 30 },
+export const defenceNonDefenceData = [
+  { category: 'Leads', nonDefence: 68, defence: 44 },
+  { category: 'Orders', nonDefence: 78, defence: 50 },
+  { category: 'BQs', nonDefence: 55, defence: 30 },
+];
+
+export const domesticLeadTypesData = [
+  { name: 'ST', value: 28, color: '#2563eb' },
+  { name: 'LT', value: 14, color: '#d97706' },
+  { name: 'MT', value: 17, color: '#0d9488' },
 ];
 
 export const leadSubTypesData = [
@@ -151,7 +157,7 @@ export const bqConversionFunnelData = [
 ];
 
 export const orderValueDistributionData = [
-  { band: '<5 Cr', count: 12 },
+  { band: '<10 Cr', count: 12 },
   { band: '5–20 Cr', count: 38 },
   { band: '20–50 Cr', count: 45 },
   { band: '50–100 Cr', count: 25 },
@@ -165,12 +171,11 @@ export const quarterlyData = [
   { quarter: 'Q4', 'FY 25-26': 42, 'FY 24-25': 33 },
 ];
 
-export const tenderTypeData = [
-  { name: 'Open', value: 38, color: '#2563eb' },
-  { name: 'Limited', value: 22, color: '#0d9488' },
-  { name: 'Single Source', value: 18, color: '#7c3aed' },
-  { name: 'Nomination', value: 12, color: '#d97706' },
-  { name: 'Rate Contract', value: 10, color: '#9ca3af' },
+export const documentTypeData = [
+  { name: 'RFP', value: 38, color: '#2563eb' },
+  { name: 'RFQ', value: 22, color: '#0d9488' },
+  { name: 'RFI', value: 18, color: '#7c3aed' },
+  { name: 'NIT', value: 12, color: '#d97706' },
 ];
 
 export const leadOwnerData = [
@@ -327,3 +332,76 @@ export const moduleUsageData = [
   { name: 'BQ', value: 18, color: '#7c3aed' },
   { name: 'R&D', value: 6, color: '#d97706' },
 ];
+
+export const tenderLifecycle = [
+  {
+    id: 'tl-1',
+    leadId: 'lead-101',
+    tenderReference: 'NIT-2026-045',
+    tenderName: 'Coastal Radar Network',
+    customer: 'Indian Navy',
+    current_stage: 'Document Study',
+    stage_entered_at: '2026-02-12',
+    stage_due_date: '2026-03-05',
+    stage_owner: 'Rajan K',
+    estimated_cost_cr: 45.2,
+    bid_price_cr: 47.5,
+    priority: 'High',
+    health_status: 'Amber',
+    is_overdue: false,
+    days_in_current_stage: 10,
+    history: [
+      { from: null, to: 'Identified', at: '2026-01-10', by: 'system', notes: 'Imported from portal' },
+      { from: 'Identified', to: 'Qualifying', at: '2026-01-12', by: 'Rajan K', notes: 'Initial review' },
+      { from: 'Qualifying', to: 'Document Study', at: '2026-02-01', by: 'Priya S', notes: 'Go decision' },
+    ],
+    actions: [
+      { id: 'a1', title: 'Download BOQ & Drawings', stage: 'Document Study', is_mandatory: true, is_completed: true, completed_by: 'Priya S', completed_at: '2026-02-03' },
+      { id: 'a2', title: 'Identify Clarifications', stage: 'Document Study', is_mandatory: true, is_completed: false, assigned_to: 'Anil M', due_date: '2026-03-05' },
+    ],
+    corrigendums: [],
+    competitors: [
+      { id: 'c1', competitor_name: 'DRDO Pvt', is_consortium: false, last_bid_price_cr: 44.0 },
+    ],
+    consortium: [],
+    alerts: [
+      { id: 'al1', alert_type: 'Submission Deadline', title: 'Submission due', message: 'Submission due in 3 days', due_date: '2026-03-05', days_before: 3, severity: 'Warning' },
+    ],
+  },
+  {
+    id: 'tl-2',
+    leadId: 'lead-117',
+    tenderReference: 'GEM-2026-011',
+    tenderName: 'Port Surveillance System',
+    customer: 'Mumbai Port Trust',
+    current_stage: 'Bid Submission',
+    stage_entered_at: '2026-02-20',
+    stage_due_date: '2026-03-12',
+    stage_owner: 'Anil M',
+    estimated_cost_cr: 22.4,
+    bid_price_cr: 21.8,
+    priority: 'Normal',
+    health_status: 'Green',
+    is_overdue: false,
+    days_in_current_stage: 4,
+    history: [
+      { from: null, to: 'Identified', at: '2026-01-05', by: 'system' },
+      { from: 'Identified', to: 'Qualifying', at: '2026-01-08', by: 'Deepa R' },
+      { from: 'Document Study', to: 'Bid Submission', at: '2026-02-20', by: 'Anil M' },
+    ],
+    actions: [
+      { id: 'b1', title: 'Upload EMD receipt', stage: 'Bid Submission', is_mandatory: true, is_completed: true, completed_by: 'Anil M', completed_at: '2026-02-22' },
+      { id: 'b2', title: 'Portal upload', stage: 'Bid Submission', is_mandatory: true, is_completed: false, assigned_to: 'Rajan K', due_date: '2026-03-12' },
+    ],
+    corrigendums: [
+      { id: 'corr1', corrigendum_no: 1, issued_date: '2026-02-28', description: 'Deadline extended by 10 days', impact: 'Deadline Extended', new_deadline: '2026-03-22', extension_days: 10 },
+    ],
+    competitors: [
+      { id: 'c2', competitor_name: 'Honeywell', is_consortium: false, last_bid_price_cr: 20.5 },
+    ],
+    consortium: [],
+    alerts: [],
+  },
+];
+
+export const getTenderById = (id) => tenderLifecycle.find((t) => t.id === id) || null;

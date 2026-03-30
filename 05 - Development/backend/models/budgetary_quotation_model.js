@@ -16,7 +16,6 @@ export const BudgetaryQuotationModel = (sequelize, Sequelize) => {
         customerAddress: {
           type: Sequelize.STRING,
         },
-  
         leadOwner: {
           type: Sequelize.STRING,
         },
@@ -56,7 +55,16 @@ export const BudgetaryQuotationModel = (sequelize, Sequelize) => {
         OperatorSBU: {
           type: Sequelize.STRING,
         },
-  
+        // field
+        FileName: {
+          type: Sequelize.JSON
+        },
+        FilePath: {
+          type: Sequelize.JSON
+        },
+        HardDiskFileName: {
+          type: Sequelize.JSON
+        },
   
     });
   

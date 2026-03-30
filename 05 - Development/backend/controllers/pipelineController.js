@@ -1,15 +1,26 @@
+
 /**
- * Analytics Controller
- * Handles requests for analytics data: trends, distributions, comparisons
+ * Pipeline Controller
+ * Handles requests for pipeline data: status, deadlines, value by domain
  */
 
-const analyticsService = require('../services/analyticsService');
+import pipelineService from "../services/pipelineService.js"; // Note the .js extension
 
-class AnalyticsController {
-  // GET /api/analytics/five-year-trend
-  getFiveYearTrend(req, res) {
+// Format response helper based on guide
+const sendResponse = (res, data, message = "Operation successful") => {
+  res.status(200).json({
+    success: true,
+    message,
+    data,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+class PipelineController {
+  // GET /api/pipeline/status
+  getPipelineStatus(req, res) {
     try {
-      const data = analyticsService.getFiveYearTrend();
+      const data = pipelineService.getPipelineStatus();
 
       res.json({
         success: true,
@@ -23,81 +34,11 @@ class AnalyticsController {
     }
   }
 
-  // GET /api/analytics/lead-outcomes
-  getLeadOutcomes(req, res) {
-    try {
-      const data = analyticsService.getLeadOutcomes();
-
-      res.json({
-        success: true,
-        data,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        error: error.message,
-      });
-    }
-  }
-
-  // GET /api/analytics/monthly-trend
-  getMonthlyTrend(req, res) {
-    try {
-      const { fy } = req.query;
-      const data = analyticsService.getMonthlyTrend(fy);
-
-      res.json({
-        success: true,
-        data,
-        fy: fy || 'all',
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        error: error.message,
-      });
-    }
-  }
-
-  // GET /api/analytics/civil-defence
-  getCivilDefence(req, res) {
-    try {
-      const data = analyticsService.getCivilDefence();
-
-      res.json({
-        success: true,
-        data,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        error: error.message,
-      });
-    }
-  }
-
-  // GET /api/analytics/lead-subtypes
-  getLeadSubTypes(req, res) {
-    try {
-      const data = analyticsService.getLeadSubTypes();
-
-      res.json({
-        success: true,
-        data,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        error: error.message,
-      });
-    }
-  }
-
-  // GET /api/analytics/domain-performance
-  getDomainPerformance(req, res) {
+  // GET /api/pipeline/domain
+  getPipelineDomain(req, res) {
     try {
       const { domain } = req.query;
-      const data = analyticsService.getDomainPerformance(domain);
+      const data = pipelineService.getPipelineDomain(domain);
 
       res.json({
         success: true,
@@ -112,11 +53,11 @@ class AnalyticsController {
     }
   }
 
-  // GET /api/analytics/top-customers
-  getTopCustomers(req, res) {
+  // GET /api/pipeline/deadlines
+  getUpcomingDeadlines(req, res) {
     try {
-      const { limit } = req.query;
-      const data = analyticsService.getTopCustomers(limit);
+      const { days, status } = req.query;
+      const data = pipelineService.getUpcomingDeadlines(days, status);
 
       res.json({
         success: true,
@@ -131,31 +72,11 @@ class AnalyticsController {
     }
   }
 
-  // GET /api/analytics/lost-leads
-  getLostLeads(req, res) {
-    try {
-      const { domain, limit } = req.query;
-      const result = analyticsService.getLostLeads(domain, limit);
-
-      res.json({
-        success: true,
-        data: result.data,
-        total: result.total,
-        filtered: result.filtered,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        error: error.message,
-      });
-    }
-  }
-
-  // GET /api/analytics/lost-leads/:id
-  getLostLeadById(req, res) {
+  // GET /api/pipeline/deadlines/:id
+  getDeadlineById(req, res) {
     try {
       const { id } = req.params;
-      const data = analyticsService.getLostLeadById(id);
+      const data = pipelineService.getDeadlineById(id);
 
       res.json({
         success: true,
@@ -169,10 +90,10 @@ class AnalyticsController {
     }
   }
 
-  // GET /api/analytics/bq-conversion
-  getBQConversion(req, res) {
+  // GET /api/pipeline/kpis
+  getKPIPipeline(req, res) {
     try {
-      const data = analyticsService.getBQConversion();
+      const data = pipelineService.getKPIPipeline();
 
       res.json({
         success: true,
@@ -186,27 +107,10 @@ class AnalyticsController {
     }
   }
 
-  // GET /api/analytics/order-distribution
-  getOrderValueDistribution(req, res) {
+  // GET /api/pipeline/summary
+  getSummary(req, res) {
     try {
-      const data = analyticsService.getOrderValueDistribution();
-
-      res.json({
-        success: true,
-        data,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        error: error.message,
-      });
-    }
-  }
-
-  // GET /api/analytics/kpis
-  getKPIAnalytics(req, res) {
-    try {
-      const data = analyticsService.getKPIAnalytics();
+      const data = pipelineService.getSummary();
 
       res.json({
         success: true,
@@ -221,4 +125,42 @@ class AnalyticsController {
   }
 }
 
-module.exports = new AnalyticsController();
+
+export const getKPIPipeline = async (req, res, next) => {
+  try {
+    const pipelineKpisData = await pipelineService.getKPIPipeline();
+    sendResponse(res, pipelineKpisData);
+  } catch (err) {
+    next(err)
+  }
+};
+
+export const getUpcomingSubmissions = async (req, res, next) => {
+  try {
+    const upcomingSubmissions = await pipelineService.getUpcomingSubmissions();
+    sendResponse(res, upcomingSubmissions);
+  } catch (err) {
+    next(err)
+  }
+};
+
+export const getPipelineStatus = async (req, res, next) => {
+  try {
+    const data = await pipelineService.getPipelineStatus();
+    sendResponse(res, data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getPipelineDomain = async (req, res, next) => {
+  try {
+    const data = await pipelineService.getPipelineDomain();
+    sendResponse(res, data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+export default new PipelineController();

@@ -4,7 +4,7 @@ import { TrendingUp, TrendingDown } from '@mui/icons-material';
 
 export default function KPIGrid({ kpis }) {
   return (
-    <Grid container spacing={1.5}>
+    <Grid container spacing={1.5}> 
       {kpis.map((kpi, idx) => (
         <Grid item xs={12} sm={6} md={4} lg={2} key={idx}>
           <Card

@@ -1,25 +1,22 @@
 // server.js - Main Express Server
-
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-require('dotenv').config();
-
+import express from 'express';
+import cors from 'cors';
+// import helmet from 'helmet';
+// import morgan from 'morgan';
+// import 'dotenv' from 'dotenv'; // Import dotenv as a module
+import { config } from 'dotenv';
 // Import routes
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const analyticsRoutes = require('./routes/analyticsRoutes');
-const pipelineRoutes = require('./routes/pipelineRoutes');
-const reportsRoutes = require('./routes/reportsRoutes');
+import routes from './routes/index.js'; // Add .js extension
+// Import middleware
+import errorHandler from './middleware/errorHandler.js'; //Add .js extension
 
+config();
 const app = express();
 
-// Global Middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000'
-}));
-app.use(morgan('combined'));
+// Gobal Middleware
+// app.use(helmet());
+app.use(cors());
+// app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -27,28 +24,24 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/health', (req, res) => {
   res.json({
     success: true,
-    message: 'Marketing Portal Analytics API is running',
+    message: 'Marketing Dashboard API is running',
     timestamp: new Date().toISOString()
   });
 });
 
-// API Routes - Model-based separation
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/pipeline', pipelineRoutes);
-app.use('/api/reports', reportsRoutes);
+// API Routes
+app.use("/api", routes);
 
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Marketing Portal Analytics API',
+    message: 'Marketing Dashboard Backend',
     version: '1.0.0',
     endpoints: {
-      'Dashboard': '/api/dashboard',
-      'Analytics': '/api/analytics',
-      'Pipeline': '/api/pipeline',
-      'Reports': '/api/reports',
+      'Lost Domestic Leads': '/api/lost-domestic-leads',
+      'Domestic Order': '/api/domestic-order',
+      'Budgetary Quotation': '/api/budgetary-quotation',
       'Health Check': '/health'
     }
   });
@@ -74,4 +67,4 @@ app.listen(PORT, () => {
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
 });
 
-module.exports = app;
+export default app;  // Use export default instead of module.exports

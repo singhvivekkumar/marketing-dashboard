@@ -1,6 +1,9 @@
 // db.js
-const { Pool } = require("pg");
-require("dotenv").config();
+import pkg from 'pg';
+import { config } from 'dotenv';
+config(); // Or config({ path: '.env' }) if your .env is in a different location
+
+const { Pool } = pkg;
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -12,4 +15,4 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
 });
 
-module.exports = pool;
+export default pool;

@@ -139,6 +139,14 @@ const analyticsData = {
   ],
 };
 
+const BQ = db.BudgetaryQuotationModel;
+const Domestic = db.DomesticLeadsModel;
+const Export = db.ExportLeadsModel;
+const Orders = db.MarketingOrderReceivedDomExp;
+const Lost = db.LostFormModel;
+const Submitted = db.LeadSubmittedModel;
+
+
 class AnalyticsService {
   // Five year trend
   getFiveYearTrend() {
@@ -231,6 +239,8 @@ class AnalyticsService {
       soleBidding: '62%',
     };
   }
+
+  
 }
 
 module.exports = new AnalyticsService();

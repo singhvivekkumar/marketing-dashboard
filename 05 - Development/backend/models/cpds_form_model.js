@@ -1,10 +1,6 @@
 export const CPDSFormModel = (sequelize, Sequelize) => {
     const CPDSFormModel = sequelize.define("CPDSFormModel", {
   
-        // defaultValues: {
-        //     pdsNo: "",
-        //     title: "",
-        //     remarks: "",
       id:{
         type: Sequelize.INTEGER,
         autoIncrement:true,
@@ -31,6 +27,16 @@ export const CPDSFormModel = (sequelize, Sequelize) => {
       },
       OperatorSBU: {
         type: Sequelize.STRING,
+      },
+       // field
+       FileName: {
+        type: Sequelize.JSON
+      },
+      FilePath: {
+        type: Sequelize.JSON
+      },
+      HardDiskFileName: {
+        type: Sequelize.JSON
       },
     });
   

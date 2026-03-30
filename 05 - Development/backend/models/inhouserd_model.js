@@ -17,6 +17,10 @@ export const InHouseRDModel = (sequelize, Sequelize) => {
       projectName: {
         type: Sequelize.TEXT,
       },
+
+      teamMembers: {
+        type: Sequelize.TEXT,
+      },
   
       dateOfInitiation: {
         type: Sequelize.STRING,

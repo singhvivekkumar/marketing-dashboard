@@ -4,7 +4,7 @@ export const DomesticLeadsModel = (sequelize, Sequelize) => {
     // "tenderType",
     // "documentType",
     // "leadOwner",
-    // "civilOrDefence",
+    // "defenceOrNonDefence",
     // "businessDomain",
     // "valueOfEMD",
     // "estimatedValueInCrWithoutGST",
@@ -24,13 +24,13 @@ export const DomesticLeadsModel = (sequelize, Sequelize) => {
     id:{
       type: Sequelize.INTEGER,
       autoIncrement:true,
+      primaryKey: true,
     },
     tenderName: {
       type: Sequelize.TEXT,
     },
     tenderReferenceNo: {
       type: Sequelize.STRING,
-      primaryKey: true,
     },
     customerName: {
       type: Sequelize.TEXT,
@@ -47,7 +47,7 @@ export const DomesticLeadsModel = (sequelize, Sequelize) => {
     leadOwner: {
       type: Sequelize.STRING,
     },
-    civilOrDefence: {
+    defenceOrNonDefence: {
       type: Sequelize.STRING,
     },
     businessDomain: {

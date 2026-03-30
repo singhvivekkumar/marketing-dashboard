@@ -8,6 +8,9 @@ export const TPCRFormModel = (sequelize, Sequelize) => {
       tpcrSlno: {
         type: Sequelize.STRING,
       },
+      tpcrSource: {
+        type: Sequelize.STRING,
+      },
       domain: {
         type: Sequelize.STRING,
       },
@@ -35,15 +38,7 @@ export const TPCRFormModel = (sequelize, Sequelize) => {
       drdoRemarks: {
         type: Sequelize.STRING,
       },
-      FileName: {
-        type: Sequelize.STRING
-      },
-      FilePath: {
-        type: Sequelize.STRING
-      },
-      HardDiskFileName: {
-        type: Sequelize.STRING
-      },
+    
       // field
       OperatorId: {
         type: Sequelize.STRING,
@@ -56,6 +51,17 @@ export const TPCRFormModel = (sequelize, Sequelize) => {
       },
       OperatorSBU: {
         type: Sequelize.STRING,
+      },
+
+      // field
+      FileName: {
+        type: Sequelize.JSON
+      },
+      FilePath: {
+        type: Sequelize.JSON
+      },
+      HardDiskFileName: {
+        type: Sequelize.JSON
       },
   
     });

@@ -3,7 +3,8 @@ export const LeadSubmittedModel = (sequelize, Sequelize) => {
 
     id: {
       type: Sequelize.INTEGER,
-      autoIncrement: true
+      autoIncrement: true,
+      primaryKey: true,
     },
     tenderName: {
       type: Sequelize.STRING,
@@ -22,7 +23,7 @@ export const LeadSubmittedModel = (sequelize, Sequelize) => {
     },
     rfpReceivedOn: {
       type: Sequelize.STRING,
-      primaryKey: true,
+      
     },
     valueEMDInCrore: {
       type: Sequelize.STRING,
@@ -53,7 +54,6 @@ export const LeadSubmittedModel = (sequelize, Sequelize) => {
     },
     tenderReferenceNo: {
       type: Sequelize.STRING,
-      primaryKey: true
     },
     tenderType: {
       type: Sequelize.STRING,
@@ -92,4 +92,3 @@ export const LeadSubmittedModel = (sequelize, Sequelize) => {
 
   return LeadSubmittedModel;
 };
-

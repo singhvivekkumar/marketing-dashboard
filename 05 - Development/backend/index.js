@@ -1,7 +1,12 @@
 // server.js
-require("dotenv").config();
-const app = require("./server");
-const pool = require("./db");
+import { config } from 'dotenv';
+// const app = require("./server");
+// const pool = require("./db");
+import app from './server.js';
+import pool from './db.js'
+
+config(); // Or config({ path: '.env' }) if your .env is in a different location
+
 
 // in this we combine both app.js(http server by express) + db.js(database server by postgres) = index.js(server)
 

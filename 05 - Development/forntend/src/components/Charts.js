@@ -76,8 +76,18 @@ export function LeadOutcomesChart({ data }) {
   );
 }
 
-// Monthly Trend Line Chart
-export function MonthlyTrendChart({ data }) {
+/**
+ * Monthly Trend Line Chart
+ *
+ * Props:
+ *   data      – array of { month, [thisFY]: count, [prevFY]: count }
+ *   thisFY    – string label for the current FY, e.g. "FY 25-26"
+ *   prevFY    – string label for the previous FY, e.g. "FY 24-25"
+ *
+ * Both FY props are optional and fall back to the old hardcoded values
+ * so existing usages that don't pass them continue to work.
+ */
+export function MonthlyTrendChart({ data, thisFY = 'FY 2025-2026', prevFY = 'FY 2024-2025' }) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <LineChart data={data}>
@@ -88,7 +98,7 @@ export function MonthlyTrendChart({ data }) {
         <Legend />
         <Line
           type="monotone"
-          dataKey="FY 25-26"
+          dataKey={thisFY}
           stroke="#2563eb"
           strokeWidth={2}
           dot={{ r: 3 }}
@@ -96,8 +106,8 @@ export function MonthlyTrendChart({ data }) {
         />
         <Line
           type="monotone"
-          dataKey="FY 24-25"
-          stroke="#d1d5db"
+          dataKey={prevFY}
+          stroke="#d97706"
           strokeDasharray="4 3"
           strokeWidth={2}
           dot={false}
@@ -117,12 +127,37 @@ export function CivilDefenceChart({ data }) {
         <YAxis tick={{ fill: '#8892a4', fontSize: 11 }} />
         <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e4e8ef' }} />
         <Legend />
-        <Bar dataKey="Civil" fill="#2563eb" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="Defence" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="defence" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="nonDefence" fill="#2563eb" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
 }
+
+//Domestic Leads Types Pie Chart
+export function DomesticLeadsTypesChart({ data }) {
+  return (
+    <ResponsiveContainer width="100%" height={200}>
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={40}
+          outerRadius={70}
+          paddingAngle={0}
+          dataKey="value"
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
+          ))}
+        </Pie>
+        <Tooltip formatter={(value) => value} />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
+
 
 // Lead Sub-Types Pie Chart
 export function LeadSubTypesChart({ data }) {
@@ -216,8 +251,15 @@ function CustomFunnelBar(props) {
   return <rect {...props} />;
 }
 
-// Quarterly Comparison Chart
-export function QuarterlyChart({ data }) {
+/**
+ * Quarterly Comparison Chart
+ *
+ * Props:
+ *   data   – array of { quarter, [thisFY]: count, [prevFY]: count }
+ *   thisFY – string label for the current FY  (default "FY 25-26")
+ *   prevFY – string label for the previous FY (default "FY 24-25")
+ */
+export function QuarterlyChart({ data, thisFY = 'FY 25-26', prevFY = 'FY 24-25' }) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <BarChart data={data}>
@@ -226,15 +268,15 @@ export function QuarterlyChart({ data }) {
         <YAxis tick={{ fill: '#8892a4', fontSize: 11 }} />
         <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e4e8ef' }} />
         <Legend />
-        <Bar dataKey="FY 25-26" fill="#2563eb" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="FY 24-25" fill="rgba(37,99,235,0.25)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey={thisFY} fill="#2563eb" radius={[4, 4, 0, 0]} />
+        <Bar dataKey={prevFY} fill="rgba(37,99,235,0.25)" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
 }
 
 // Tender Type Pie Chart
-export function TenderTypeChart({ data }) {
+export function DocumentTypeChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <PieChart>
@@ -330,8 +372,8 @@ export function PipelineDomainChart({ data }) {
           formatter={(value) => `₹${value}Cr`}
         />
         <Legend />
-        <Bar dataKey="Civil" fill="#2563eb" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="Defence" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="nonDefence" fill="#2563eb" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="defence" fill="#7c3aed" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -347,7 +389,7 @@ export function ValueDistributionChart({ data }) {
         <YAxis tick={{ fill: '#8892a4', fontSize: 11 }} />
         <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e4e8ef' }} />
         <Bar
-          dataKey="count"
+          dataKey="value"
           fill="rgba(124,58,237,0.15)"
           stroke="#7c3aed"
           strokeWidth={1.5}
@@ -396,7 +438,7 @@ export function WinRateTrendChart({ data }) {
         <CartesianGrid strokeDasharray="0" stroke="#e4e8ef" />
         <XAxis dataKey="fy" tick={{ fill: '#8892a4', fontSize: 11 }} />
         <YAxis
-          domain={[20, 45]}
+          domain={[0, 100]}
           tick={{ fill: '#8892a4', fontSize: 11 }}
           tickFormatter={(value) => `${value}%`}
         />

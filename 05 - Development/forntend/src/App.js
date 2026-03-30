@@ -8,6 +8,8 @@ import DashboardPipeline from './views/DashboardPipeline';
 import Monitoring from './views/Monitoring';
 import MonthlyReports from './views/MonthlyReports';
 import YearlyAnalysis from './views/YearlyAnalysis';
+import TenderLifecycleOverview from './views/TenderLifecycleOverview';
+import TenderLifecycleDetail from './views/TenderLifecycleDetail';
 
 const viewConfig = {
   dashboard: {
@@ -28,6 +30,11 @@ const viewConfig = {
   yearly: {
     title: 'Yearly Analysis',
     tabs: [],
+    showFY: false,
+  },
+  tenders: {
+    title: 'Tender Lifecycle',
+    tabs: ['Overview'],
     showFY: false,
   },
 };
@@ -64,6 +71,10 @@ export default function App() {
       if (activeTab === 'overview') return <DashboardOverview />;
       if (activeTab === 'analysis') return <DashboardAnalysis />;
       if (activeTab === 'pipeline') return <DashboardPipeline />;
+    }
+    if (activeSection === 'tenders') {
+      // Tender lifecycle view will manage its own detail state
+      return <TenderLifecycleOverview />;
     }
     if (activeSection === 'monitoring') return <Monitoring />;
     if (activeSection === 'reports') return <MonthlyReports />;

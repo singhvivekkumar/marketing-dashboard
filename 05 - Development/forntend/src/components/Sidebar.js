@@ -18,6 +18,7 @@ const navItems = [
     items: [
       { id: 'bq', label: 'BQ Management', icon: Assignment },
       { id: 'leads', label: 'Lead Management', icon: People, badge: 42 },
+      { id: 'tenders', label: 'Tender Lifecycle', icon: Assignment },
       { id: 'orders', label: 'Orders Received', icon: ShoppingCart },
       { id: 'rd', label: 'In-House R&D', icon: Science },
     ],

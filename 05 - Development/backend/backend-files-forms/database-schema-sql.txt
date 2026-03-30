@@ -1,0 +1,249 @@
+-- SQL Schema - PostgreSQL Database Setup
+
+-- Create database (run this separately)
+-- CREATE DATABASE tender_management;
+
+-- Lost Domestic Leads Table
+CREATE TABLE IF NOT EXISTS lost_domestic_leads (
+  id UUID PRIMARY KEY,
+  serial_number VARCHAR(255) NOT NULL UNIQUE,
+  tender_name VARCHAR(255) NOT NULL,
+  customer VARCHAR(255) NOT NULL,
+  tender_type VARCHAR(100),
+  type_bid VARCHAR(100),
+  value_without_gst DECIMAL(15, 2),
+  value_with_gst DECIMAL(15, 2),
+  reason_losing TEXT,
+  year INTEGER,
+  partner VARCHAR(255),
+  competitors JSONB DEFAULT '[]',
+  technical_scores JSONB DEFAULT '[]',
+  quoted_prices JSONB DEFAULT '[]',
+  submitted_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Domestic Order Table
+CREATE TABLE IF NOT EXISTS domestic_order (
+  id UUID PRIMARY KEY,
+  serial_number VARCHAR(255) NOT NULL UNIQUE,
+  contract_name VARCHAR(255) NOT NULL,
+  customer_name VARCHAR(255) NOT NULL,
+  customer_address TEXT,
+  order_received_date DATE,
+  po_number VARCHAR(255) NOT NULL,
+  order_type VARCHAR(100),
+  value_without_gst DECIMAL(15, 2),
+  value_with_gst DECIMAL(15, 2),
+  competitors TEXT,
+  remarks TEXT,
+  attachment VARCHAR(255),
+  submitted_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Budgetary Quotation Table
+CREATE TABLE IF NOT EXISTS budgetary_quotation (
+  id UUID PRIMARY KEY,
+  serial_number VARCHAR(255) NOT NULL UNIQUE,
+  bq_title VARCHAR(255) NOT NULL,
+  customer VARCHAR(255) NOT NULL,
+  lead_owner VARCHAR(255),
+  classification VARCHAR(50),
+  estimated_value_without_gst DECIMAL(15, 2),
+  estimated_value_with_gst DECIMAL(15, 2),
+  date_letter_submission DATE,
+  reference_number VARCHAR(255),
+  competitor TEXT,
+  present_status VARCHAR(100),
+  submitted_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Lead Submitted Table
+CREATE TABLE IF NOT EXISTS lead_submitted (
+  id UUID PRIMARY KEY,
+  serial_number VARCHAR(255) NOT NULL UNIQUE,
+  tender_name VARCHAR(255) NOT NULL,
+  customer VARCHAR(255) NOT NULL,
+  tender_date DATE,
+  bid_owner VARCHAR(255),
+  rfp_received_on DATE,
+  value_emd_crore DECIMAL(15, 2),
+  rfp_due_date DATE,
+  dmktg_approval_rxd_on DATE,
+  selling_price_approval_initiated_on DATE,
+  bid_submitted_on DATE,
+  approval_sbu_finance_on DATE,
+  approval_gm_on DATE,
+  sent_to_finance_gm_on DATE,
+  dmktg_approval_rxd_on_final DATE,
+  tender_reference_no VARCHAR(255),
+  tender_type VARCHAR(100),
+  website VARCHAR(255),
+  present_status VARCHAR(100),
+  submitted_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Domestic Leads V2 Table
+CREATE TABLE IF NOT EXISTS domestic_leads_v2 (
+  id UUID PRIMARY KEY,
+  serial_number VARCHAR(255) NOT NULL UNIQUE,
+  tender_name VARCHAR(255) NOT NULL,
+  customer VARCHAR(255) NOT NULL,
+  location VARCHAR(255),
+  tender_type VARCHAR(100),
+  document_type VARCHAR(100),
+  lead_owner VARCHAR(255),
+  civil_defence VARCHAR(50),
+  business_domain VARCHAR(255),
+  value_emd_crore DECIMAL(15, 2),
+  estimated_value_without_gst_crore DECIMAL(15, 2),
+  submitted_value_with_gst_crore DECIMAL(15, 2),
+  tender_dated DATE,
+  last_date_submission DATE,
+  sole_consortium VARCHAR(50),
+  pre_bid_meeting_datetime TIMESTAMP,
+  competitors_info TEXT,
+  participation_status VARCHAR(50),
+  open_closed VARCHAR(20),
+  order_won_value_without_gst_crore DECIMAL(15, 2),
+  present_status VARCHAR(100),
+  reason_note TEXT,
+  corrigendum_info TEXT,
+  submitted_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Export Leads Table
+CREATE TABLE IF NOT EXISTS export_leads (
+  id UUID PRIMARY KEY,
+  serial_number VARCHAR(255) NOT NULL UNIQUE,
+  tender_name VARCHAR(255) NOT NULL,
+  customer VARCHAR(255) NOT NULL,
+  location VARCHAR(255),
+  tender_type VARCHAR(100),
+  document_type VARCHAR(100),
+  lead_owner VARCHAR(255),
+  civil_defence VARCHAR(50),
+  business_domain VARCHAR(255),
+  value_emd_crore DECIMAL(15, 2),
+  estimated_value_without_gst_crore DECIMAL(15, 2),
+  submitted_value_with_gst_crore DECIMAL(15, 2),
+  tender_dated DATE,
+  last_date_submission DATE,
+  sole_consortium VARCHAR(50),
+  pre_bid_meeting_datetime TIMESTAMP,
+  competitors_info TEXT,
+  participation_status VARCHAR(50),
+  open_closed VARCHAR(20),
+  order_won_value_without_gst_crore DECIMAL(15, 2),
+  present_status VARCHAR(100),
+  reason_note TEXT,
+  corrigendum_info TEXT,
+  lead_type VARCHAR(20) DEFAULT 'Export',
+  submitted_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CRM Leads Table
+CREATE TABLE IF NOT EXISTS crm_leads (
+  id UUID PRIMARY KEY,
+  serial_number VARCHAR(255) NOT NULL UNIQUE,
+  lead_id VARCHAR(255) NOT NULL UNIQUE,
+  issue_date DATE,
+  tender_name VARCHAR(255) NOT NULL,
+  organisation VARCHAR(255) NOT NULL,
+  document_type VARCHAR(100),
+  tender_type VARCHAR(100),
+  emd_crore DECIMAL(15, 2),
+  approx_tender_value_crore DECIMAL(15, 2),
+  last_date_submission DATE,
+  pre_bid_date DATE,
+  team_assigned VARCHAR(255),
+  remarks TEXT,
+  corrigendum_info TEXT,
+  submitted_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for better query performance
+CREATE INDEX idx_lost_domestic_serial ON lost_domestic_leads(serial_number);
+CREATE INDEX idx_lost_domestic_customer ON lost_domestic_leads(customer);
+CREATE INDEX idx_lost_domestic_date ON lost_domestic_leads(submitted_at);
+
+CREATE INDEX idx_domestic_order_serial ON domestic_order(serial_number);
+CREATE INDEX idx_domestic_order_customer ON domestic_order(customer_name);
+CREATE INDEX idx_domestic_order_date ON domestic_order(order_received_date);
+
+CREATE INDEX idx_bq_serial ON budgetary_quotation(serial_number);
+CREATE INDEX idx_bq_customer ON budgetary_quotation(customer);
+CREATE INDEX idx_bq_status ON budgetary_quotation(present_status);
+
+CREATE INDEX idx_lead_submitted_serial ON lead_submitted(serial_number);
+CREATE INDEX idx_lead_submitted_customer ON lead_submitted(customer);
+CREATE INDEX idx_lead_submitted_status ON lead_submitted(present_status);
+
+CREATE INDEX idx_domestic_v2_serial ON domestic_leads_v2(serial_number);
+CREATE INDEX idx_domestic_v2_status ON domestic_leads_v2(participation_status);
+CREATE INDEX idx_domestic_v2_location ON domestic_leads_v2(location);
+
+CREATE INDEX idx_export_serial ON export_leads(serial_number);
+CREATE INDEX idx_export_status ON export_leads(participation_status);
+CREATE INDEX idx_export_location ON export_leads(location);
+
+CREATE INDEX idx_crm_serial ON crm_leads(serial_number);
+CREATE INDEX idx_crm_lead_id ON crm_leads(lead_id);
+CREATE INDEX idx_crm_team ON crm_leads(team_assigned);
+
+-- View for dashboard summary
+CREATE OR REPLACE VIEW tender_summary AS
+SELECT 
+  'Lost Domestic Leads' AS category,
+  COUNT(*) AS total_count,
+  CURRENT_DATE AS generated_date
+FROM lost_domestic_leads
+UNION ALL
+SELECT 
+  'Domestic Order',
+  COUNT(*),
+  CURRENT_DATE
+FROM domestic_order
+UNION ALL
+SELECT 
+  'Budgetary Quotation',
+  COUNT(*),
+  CURRENT_DATE
+FROM budgetary_quotation
+UNION ALL
+SELECT 
+  'Lead Submitted',
+  COUNT(*),
+  CURRENT_DATE
+FROM lead_submitted
+UNION ALL
+SELECT 
+  'Domestic Leads V2',
+  COUNT(*),
+  CURRENT_DATE
+FROM domestic_leads_v2
+UNION ALL
+SELECT 
+  'Export Leads',
+  COUNT(*),
+  CURRENT_DATE
+FROM export_leads
+UNION ALL
+SELECT 
+  'CRM Leads',
+  COUNT(*),
+  CURRENT_DATE
+FROM crm_leads;
