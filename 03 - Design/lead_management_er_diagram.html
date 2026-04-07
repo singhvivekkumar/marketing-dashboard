@@ -1,0 +1,384 @@
+
+<div id="erd"></div>
+<style>
+#erd { padding: 8px 0; }
+#erd svg { width: 100% !important; max-width: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 16px; padding: 0 4px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+</style>
+<div class="legend">
+  <span class="legend-item"><span class="legend-dot" style="background:#185FA5"></span>Core entities</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#0F6E56"></span>Procurement stages</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#854F0B"></span>Supporting entities</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#3B6D11"></span>Output / outcome</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#993556"></span>Lookup / reference</span>
+</div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    primaryColor: dark ? '#1a1918' : '#f1efe8',
+    primaryBorderColor: dark ? '#5f5e5a' : '#b4b2a9',
+  },
+});
+
+const diagram = `erDiagram
+
+  CUSTOMERS {
+    uuid id PK
+    string company_name
+    string contact_person
+    string email
+    string phone
+    string address
+    string sector
+    string customer_type
+    timestamp created_at
+  }
+
+  EXPRESSIONS_OF_INTEREST {
+    uuid id PK
+    uuid customer_id FK
+    uuid assigned_to FK
+    string eoi_reference_no
+    string eoi_title
+    text requirement_description
+    date eoi_received_date
+    date response_due_date
+    string status
+    string civil_defence
+    string business_domain
+    text internal_notes
+    timestamp created_at
+  }
+
+  BUDGETARY_QUOTATIONS {
+    uuid id PK
+    uuid eoi_id FK
+    uuid customer_id FK
+    uuid prepared_by FK
+    string bq_reference_no
+    string bq_title
+    decimal estimated_value_cr
+    decimal submitted_value_cr
+    date submission_date
+    string present_status
+    boolean converted_to_rfp
+    text competitors_info
+    string document_path
+    timestamp created_at
+  }
+
+  TENDERS {
+    uuid id PK
+    uuid eoi_id FK
+    uuid bq_id FK
+    uuid customer_id FK
+    uuid lead_owner_id FK
+    string tender_reference_no
+    string tender_name
+    string tender_type
+    string document_type
+    string portal_name
+    string portal_tender_id
+    string civil_defence
+    string business_domain
+    string sole_consortium
+    decimal emd_value
+    boolean emd_exempted
+    string emd_mode
+    date tender_dated
+    date last_submission_date
+    datetime prebid_datetime
+    string submission_mode
+    int bid_validity_days
+    decimal turnover_requirement_cr
+    text experience_requirement
+    boolean msme_applicable
+    int win_probability_pct
+    string strategic_importance
+    string outcome
+    string open_closed
+    decimal order_won_value_cr
+    string reason_for_losing
+    text internal_notes
+    timestamp created_at
+  }
+
+  BIDDING_PROCESS {
+    uuid id PK
+    uuid tender_id FK
+    string current_stage
+    datetime stage_entered_at
+    date stage_due_date
+    uuid stage_owner_id FK
+    string go_no_go_decision
+    text go_no_go_reason
+    uuid go_no_go_decided_by FK
+    string priority
+    string health_status
+    boolean is_overdue
+    int days_in_current_stage
+    timestamp created_at
+  }
+
+  PREQUALIFICATION {
+    uuid id PK
+    uuid bidding_process_id FK
+    boolean turnover_met
+    boolean experience_met
+    boolean msme_status
+    text technical_capability_notes
+    string qualification_result
+    string disqualification_reason
+    date submitted_on
+    date result_received_on
+    string document_path
+    timestamp created_at
+  }
+
+  TECHNICAL_BID {
+    uuid id PK
+    uuid bidding_process_id FK
+    date submission_date
+    boolean compliant
+    text compliance_remarks
+    text deviations_noted
+    string technical_eval_result
+    date eval_result_date
+    string document_path
+    timestamp created_at
+  }
+
+  COMMERCIAL_BID {
+    uuid id PK
+    uuid bidding_process_id FK
+    decimal estimated_cost_cr
+    decimal bid_price_cr
+    decimal bid_price_incl_gst_cr
+    decimal bid_margin_pct
+    decimal emd_amount
+    date emd_paid_date
+    string emd_receipt_no
+    string emd_refund_status
+    boolean pbg_required
+    decimal pbg_amount
+    string pbg_bank
+    date pbg_expiry_date
+    date submission_date
+    string submission_receipt_no
+    timestamp created_at
+  }
+
+  EVALUATION_ROUNDS {
+    uuid id PK
+    uuid bidding_process_id FK
+    int round_number
+    string round_type
+    date eval_date
+    text clarification_points
+    text customer_queries
+    text our_response
+    date response_submitted_date
+    string status
+    text outcome_notes
+    timestamp created_at
+  }
+
+  RESULTS {
+    uuid id PK
+    uuid bidding_process_id FK
+    uuid tender_id FK
+    string l_position
+    decimal l1_price_cr
+    decimal our_price_cr
+    decimal price_diff_cr
+    decimal price_diff_pct
+    date result_announced_date
+    boolean negotiation_done
+    decimal negotiation_price_cr
+    text negotiation_notes
+    string final_outcome
+    string loss_reason_category
+    text detailed_loss_reason
+    timestamp created_at
+  }
+
+  ORDERS_RECEIVED {
+    uuid id PK
+    uuid tender_id FK
+    uuid result_id FK
+    uuid customer_id FK
+    string po_wo_number
+    date order_received_date
+    string tender_type
+    decimal value_excl_gst_cr
+    decimal value_incl_gst_cr
+    text remarks
+    string contract_doc_path
+    string work_order_path
+    timestamp created_at
+  }
+
+  CORRIGENDUMS {
+    uuid id PK
+    uuid tender_id FK
+    int corrigendum_no
+    date issued_date
+    string title
+    text description
+    string impact
+    date new_deadline
+    int extension_days
+    string file_path
+    timestamp created_at
+  }
+
+  COMPETITORS {
+    uuid id PK
+    uuid tender_id FK
+    string competitor_name
+    string company_type
+    string threat_level
+    text known_strength
+    text known_weakness
+    decimal last_known_bid_cr
+    boolean won_this_tender
+    string l_position_at_result
+    decimal bid_price_at_result_cr
+    timestamp created_at
+  }
+
+  CONSORTIUM_MEMBERS {
+    uuid id PK
+    uuid tender_id FK
+    string partner_name
+    string partner_type
+    text scope_of_work
+    decimal value_share_cr
+    decimal share_pct
+    boolean mou_signed
+    date mou_date
+    string contact_person
+    timestamp created_at
+  }
+
+  STAGE_HISTORY {
+    uuid id PK
+    uuid bidding_process_id FK
+    string from_stage
+    string to_stage
+    timestamp transitioned_at
+    uuid transitioned_by FK
+    int days_spent
+    boolean was_overdue
+    text notes
+  }
+
+  STAGE_ACTIONS {
+    uuid id PK
+    uuid bidding_process_id FK
+    string stage
+    string action_title
+    string action_type
+    boolean is_mandatory
+    boolean is_completed
+    uuid completed_by FK
+    timestamp completed_at
+    string document_path
+    int sort_order
+  }
+
+  ALERTS {
+    uuid id PK
+    uuid bidding_process_id FK
+    uuid assigned_to FK
+    string alert_type
+    string title
+    date due_date
+    string severity
+    boolean is_read
+    boolean is_dismissed
+  }
+
+  USERS {
+    uuid id PK
+    string username
+    string full_name
+    string email
+    string role
+    boolean is_active
+  }
+
+  CUSTOMERS ||--o{ EXPRESSIONS_OF_INTEREST : "sends"
+  CUSTOMERS ||--o{ BUDGETARY_QUOTATIONS : "receives"
+  CUSTOMERS ||--o{ TENDERS : "issues"
+  CUSTOMERS ||--o{ ORDERS_RECEIVED : "places"
+
+  EXPRESSIONS_OF_INTEREST ||--o{ BUDGETARY_QUOTATIONS : "triggers"
+  EXPRESSIONS_OF_INTEREST ||--o{ TENDERS : "leads to"
+
+  BUDGETARY_QUOTATIONS ||--o{ TENDERS : "converts to"
+
+  TENDERS ||--|| BIDDING_PROCESS : "tracked by"
+  TENDERS ||--o{ CORRIGENDUMS : "amended by"
+  TENDERS ||--o{ COMPETITORS : "has"
+  TENDERS ||--o{ CONSORTIUM_MEMBERS : "involves"
+
+  BIDDING_PROCESS ||--o| PREQUALIFICATION : "goes through"
+  BIDDING_PROCESS ||--o| TECHNICAL_BID : "submits"
+  BIDDING_PROCESS ||--o| COMMERCIAL_BID : "submits"
+  BIDDING_PROCESS ||--o{ EVALUATION_ROUNDS : "undergoes"
+  BIDDING_PROCESS ||--o| RESULTS : "produces"
+  BIDDING_PROCESS ||--o{ STAGE_HISTORY : "records"
+  BIDDING_PROCESS ||--o{ STAGE_ACTIONS : "has"
+  BIDDING_PROCESS ||--o{ ALERTS : "generates"
+
+  RESULTS ||--o| ORDERS_RECEIVED : "becomes"
+
+  USERS ||--o{ EXPRESSIONS_OF_INTEREST : "assigned to"
+  USERS ||--o{ TENDERS : "owns"
+  USERS ||--o{ BIDDING_PROCESS : "manages"
+  USERS ||--o{ STAGE_HISTORY : "performs"
+  USERS ||--o{ STAGE_ACTIONS : "completes"
+  USERS ||--o{ ALERTS : "receives"
+`;
+
+const { svg } = await mermaid.render('erd-svg', diagram);
+document.getElementById('erd').innerHTML = svg;
+
+document.querySelectorAll('#erd svg .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+
+document.querySelectorAll('#erd svg .row-rect-odd path, #erd svg .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>

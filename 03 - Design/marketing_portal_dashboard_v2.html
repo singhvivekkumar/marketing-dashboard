@@ -1,0 +1,472 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f6fb;--sur:#fff;--sur2:#f1f3f8;--sur3:#e8ecf5;
+  --bd:#e2e6f0;--bd2:#cdd3e6;
+  --t1:#0d1117;--t2:#4a5568;--t3:#8896b0;
+  --bl:#1d4ed8;--bl2:#3b82f6;--bl3:#dbeafe;--bl4:#eff6ff;
+  --gr:#15803d;--gr2:#22c55e;--gr3:#dcfce7;
+  --am:#b45309;--am2:#f59e0b;--am3:#fef3c7;
+  --rd:#b91c1c;--rd2:#ef4444;--rd3:#fee2e2;
+  --pu:#6d28d9;--pu2:#a78bfa;--pu3:#ede9fe;
+  --te:#0f766e;--te2:#14b8a6;--te3:#ccfbf1;
+  --fn:'DM Sans',system-ui,sans-serif;--mn:'DM Mono',monospace;
+}
+body{font-family:var(--fn);background:var(--bg);color:var(--t1);font-size:13px}
+
+.wrap{border:1px solid var(--bd);border-radius:12px;background:var(--sur);overflow:hidden}
+
+.topbar{padding:12px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.brand{font-size:15px;font-weight:600;color:var(--t1);flex-shrink:0}
+.brand span{font-weight:400;color:var(--t3)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1;justify-content:center}
+.flt{font-size:11px;padding:5px 10px;border:1px solid var(--bd2);border-radius:6px;background:var(--sur);color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:4px;font-family:var(--fn)}
+.flt:hover{background:var(--sur2)}
+.flt svg{width:10px;height:10px;opacity:.5}
+.search{font-size:12px;padding:5px 10px;border:1px solid var(--bd2);border-radius:6px;background:var(--sur2);color:var(--t2);font-family:var(--fn);outline:none;width:130px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--bl3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--bl);flex-shrink:0}
+
+.tabs{display:flex;border-bottom:1px solid var(--bd);background:var(--sur)}
+.tab{padding:10px 16px;font-size:12px;font-weight:500;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .15s;border-top:none;border-left:none;border-right:none;background:none;font-family:var(--fn)}
+.tab:hover{color:var(--t2)}
+.tab.on{color:var(--bl);border-bottom-color:var(--bl);background:var(--bl4)}
+
+.panel{padding:18px;display:none}
+.panel.on{display:block}
+
+.sec-title{font-size:14px;font-weight:500;color:var(--t1);margin-bottom:14px}
+.sec-sub{font-size:11px;color:var(--t3);margin-top:2px;font-weight:400}
+
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.g5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.g13{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+.g31{display:grid;grid-template-columns:1fr 1.4fr;gap:14px}
+
+.card{background:var(--sur);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
+.card-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.card-t{font-size:12px;font-weight:500;color:var(--t1)}
+.card-s{font-size:10px;color:var(--t3);margin-top:2px}
+.badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500;font-family:var(--mn)}
+.b-bl{background:var(--bl4);color:var(--bl)}
+.b-gr{background:var(--gr3);color:var(--gr)}
+.b-am{background:var(--am3);color:var(--am)}
+.b-rd{background:var(--rd3);color:var(--rd)}
+.b-pu{background:var(--pu3);color:var(--pu)}
+.b-te{background:var(--te3);color:var(--te)}
+
+.kpi{background:var(--sur2);border-radius:8px;padding:12px 14px}
+.kpi-l{font-size:10px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.kpi-v{font-size:20px;font-weight:600;color:var(--t1);font-family:var(--mn);letter-spacing:-.5px}
+.kpi-d{font-size:10px;margin-top:3px;font-family:var(--mn)}
+.up{color:var(--gr)}.dn{color:var(--rd)}.nt{color:var(--t3)}
+
+.ch{position:relative;width:100%}
+.h160{height:160px}.h180{height:180px}.h200{height:200px}.h220{height:220px}.h240{height:240px}
+
+.leg{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--t2)}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+.mb{margin-bottom:14px}
+
+.funnel-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0}
+.funnel-stage{display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:11px;font-weight:500;color:#fff;transition:opacity .2s;cursor:default}
+.funnel-stage:hover{opacity:.85}
+
+.conv-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bd)}
+.conv-row:last-child{border-bottom:none}
+.conv-label{font-size:11px;color:var(--t2)}
+.conv-bar-wrap{flex:1;margin:0 10px;height:5px;background:var(--sur3);border-radius:3px;overflow:hidden}
+.conv-bar{height:100%;border-radius:3px;background:var(--bl2)}
+.conv-pct{font-size:11px;font-weight:500;color:var(--bl);font-family:var(--mn);min-width:36px;text-align:right}
+
+.owner-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)}
+.owner-row:last-child{border-bottom:none}
+.av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.owner-name{font-size:11px;color:var(--t1);width:68px;flex-shrink:0}
+.owner-bar-w{flex:1;height:6px;background:var(--sur3);border-radius:3px;overflow:hidden}
+.owner-bar{height:100%;border-radius:3px}
+.owner-pct{font-size:11px;font-weight:500;font-family:var(--mn);min-width:32px;text-align:right;color:var(--t2)}
+
+.tl-phase{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;margin-bottom:4px}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.tl-name{font-size:11px;font-weight:500;color:var(--t1);flex:1}
+.tl-date{font-size:10px;color:var(--t3);font-family:var(--mn)}
+.tl-cnt{font-size:10px;color:var(--t2);background:var(--sur2);padding:1px 6px;border-radius:3px;font-family:var(--mn)}
+
+.row-divider{height:14px}
+
+.cust-bar-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+.cust-name{font-size:11px;color:var(--t2);width:80px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cust-bw{flex:1;height:8px;background:var(--sur3);border-radius:4px;overflow:hidden}
+.cust-b{height:100%;border-radius:4px;background:var(--bl2)}
+.cust-v{font-size:11px;font-weight:500;color:var(--t1);font-family:var(--mn);min-width:30px;text-align:right}
+
+.donut-wrap{position:relative;display:flex;align-items:center;gap:16px}
+.donut-leg{display:flex;flex-direction:column;gap:6px;flex:1}
+.donut-li{display:flex;align-items:center;justify-content:space-between;font-size:11px}
+.donut-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;margin-right:5px}
+.donut-txt{color:var(--t2);flex:1}
+.donut-pct{font-weight:500;color:var(--t1);font-family:var(--mn)}
+
+.mini-kpi{text-align:center;padding:10px;background:var(--sur2);border-radius:8px}
+.mini-kpi .v{font-size:22px;font-weight:600;font-family:var(--mn);color:var(--bl)}
+.mini-kpi .l{font-size:10px;color:var(--t3);margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">Lead Analytics <span>Dashboard</span></div>
+    <div class="filters">
+      <select class="flt"><option>Lead Type</option><option>Public</option><option>Private</option><option>Partnership</option></select>
+      <select class="flt"><option>SBU</option><option>Defence</option><option>Civil</option><option>Export</option></select>
+      <select class="flt"><option>Main Customer</option><option>MoD</option><option>ONGC</option><option>NHAI</option></select>
+      <select class="flt"><option>Lead Status</option><option>Open</option><option>Qualified</option><option>Won</option><option>Lost</option></select>
+      <select class="flt"><option>Forecast Year</option><option>FY 25-26</option><option>FY 24-25</option><option>FY 23-24</option></select>
+      <input class="search" placeholder="Search...">
+    </div>
+    <div class="avatar">RK</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="showTab('exec',this)">Executive Overview</button>
+    <button class="tab" onclick="showTab('pipe',this)">Lead Pipeline</button>
+    <button class="tab" onclick="showTab('rev',this)">Revenue Analytics</button>
+    <button class="tab" onclick="showTab('cust',this)">Customer Insights</button>
+    <button class="tab" onclick="showTab('time',this)">Timeline Analytics</button>
+    <button class="tab" onclick="showTab('team',this)">Team Performance</button>
+  </div>
+
+  <!-- TAB 1: EXECUTIVE OVERVIEW -->
+  <div class="panel on" id="t-exec">
+    <div class="sec-title">Executive Overview <span class="sec-sub">— Key business metrics at a glance</span></div>
+    <div class="g5 mb">
+      <div class="kpi"><div class="kpi-l">Total Leads</div><div class="kpi-v">8,450</div><div class="kpi-d up">+12% vs last FY</div></div>
+      <div class="kpi"><div class="kpi-l">Open Tenders</div><div class="kpi-v">2,310</div><div class="kpi-d up">+8% active</div></div>
+      <div class="kpi"><div class="kpi-l">Qualified Leads</div><div class="kpi-v">1,740</div><div class="kpi-d nt">20.6% of total</div></div>
+      <div class="kpi"><div class="kpi-l">Win Rate</div><div class="kpi-v">47.5%</div><div class="kpi-d up">+6.2% vs last FY</div></div>
+      <div class="kpi"><div class="kpi-l">Pipeline Value</div><div class="kpi-v">₹892Cr</div><div class="kpi-d up">+₹138Cr YoY</div></div>
+    </div>
+
+    <div class="g13 mb">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Lead type distribution</div><div class="card-s">Public / Private / Partnership</div></div><span class="badge b-bl">Live</span></div>
+        <div class="donut-wrap">
+          <div class="ch h160" style="width:160px;flex-shrink:0"><canvas id="e-type"></canvas></div>
+          <div class="donut-leg">
+            <div class="donut-li"><span class="donut-dot" style="background:#1d4ed8"></span><span class="donut-txt">Public</span><span class="donut-pct">52%</span></div>
+            <div class="donut-li"><span class="donut-dot" style="background:#3b82f6"></span><span class="donut-txt">Private</span><span class="donut-pct">31%</span></div>
+            <div class="donut-li"><span class="donut-dot" style="background:#93c5fd"></span><span class="donut-txt">Partnership</span><span class="donut-pct">17%</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Leads by business unit</div><div class="card-s">SBU contribution (%)</div></div><span class="badge b-pu">SBU</span></div>
+        <div class="ch h180"><canvas id="e-sbu"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><div><div class="card-t">Monthly lead trend</div><div class="card-s">New leads registered per month — current vs previous FY</div></div>
+        <div style="display:flex;gap:8px">
+          <div class="leg"><span class="li"><span class="ld" style="background:#1d4ed8"></span>FY 25-26</span><span class="li"><span class="ld" style="background:#cbd5e1"></span>FY 24-25</span></div>
+        </div>
+      </div>
+      <div class="ch h200"><canvas id="e-trend"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: LEAD PIPELINE -->
+  <div class="panel" id="t-pipe">
+    <div class="sec-title">Lead Pipeline <span class="sec-sub">— Funnel view, stage drop-offs & conversion rates</span></div>
+    <div class="g13 mb">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Lead funnel</div><div class="card-s">Prospects → Won</div></div><span class="badge b-bl">Stages</span></div>
+        <div class="funnel-wrap" id="funnel-stages"></div>
+        <div style="margin-top:12px">
+          <div class="conv-row"><span class="conv-label">Prospects → Qualified</span><div class="conv-bar-wrap"><div class="conv-bar" style="width:27%"></div></div><span class="conv-pct">27.4%</span></div>
+          <div class="conv-row"><span class="conv-label">Qualified → Proposal</span><div class="conv-bar-wrap"><div class="conv-bar" style="width:56%"></div></div><span class="conv-pct">56.3%</span></div>
+          <div class="conv-row"><span class="conv-label">Proposal → Won</span><div class="conv-bar-wrap"><div class="conv-bar" style="width:42%"></div></div><span class="conv-pct">42.1%</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="card mb">
+          <div class="card-hd"><div><div class="card-t">Stage distribution by month</div></div><span class="badge b-pu">Monthly</span></div>
+          <div class="leg"><span class="li"><span class="ld" style="background:#1d4ed8"></span>Prospects</span><span class="li"><span class="ld" style="background:#6d28d9"></span>Qualified</span><span class="li"><span class="ld" style="background:#0f766e"></span>Proposal</span><span class="li"><span class="ld" style="background:#15803d"></span>Won</span></div>
+          <div class="ch h160"><canvas id="p-stage"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div><div class="card-t">Conversion rate trend</div><div class="card-s">Monthly conversion % over the year</div></div></div>
+          <div class="ch h140"><canvas id="p-conv"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: REVENUE ANALYTICS -->
+  <div class="panel" id="t-rev">
+    <div class="sec-title">Revenue Analytics <span class="sec-sub">— Expected vs contracted, SBU contribution, forecast</span></div>
+    <div class="g4 mb">
+      <div class="kpi"><div class="kpi-l">Expected Value</div><div class="kpi-v">₹1,240Cr</div><div class="kpi-d nt">Pipeline total</div></div>
+      <div class="kpi"><div class="kpi-l">Contracted Value</div><div class="kpi-v">₹589Cr</div><div class="kpi-d up">47.5% of expected</div></div>
+      <div class="kpi"><div class="kpi-l">Avg Deal Size</div><div class="kpi-v">₹24.6Cr</div><div class="kpi-d up">+₹3.2Cr YoY</div></div>
+      <div class="kpi"><div class="kpi-l">Forecast FY 26-27</div><div class="kpi-v">₹720Cr</div><div class="kpi-d up">+22% projected</div></div>
+    </div>
+    <div class="g2 mb">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Expected vs contracted value</div><div class="card-s">By financial year (Cr)</div></div><span class="badge b-gr">5 Years</span></div>
+        <div class="leg"><span class="li"><span class="ld" style="background:#1d4ed8"></span>Expected</span><span class="li"><span class="ld" style="background:#15803d"></span>Contracted</span></div>
+        <div class="ch h200"><canvas id="r-evc"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Revenue by top customer</div><div class="card-s">Contracted value (Cr)</div></div><span class="badge b-te">Top 8</span></div>
+        <div class="ch h220"><canvas id="r-cust"></canvas></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">SBU revenue contribution</div><div class="card-s">% share of total contracted value</div></div></div>
+        <div class="donut-wrap">
+          <div class="ch h160" style="width:150px;flex-shrink:0"><canvas id="r-sbu"></canvas></div>
+          <div class="donut-leg">
+            <div class="donut-li"><span class="donut-dot" style="background:#1d4ed8"></span><span class="donut-txt">Defence</span><span class="donut-pct">38%</span></div>
+            <div class="donut-li"><span class="donut-dot" style="background:#0f766e"></span><span class="donut-txt">Civil Infra</span><span class="donut-pct">27%</span></div>
+            <div class="donut-li"><span class="donut-dot" style="background:#6d28d9"></span><span class="donut-txt">Telecom</span><span class="donut-pct">20%</span></div>
+            <div class="donut-li"><span class="donut-dot" style="background:#b45309"></span><span class="donut-txt">Export</span><span class="donut-pct">15%</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Forecast year analysis</div><div class="card-s">Projected contracted value by FY (Cr)</div></div><span class="badge b-am">Forecast</span></div>
+        <div class="ch h180"><canvas id="r-fore"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: CUSTOMER INSIGHTS -->
+  <div class="panel" id="t-cust">
+    <div class="sec-title">Customer Insights <span class="sec-sub">— Top customers, segments, competition & defence/civil mix</span></div>
+    <div class="g2 mb">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Top customers by lead count</div><div class="card-s">Number of leads per customer</div></div><span class="badge b-bl">Ranked</span></div>
+        <div id="cust-bars"></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Customer segments by month</div><div class="card-s">Enterprise / Mid-Market / SMB / PMn</div></div></div>
+        <div class="leg"><span class="li"><span class="ld" style="background:#1d4ed8"></span>Enterprise</span><span class="li"><span class="ld" style="background:#0f766e"></span>Mid-Market</span><span class="li"><span class="ld" style="background:#6d28d9"></span>SMB</span><span class="li"><span class="ld" style="background:#b45309"></span>PMn</span></div>
+        <div class="ch h200"><canvas id="c-segs"></canvas></div>
+      </div>
+    </div>
+    <div class="g4">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Customer segments</div></div></div>
+        <div class="donut-wrap" style="flex-direction:column;gap:10px">
+          <div class="ch h120" style="width:120px;margin:0 auto"><canvas id="c-segpie"></canvas></div>
+          <div class="donut-leg">
+            <div class="donut-li"><span class="donut-dot" style="background:#1d4ed8"></span><span class="donut-txt">Enterprise</span><span class="donut-pct">52%</span></div>
+            <div class="donut-li"><span class="donut-dot" style="background:#0f766e"></span><span class="donut-txt">Mid-Market</span><span class="donut-pct">32%</span></div>
+            <div class="donut-li"><span class="donut-dot" style="background:#6d28d9"></span><span class="donut-txt">SMB</span><span class="donut-pct">16%</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">New clients</div></div></div>
+        <div class="mini-kpi" style="margin-top:8px"><div class="v" style="color:var(--bl)">60%</div><div class="l">New this FY</div></div>
+        <div style="margin-top:10px"><div class="ch h100"><canvas id="c-new"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Retention rate</div></div></div>
+        <div class="mini-kpi" style="margin-top:8px"><div class="v" style="color:var(--te)">51%</div><div class="l">Retained clients</div></div>
+        <div style="margin-top:10px"><div class="ch h100"><canvas id="c-ret"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Satisfaction</div></div></div>
+        <div class="mini-kpi" style="margin-top:8px"><div class="v" style="color:var(--am)">77%</div><div class="l">CSAT score</div></div>
+        <div style="margin-top:10px"><div class="ch h100"><canvas id="c-sat"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: TIMELINE ANALYTICS -->
+  <div class="panel" id="t-time">
+    <div class="sec-title">Timeline Analytics <span class="sec-sub">— Tender dates, deadline extensions, lifecycle phases</span></div>
+    <div class="g2 mb">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Tender lifecycle phases</div><div class="card-s">Research → Proposal → Evaluation → Award</div></div><span class="badge b-bl">Gantt view</span></div>
+        <div id="gantt-view" style="margin-top:4px"></div>
+        <div class="leg" style="margin-top:12px">
+          <span class="li"><span class="ld" style="background:#1d4ed8"></span>Research Phase</span>
+          <span class="li"><span class="ld" style="background:#0f766e"></span>Proposal Submission</span>
+          <span class="li"><span class="ld" style="background:#b45309"></span>Evaluation</span>
+          <span class="li"><span class="ld" style="background:#15803d"></span>Project Start</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Delay analysis by quarter</div><div class="card-s">Average delay in days per quarter</div></div><span class="badge b-rd">Delays</span></div>
+        <div class="ch h220"><canvas id="tl-delay"></canvas></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Milestone timeline</div><div class="card-s">Active milestones across all quarters</div></div></div>
+        <div class="leg"><span class="li"><span class="ld" style="background:#1d4ed8"></span>Research</span><span class="li"><span class="ld" style="background:#0f766e"></span>Proposal</span><span class="li"><span class="ld" style="background:#b45309"></span>Evaluation</span><span class="li"><span class="ld" style="background:#6d28d9"></span>Negotiation</span></div>
+        <div class="ch h180"><canvas id="tl-mile"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Deadline extensions</div><div class="card-s">Extension frequency vs. deal value (Cr)</div></div><span class="badge b-am">Bubble</span></div>
+        <div class="ch h180"><canvas id="tl-ext"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 6: TEAM PERFORMANCE -->
+  <div class="panel" id="t-team">
+    <div class="sec-title">Team Performance <span class="sec-sub">— Lead owner workload, contributions & success rates</span></div>
+    <div class="g4 mb">
+      <div class="kpi"><div class="kpi-l">Team Members</div><div class="kpi-v">12</div><div class="kpi-d nt">Active owners</div></div>
+      <div class="kpi"><div class="kpi-l">Avg Leads/Owner</div><div class="kpi-v">68</div><div class="kpi-d up">+8 vs last FY</div></div>
+      <div class="kpi"><div class="kpi-l">Top Win Rate</div><div class="kpi-v">65%</div><div class="kpi-d up">Rajan K.</div></div>
+      <div class="kpi"><div class="kpi-l">Avg Response Time</div><div class="kpi-v">2.4d</div><div class="kpi-d dn">+0.3d vs target</div></div>
+    </div>
+    <div class="g2 mb">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Lead owner performance</div><div class="card-s">Win rate % per team member</div></div><span class="badge b-gr">Win Rate</span></div>
+        <div id="owner-perf"></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Contract contribution by owner</div><div class="card-s">Contracted value (Cr) per team member</div></div></div>
+        <div class="ch h240"><canvas id="tm-contrib"></canvas></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Lead workload distribution</div><div class="card-s">Open leads per owner</div></div></div>
+        <div class="ch h180"><canvas id="tm-load"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><div class="card-t">Monthly activity trend</div><div class="card-s">Leads created by team per month</div></div></div>
+        <div class="leg"><span class="li"><span class="ld" style="background:#1d4ed8"></span>Created</span><span class="li"><span class="ld" style="background:#15803d"></span>Won</span><span class="li"><span class="ld" style="background:#b91c1c"></span>Lost</span></div>
+        <div class="ch h180"><canvas id="tm-act"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const gc='#e2e6f0';
+const bo={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},scales:{x:{grid:{color:gc},ticks:{color:'#8896b0',font:{size:10}}},y:{grid:{color:gc},ticks:{color:'#8896b0',font:{size:10}}}}};
+const charts={};
+const inited={};
+
+function mk(id,cfg){
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(charts[id]){charts[id].destroy();}
+  charts[id]=new Chart(el,cfg);
+}
+
+function showTab(id,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('t-'+id).classList.add('on');
+  if(!inited[id]){inited[id]=true;setTimeout(()=>initTab(id),60);}
+}
+
+function initTab(id){
+  if(id==='exec')initExec();
+  else if(id==='pipe')initPipe();
+  else if(id==='rev')initRev();
+  else if(id==='cust')initCust();
+  else if(id==='time')initTime();
+  else if(id==='team')initTeam();
+}
+
+function initExec(){
+  mk('e-type',{type:'doughnut',data:{labels:['Public','Private','Partnership'],datasets:[{data:[52,31,17],backgroundColor:['#1d4ed8','#3b82f6','#93c5fd'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}});
+  mk('e-sbu',{type:'bar',data:{labels:['Defence','Civil Infra','Telecom','Export','R&D'],datasets:[{data:[31.9,20.5,18.2,12.9,16.5],backgroundColor:['#1d4ed8','#3b82f6','#6d28d9','#0f766e','#b45309'],borderRadius:5,barPercentage:.6}]},options:{...bo,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#8896b0',font:{size:10}}},y:{grid:{color:gc},ticks:{color:'#8896b0',font:{size:10},callback:v=>v+'%'}}}}});
+  mk('e-trend',{type:'line',data:{labels:MO,datasets:[{label:'FY 25-26',data:[820,750,900,880,1050,980,1100,1200,950,1280,1100,1420],borderColor:'#1d4ed8',backgroundColor:'rgba(29,78,216,.07)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#1d4ed8'},{label:'FY 24-25',data:[700,640,790,760,890,820,950,1040,820,1100,940,1230],borderColor:'#cbd5e1',borderDash:[4,3],tension:.4,fill:false,pointRadius:0}]},options:{...bo}});
+}
+
+function initPipe(){
+  const stages=[{label:'Prospects',count:8450,color:'#1d4ed8',w:'100%'},{label:'Qualified',count:3820,color:'#3b82f6',w:'78%'},{label:'Proposals',count:2160,color:'#6d28d9',w:'55%'},{label:'Won',count:910,color:'#15803d',w:'32%'}];
+  const fw=document.getElementById('funnel-stages');
+  fw.innerHTML=stages.map(s=>`<div class="funnel-stage" style="background:${s.color};width:${s.w};padding:9px 0">${s.label} — ${s.count.toLocaleString()}</div>`).join('');
+  mk('p-stage',{type:'bar',data:{labels:MO,datasets:[{label:'Prospects',data:[820,750,900,880,1050,980,1100,1200,950,1280,1100,1420],backgroundColor:'rgba(29,78,216,.8)',borderRadius:3,stack:'s'},{label:'Qualified',data:[320,290,380,360,420,400,450,490,390,520,440,580],backgroundColor:'rgba(109,40,217,.8)',borderRadius:3,stack:'s'},{label:'Proposals',data:[180,160,210,200,240,220,260,280,220,300,250,330],backgroundColor:'rgba(15,118,110,.8)',borderRadius:3,stack:'s'},{label:'Won',data:[80,70,95,90,110,100,118,130,100,140,115,155],backgroundColor:'rgba(21,128,61,.8)',borderRadius:3,stack:'s'}]},options:{...bo,scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#8896b0',font:{size:10}}},y:{stacked:true,grid:{color:gc},ticks:{color:'#8896b0',font:{size:10}}}}}});
+  mk('p-conv',{type:'line',data:{labels:MO,datasets:[{data:[24,22,27,26,29,28,31,33,28,35,30,38],borderColor:'#1d4ed8',backgroundColor:'rgba(29,78,216,.07)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#1d4ed8'}]},options:{...bo,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#8896b0',font:{size:10}}},y:{grid:{color:gc},ticks:{color:'#8896b0',font:{size:10},callback:v=>v+'%'}}}}});
+}
+
+function initRev(){
+  mk('r-evc',{type:'bar',data:{labels:['FY 21-22','FY 22-23','FY 23-24','FY 24-25','FY 25-26'],datasets:[{label:'Expected',data:[820,940,1060,1150,1240],backgroundColor:'rgba(29,78,216,.3)',borderColor:'#1d4ed8',borderWidth:1.5,borderRadius:4},{label:'Contracted',data:[390,445,498,540,589],backgroundColor:'rgba(21,128,61,.8)',borderRadius:4}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{color:'#8896b0',font:{size:10}}},y:{grid:{color:gc},ticks:{color:'#8896b0',font:{size:10},callback:v=>'₹'+v}}}}});
+  mk('r-cust',{type:'bar',data:{labels:['MoD','BEL','ONGC','DRDO','NHAI','BSF','AAI','BSNL'],datasets:[{data:[142,118,96,84,72,65,54,42],backgroundColor:'rgba(29,78,216,.15)',borderColor:'#1d4ed8',borderWidth:1.5,borderRadius:4}]},options:{...bo,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:'#8896b0',font:{size:10},callback:v=>'₹'+v+'Cr'}},y:{grid:{display:false},ticks:{color:'#8896b0',font:{size:10}}}}}});
+  mk('r-sbu',{type:'doughnut',data:{labels:['Defence','Civil','Telecom','Export'],datasets:[{data:[38,27,20,15],backgroundColor:['#1d4ed8','#0f766e','#6d28d9','#b45309'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'60%'}});
+  mk('r-fore',{type:'bar',data:{labels:['FY 25-26','FY 26-27','FY 27-28','FY 28-29'],datasets:[{data:[589,720,870,1040],backgroundColor:['#1d4ed8','rgba(29,78,216,.7)','rgba(29,78,216,.5)','rgba(29,78,216,.35)'],borderRadius:5,barPercentage:.6}]},options:{...bo,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#8896b0',font:{size:10}}},y:{grid:{color:gc},ticks:{color:'#8896b0',font:{size:10},callback:v=>'₹'+v+'Cr'}}}}});
+}
+
+function initCust(){
+  const customers=[['MoD',420,'#1d4ed8'],['BEL',385,'#3b82f6'],['ONGC',312,'#6d28d9'],['DRDO',280,'#0f766e'],['NHAI',245,'#b45309'],['BSF',218,'#15803d'],['AAI',190,'#b91c1c'],['BSNL',162,'#8896b0']];
+  const max=420;
+  document.getElementById('cust-bars').innerHTML=customers.map(([n,v,c])=>`<div class="cust-bar-row"><span class="cust-name">${n}</span><div class="cust-bw"><div class="cust-b" style="width:${Math.round(v/max*100)}%;background:${c}"></div></div><span class="cust-v">${v}</span></div>`).join('');
+  mk('c-segs',{type:'bar',data:{labels:MO,datasets:[{label:'Enterprise',data:[420,390,450,430,480,460,510,540,480,570,510,600],backgroundColor:'rgba(29,78,216,.8)',borderRadius:3,stack:'s'},{label:'Mid-Market',data:[280,260,300,285,320,305,340,360,320,380,340,400],backgroundColor:'rgba(15,118,110,.8)',borderRadius:3,stack:'s'},{label:'SMB',data:[140,130,150,145,160,155,170,180,160,190,170,200],backgroundColor:'rgba(109,40,217,.8)',borderRadius:3,stack:'s'},{label:'PMn',data:[80,75,85,82,90,88,95,100,88,108,96,115],backgroundColor:'rgba(180,83,9,.8)',borderRadius:3,stack:'s'}]},options:{...bo,scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#8896b0',font:{size:10}}},y:{stacked:true,grid:{color:gc},ticks:{color:'#8896b0',font:{size:10}}}}}});
+  mk('c-segpie',{type:'doughnut',data:{labels:['Enterprise','Mid-Market','SMB'],datasets:[{data:[52,32,16],backgroundColor:['#1d4ed8','#0f766e','#6d28d9'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'55%'}});
+  mk('c-new',{type:'doughnut',data:{datasets:[{data:[60,40],backgroundColor:['#1d4ed8','#e2e6f0'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'68%'}});
+  mk('c-ret',{type:'doughnut',data:{datasets:[{data:[51,49],backgroundColor:['#0f766e','#e2e6f0'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'68%'}});
+  mk('c-sat',{type:'doughnut',data:{datasets:[{data:[77,23],backgroundColor:['#b45309','#e2e6f0'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'68%'}});
+}
+
+function initTime(){
+  const gv=document.getElementById('gantt-view');
+  const phases=[
+    {name:'Research Phase',start:0,len:35,color:'#1d4ed8',dates:'Jan – Mar'},
+    {name:'Proposal Submission',start:30,len:30,color:'#0f766e',dates:'Mar – May'},
+    {name:'Evaluation',start:55,len:20,color:'#b45309',dates:'May – Jun'},
+    {name:'Project Start',start:72,len:15,color:'#15803d',dates:'Jul – Aug'},
+  ];
+  gv.innerHTML='<div style="margin-bottom:8px">'+phases.map(p=>`
+    <div style="margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+        <span style="font-size:10px;color:var(--t2)">${p.name}</span>
+        <span style="font-size:10px;color:var(--t3);font-family:var(--mn)">${p.dates}</span>
+      </div>
+      <div style="height:20px;background:var(--sur3);border-radius:4px;overflow:hidden;position:relative">
+        <div style="position:absolute;left:${p.start}%;width:${p.len}%;height:100%;background:${p.color};border-radius:4px;display:flex;align-items:center;justify-content:center">
+          <span style="font-size:9px;color:#fff;font-weight:500">${p.name.split(' ')[0]}</span>
+        </div>
+      </div>
+    </div>`).join('')+'</div>';
+
+  mk('tl-delay',{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'Avg Delay (days)',data:[12,18,15,22],backgroundColor:['rgba(29,78,216,.7)','rgba(29,78,216,.7)','rgba(180,83,9,.7)','rgba(185,28,28,.7)'],borderRadius:5,barPercentage:.5}]},options:{...bo,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#8896b0',font:{size:11}}},y:{grid:{color:gc},ticks:{color:'#8896b0',font:{size:11},callback:v=>v+'d'}}}}});
+
+  mk('tl-mile',{type:'bar',data:{labels:['Q1','Q2','Q3','Q4','2yr','3yr','5yr','10yr'],datasets:[{label:'Research',data:[8,0,6,0,4,0,0,0],backgroundColor:'rgba(29,78,216,.8)',borderRadius:3,stack:'s'},{label:'Proposal',data:[0,9,0,7,0,5,0,0],backgroundColor:'rgba(15,118,110,.8)',borderRadius:3,stack:'s'},{label:'Evaluation',data:[0,0,7,0,5,0,3,0],backgroundColor:'rgba(180,83,9,.8)',borderRadius:3,stack:'s'},{label:'Negotiation',data:[0,0,0,5,0,3,0,2],backgroundColor:'rgba(109,40,217,.8)',borderRadius:3,stack:'s'}]},options:{...bo,scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#8896b0',font:{size:10}}},y:{stacked:true,grid:{color:gc},ticks:{color:'#8896b0',font:{size:10}}}}}});
+
+  mk('tl-ext',{type:'bubble',data:{datasets:[{label:'Extensions',data:[{x:15,y:22,r:8},{x:35,y:45,r:14},{x:55,y:18,r:6},{x:70,y:55,r:18},{x:20,y:35,r:10},{x:80,y:28,r:9},{x:45,y:60,r:16},{x:60,y:40,r:12}],backgroundColor:'rgba(29,78,216,.5)',borderColor:'#1d4ed8'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},min:0,max:100,title:{display:true,text:'Tender Value Band',color:'#8896b0',font:{size:10}},ticks:{color:'#8896b0',font:{size:10}}},y:{grid:{color:gc},min:0,max:70,title:{display:true,text:'Extension %',color:'#8896b0',font:{size:10}},ticks:{color:'#8896b0',font:{size:10},callback:v=>v+'%'}}}}});
+}
+
+function initTeam(){
+  const owners=[
+    {name:'Rajan K.',pct:65,color:'#1d4ed8',init:'RK'},
+    {name:'Priya S.',pct:57,color:'#0f766e',init:'PS'},
+    {name:'Anil M.',pct:44,color:'#6d28d9',init:'AM'},
+    {name:'Deepa R.',pct:39,color:'#b45309',init:'DR'},
+    {name:'Sanjay V.',pct:34,color:'#15803d',init:'SV'},
+  ];
+  document.getElementById('owner-perf').innerHTML=owners.map(o=>`
+    <div class="owner-row">
+      <div class="av" style="background:${o.color}22;color:${o.color}">${o.init}</div>
+      <span class="owner-name">${o.name}</span>
+      <div class="owner-bar-w"><div class="owner-bar" style="width:${o.pct}%;background:${o.color}"></div></div>
+      <span class="owner-pct">${o.pct}%</span>
+    </div>`).join('');
+
+  mk('tm-contrib',{type:'bar',data:{labels:owners.map(o=>o.name.split(' ')[0]),datasets:[{data:[82,68,52,44,34],backgroundColor:owners.map(o=>o.color+'88'),borderColor:owners.map(o=>o.color),borderWidth:1.5,borderRadius:5,barPercentage:.6}]},options:{...bo,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#8896b0',font:{size:10}}},y:{grid:{color:gc},ticks:{color:'#8896b0',font:{size:10},callback:v=>'₹'+v+'Cr'}}}}});
+  mk('tm-load',{type:'bar',data:{labels:owners.map(o=>o.name.split(' ')[0]),datasets:[{data:[28,22,18,15,12],backgroundColor:'rgba(29,78,216,.15)',borderColor:'#1d4ed8',borderWidth:1.5,borderRadius:5,barPercentage:.6}]},options:{...bo,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:'#8896b0',font:{size:10}}},y:{grid:{display:false},ticks:{color:'#8896b0',font:{size:10}}}}}});
+  mk('tm-act',{type:'line',data:{labels:MO,datasets:[{label:'Created',data:[82,75,90,88,105,98,112,124,98,132,115,148],borderColor:'#1d4ed8',tension:.4,fill:false,pointRadius:2},{label:'Won',data:[38,34,42,40,49,45,52,58,46,62,54,70],borderColor:'#15803d',tension:.4,fill:false,pointRadius:2},{label:'Lost',data:[18,16,22,20,24,22,26,30,24,32,26,35],borderColor:'#b91c1c',borderDash:[3,3],tension:.4,fill:false,pointRadius:2}]},options:{...bo}});
+}
+
+setTimeout(()=>initExec(),100);
+</script>

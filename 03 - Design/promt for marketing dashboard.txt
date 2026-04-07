@@ -1,0 +1,13 @@
+please update these documents according to this requirement: -   marketing team wants to manage 1st budgetary quotation; 2nd leads in which lead submitted, domestic lead, export lead, crm leads and lost lead; 3rd order received; 4th inhouse R&D,
+
+marketing team wants multiple form to keep data of these all section 
+
+like budgetary quotation they are 12 fields are BQ Title, Customer name, Customer address, Lead Owner, Defence/Non Defence,  Estimated value in Crore without GST, Submitted value in Crore without GST, Date of Letter submission, Reference No Competitors, Present Status, in which one is to save pdf documents and other for text and dates, 
+
+like this in leads they have 22 fields are :- Tender Name,  Customer name, customer Location, Tender type, Document type, Lead owner, Civil/Defence, Bussiness domain, value of EMD, Estimated value in Crore without GST, Submitted value in Crore without GST, Tender Dated, Last date of submission , Sole/Consortium, Pre-bid metting Date & time , Competitors Info , Won/Lost/Participated/Not-Participated, Open/Closed, Order Won value in Crore without GST, Present Status, Resone for losing/Participated/Not- participating in this opportunity, Corrigendums-Date & File, 
+
+like this in order received there are 12 fields Tender name, Customer name, customer address,  order received Date, PO/WO No, Tender Type Value in Crore without GST, Value in Crore with GST, Competitors, Remarks, Contract Copy/Work Order/LOI, in which two is to save pdf documents and other for text and dates,
+
+they also want to view this data in table in which they want a feature of edit or delete in column of the table after clicking on the action of edit or delete of the action column one pop shall come where all details would be there means the fields details then they perform the operation.
+
+after all these, their main requirement comes where they want a dashboard for analyses purpose for their business on the base of data which they have feed earlier through their forms. In this dashboard, they want to have many things as per modern graph, pie charts, table, bar graph, kpi, business requirements, like how order they got previous 5 year, how leads they lost, what amount of order they have received till now, how many leads are in their queue, also they have future plan to connect their existing crm system to this system. 
