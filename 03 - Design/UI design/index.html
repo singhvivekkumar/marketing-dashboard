@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lead Management UI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div>
+        <p class="eyebrow">Marketing Portal</p>
+        <h1>Lead Management</h1>
+        <p class="sidebar-copy">
+          Capture lead data from the database form, monitor the live bidding stage, and move opportunities through each qualification checkpoint.
+        </p>
+      </div>
+
+      <nav class="nav-grid">
+        <button class="nav-card active" type="button">
+          <span class="nav-title">Lead Intake</span>
+          <span class="nav-meta">Customer + Tender Form</span>
+        </button>
+        <button class="nav-card" type="button">
+          <span class="nav-title">Stage Board</span>
+          <span class="nav-meta">Bidding Process Pipeline</span>
+        </button>
+        <button class="nav-card" type="button">
+          <span class="nav-title">Alerts</span>
+          <span class="nav-meta">Overdue and action tracking</span>
+        </button>
+      </nav>
+
+      <section class="schema-map">
+        <h2>SQL Mapping</h2>
+        <ul>
+          <li>`customers` + `tenders` power the creation form.</li>
+          <li>`bidding_process` controls the stage board.</li>
+          <li>`stage_history` records stage movement.</li>
+          <li>`stage_actions` drives checklist items per stage.</li>
+        </ul>
+      </section>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Workflow Overview</p>
+          <h2>Design the UI around the actual procurement journey</h2>
+          <p class="hero-copy">
+            Your SQL is not a simple CRM. It supports a procurement lifecycle from EOI to order received, so the interface should combine a structured intake form with a stage-based execution board.
+          </p>
+        </div>
+
+        <div class="hero-stats" id="stats"></div>
+      </section>
+
+      <section class="panel split">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Screen 1</p>
+            <h3>Create Lead / Tender Intake</h3>
+          </div>
+          <span class="chip">Maps to `customers`, `tenders`, `bidding_process`</span>
+        </div>
+
+        <form id="leadForm" class="lead-form">
+          <div class="form-section">
+            <h4>Customer Details</h4>
+            <div class="field-grid">
+              <label>
+                Company Name
+                <input name="companyName" type="text" placeholder="Acme Defence Systems" required>
+              </label>
+              <label>
+                Contact Person
+                <input name="contactPerson" type="text" placeholder="Ravi Kumar">
+              </label>
+              <label>
+                Sector
+                <select name="sector">
+                  <option value="Civil">Civil</option>
+                  <option value="Defence">Defence</option>
+                  <option value="Both">Both</option>
+                </select>
+              </label>
+              <label>
+                Customer Type
+                <select name="customerType">
+                  <option value="Government - Central">Government - Central</option>
+                  <option value="Government - State">Government - State</option>
+                  <option value="PSU">PSU</option>
+                  <option value="Private">Private</option>
+                  <option value="MNC">MNC</option>
+                  <option value="JV">JV</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Tender Details</h4>
+            <div class="field-grid">
+              <label>
+                Tender Name
+                <input name="tenderName" type="text" placeholder="Naval Surveillance Integration Program" required>
+              </label>
+              <label>
+                Tender Reference No
+                <input name="referenceNo" type="text" placeholder="RFP-2026-041">
+              </label>
+              <label>
+                Document Type
+                <select name="documentType">
+                  <option value="RFP">RFP</option>
+                  <option value="EOI">EOI</option>
+                  <option value="RFQ">RFQ</option>
+                  <option value="NIT">NIT</option>
+                  <option value="GeM Bid">GeM Bid</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label>
+                Tender Type
+                <select name="tenderType">
+                  <option value="Open">Open</option>
+                  <option value="Limited">Limited</option>
+                  <option value="Single Source">Single Source</option>
+                  <option value="Nomination">Nomination</option>
+                  <option value="Global Tender">Global Tender</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label>
+                Business Domain
+                <input name="businessDomain" type="text" placeholder="Radar, Command & Control">
+              </label>
+              <label>
+                Lead Owner
+                <input name="leadOwner" type="text" placeholder="Amit Singh">
+              </label>
+              <label>
+                Estimated Value (Cr)
+                <input name="estimatedValue" type="number" min="0" step="0.01" placeholder="12.50" required>
+              </label>
+              <label>
+                Submission Due Date
+                <input name="submissionDate" type="date" required>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Bidding Process Setup</h4>
+            <div class="field-grid">
+              <label>
+                Current Stage
+                <select name="currentStage">
+                  <option value="Pre-Qualification">Pre-Qualification</option>
+                  <option value="Technical Qualification">Technical Qualification</option>
+                  <option value="Commercial Qualification">Commercial Qualification</option>
+                  <option value="Evaluation">Evaluation</option>
+                  <option value="Result">Result</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </label>
+              <label>
+                Priority
+                <select name="priority">
+                  <option value="Low">Low</option>
+                  <option value="Normal" selected>Normal</option>
+                  <option value="High">High</option>
+                  <option value="Critical">Critical</option>
+                </select>
+              </label>
+              <label>
+                Health Status
+                <select name="health">
+                  <option value="Green">Green</option>
+                  <option value="Amber">Amber</option>
+                  <option value="Red">Red</option>
+                </select>
+              </label>
+              <label>
+                Go / No-Go
+                <select name="goNoGo">
+                  <option value="Pending">Pending</option>
+                  <option value="Go">Go</option>
+                  <option value="No-Go">No-Go</option>
+                </select>
+              </label>
+              <label class="wide">
+                Stage Notes
+                <textarea name="stageNotes" rows="4" placeholder="Capture decision notes, pending documents, or next actions"></textarea>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <p id="formFeedback">New leads created here should insert into `customers`, `tenders`, and a linked `bidding_process` record.</p>
+            <button class="primary-btn" type="submit">Add Lead To Stage Board</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Screen 2</p>
+            <h3>Bidding Stage Board</h3>
+          </div>
+          <span class="chip">Drag/drop later, fast actions now</span>
+        </div>
+
+        <div class="board-header">
+          <div>
+            <strong>Recommended interaction:</strong>
+            <span>click a card to view details, then move the lead stage and save a history note.</span>
+          </div>
+          <div class="legend">
+            <span class="legend-pill green">Green</span>
+            <span class="legend-pill amber">Amber</span>
+            <span class="legend-pill red">Red</span>
+          </div>
+        </div>
+
+        <div class="board" id="stageBoard"></div>
+      </section>
+
+      <section class="panel detail-layout">
+        <div>
+          <div class="panel-header compact">
+            <div>
+              <p class="eyebrow">Screen 3</p>
+              <h3>Selected Lead Detail</h3>
+            </div>
+            <span class="chip">Action panel</span>
+          </div>
+
+          <div id="leadDetail" class="lead-detail"></div>
+        </div>
+
+        <div>
+          <div class="panel-header compact">
+            <div>
+              <p class="eyebrow">Schema-driven UI</p>
+              <h3>Recommended Tabs</h3>
+            </div>
+          </div>
+
+          <div class="tab-list">
+            <article>
+              <h4>Overview</h4>
+              <p>Customer, tender identity, owner, due date, value, stage summary.</p>
+            </article>
+            <article>
+              <h4>Stage Checklist</h4>
+              <p>Powered by `stage_actions`; mark mandatory items complete before moving ahead.</p>
+            </article>
+            <article>
+              <h4>History</h4>
+              <p>Use `stage_history` to show every stage transition with who changed it and why.</p>
+            </article>
+            <article>
+              <h4>Documents</h4>
+              <p>Group uploaded files by table: PQ, tech bid, commercial bid, evaluation, result, order.</p>
+            </article>
+            <article>
+              <h4>Alerts</h4>
+              <p>Show overdue stages, submission deadlines, pre-bid meetings, and pending actions.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
