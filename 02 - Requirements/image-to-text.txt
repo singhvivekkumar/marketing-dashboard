@@ -1,0 +1,2 @@
+
+I want ot build a form creator interface in react and material ui where i can give a name, type and description of the form then add start adding field to the form. then the form's schema in JSONB will save in postgresql database. and after i want to render this form acordering to schema in customer interface where customer will enter the forms details and submit the form. and the form's data would save in postgresql data as JSON data.

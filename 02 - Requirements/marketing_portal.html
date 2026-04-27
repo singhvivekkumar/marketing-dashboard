@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing Portal — Bidding Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --bg2: #13161e;
+  --bg3: #1a1e29;
+  --bg4: #222736;
+  --border: #2a3045;
+  --border2: #3a4560;
+  --text: #d4daf0;
+  --text2: #8892b0;
+  --text3: #4a567a;
+  --accent: #4f9cf9;
+  --accent2: #2563eb;
+  --green: #22c55e;
+  --green-bg: #052012;
+  --green-border: #15532d;
+  --amber: #f59e0b;
+  --amber-bg: #1a1200;
+  --amber-border: #713f0a;
+  --red: #ef4444;
+  --red-bg: #1a0202;
+  --red-border: #5c1414;
+  --purple: #a78bfa;
+  --purple-bg: #0f0a1e;
+  --cyan: #22d3ee;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --radius: 6px;
+  --radius2: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  background: rgba(79,156,249,0.1);
+  border: 1px solid rgba(79,156,249,0.25);
+  padding: 3px 8px;
+  border-radius: 3px;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+.logo-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+.logo-sub {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 2px;
+  font-family: var(--mono);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+  overflow-y: auto;
+}
+
+.nav-section-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  padding: 10px 18px 6px;
+  text-transform: uppercase;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-left: 2px solid transparent;
+  font-size: 12.5px;
+  color: var(--text2);
+  position: relative;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active {
+  background: rgba(79,156,249,0.08);
+  border-left-color: var(--accent);
+  color: var(--accent);
+}
+.nav-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.nav-num {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-left: auto;
+}
+.nav-item.active .nav-num { color: var(--accent); }
+
+/* Module colors */
+.dot-lead { background: #4f9cf9; }
+.dot-bq   { background: #a78bfa; }
+.dot-tend { background: #22d3ee; }
+.dot-bid  { background: #f59e0b; }
+.dot-acq  { background: #22c55e; }
+.dot-ord  { background: #fb923c; }
+.dot-fut  { background: #f472b6; }
+
+.sidebar-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.topbar-module {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.module-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.tag-lead   { background: rgba(79,156,249,0.15); color: #4f9cf9; border: 1px solid rgba(79,156,249,0.3); }
+.tag-bq     { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+.tag-tender { background: rgba(34,211,238,0.15); color: #22d3ee; border: 1px solid rgba(34,211,238,0.3); }
+.tag-bid    { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+.tag-acq    { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+.tag-ord    { background: rgba(251,146,60,0.15); color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
+.tag-fut    { background: rgba(244,114,182,0.15); color: #f472b6; border: 1px solid rgba(244,114,182,0.3); }
+
+.topbar-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+.btn-primary {
+  background: var(--accent2);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: #1d4ed8; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.btn-danger { border-color: var(--red-border); color: var(--red); }
+.btn-danger:hover { background: var(--red-bg); }
+.btn-success { border-color: var(--green-border); color: var(--green); }
+.btn-success:hover { background: var(--green-bg); }
+
+/* ── CONTENT AREA ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── LEAD LIST VIEW ── */
+.view-header {
+  padding: 20px 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.view-heading {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.count-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 20px;
+  color: var(--text2);
+}
+
+.filter-bar {
+  padding: 14px 24px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.filter-input {
+  font-family: var(--sans);
+  font-size: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  outline: none;
+  width: 200px;
+}
+.filter-input::placeholder { color: var(--text3); }
+.filter-input:focus { border-color: var(--accent); }
+
+.filter-select {
+  font-family: var(--sans);
+  font-size: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  outline: none;
+  cursor: pointer;
+}
+.filter-select:focus { border-color: var(--accent); }
+
+/* TABLE */
+.table-wrap { padding: 0 24px 24px; overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin-top: 12px;
+}
+thead th {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+  cursor: pointer;
+}
+tbody tr:hover { background: var(--bg3); }
+tbody td {
+  padding: 10px 12px;
+  color: var(--text2);
+  vertical-align: middle;
+}
+tbody td:first-child { color: var(--text); font-family: var(--mono); font-size: 11px; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.chip-green  { background: var(--green-bg);  color: var(--green);  border-color: var(--green-border); }
+.chip-amber  { background: var(--amber-bg);  color: var(--amber);  border-color: var(--amber-border); }
+.chip-red    { background: var(--red-bg);    color: var(--red);    border-color: var(--red-border); }
+.chip-blue   { background: rgba(79,156,249,0.1); color: #4f9cf9; border-color: rgba(79,156,249,0.3); }
+.chip-purple { background: var(--purple-bg); color: var(--purple); border-color: rgba(167,139,250,0.3); }
+.chip-cyan   { background: rgba(34,211,238,0.1); color: var(--cyan); border-color: rgba(34,211,238,0.3); }
+.chip-gray   { background: var(--bg4); color: var(--text3); border-color: var(--border); }
+
+/* ── LEAD DETAIL VIEW ── */
+.detail-layout {
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+}
+
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  overflow: hidden;
+}
+.card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--mono);
+  letter-spacing: 0.05em;
+}
+.card-body { padding: 16px 18px; }
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 18px;
+}
+.tab {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 10px 14px;
+  cursor: pointer;
+  color: var(--text3);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text2); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.tab-panel { display: none; padding: 18px; }
+.tab-panel.active { display: block; }
+
+/* FIELD GRID */
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-group.full { grid-column: span 2; }
+.field-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+.field-value { font-size: 13px; color: var(--text); }
+.field-input {
+  font-family: var(--sans);
+  font-size: 12.5px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.field-input:focus { border-color: var(--accent); }
+.field-select {
+  font-family: var(--sans);
+  font-size: 12.5px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+}
+.field-textarea {
+  font-family: var(--sans);
+  font-size: 12.5px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  outline: none;
+  width: 100%;
+  resize: vertical;
+  min-height: 70px;
+}
+
+/* STAGE TRACKER */
+.stage-pipeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 20px;
+}
+.stage-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  min-width: 90px;
+}
+.stage-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+.stage-step.done:not(:last-child)::after { background: var(--accent2); }
+.stage-step.current:not(:last-child)::after { background: var(--border); }
+
+.stage-circle {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+.stage-step.done .stage-circle {
+  background: var(--accent2);
+  border-color: var(--accent);
+  color: #fff;
+}
+.stage-step.current .stage-circle {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79,156,249,0.15);
+}
+.stage-step.blocked .stage-circle {
+  border-color: var(--red-border);
+  color: var(--red);
+}
+.stage-label {
+  font-size: 9.5px;
+  font-family: var(--mono);
+  color: var(--text3);
+  margin-top: 6px;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 80px;
+}
+.stage-step.done .stage-label { color: var(--text2); }
+.stage-step.current .stage-label { color: var(--accent); }
+
+/* ACTION PANEL */
+.action-section {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.action-section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.action-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.action-row:last-child { margin-bottom: 0; }
+
+/* APPROVAL CHAIN */
+.approval-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.approval-item:last-child { border-bottom: none; }
+.approval-level {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  width: 24px;
+  flex-shrink: 0;
+}
+.approval-info { flex: 1; }
+.approval-name { font-size: 12.5px; color: var(--text); }
+.approval-role { font-size: 11px; color: var(--text3); }
+.approval-status { flex-shrink: 0; }
+.approval-date { font-size: 10px; color: var(--text3); font-family: var(--mono); text-align: right; }
+
+/* AUDIT LOG */
+.log-item {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.log-item:last-child { border-bottom: none; }
+.log-time { font-family: var(--mono); font-size: 10px; color: var(--text3); width: 80px; flex-shrink: 0; margin-top: 2px; }
+.log-text { color: var(--text2); line-height: 1.5; }
+.log-text strong { color: var(--text); }
+
+/* SIDEBAR INFO CARD */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-key { font-size: 11px; color: var(--text3); font-family: var(--mono); flex-shrink: 0; }
+.info-val { font-size: 12px; color: var(--text); text-align: right; }
+
+/* MODULE OVERVIEW (home view) */
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.module-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  padding: 18px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.module-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.module-card.m-lead::before  { background: #4f9cf9; }
+.module-card.m-bq::before    { background: #a78bfa; }
+.module-card.m-tend::before  { background: #22d3ee; }
+.module-card.m-bid::before   { background: #f59e0b; }
+.module-card.m-acq::before   { background: #22c55e; }
+.module-card.m-ord::before   { background: #fb923c; }
+.module-card.m-fut::before   { background: #f472b6; }
+
+.module-card:hover { border-color: var(--border2); background: var(--bg3); }
+
+.module-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.module-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.module-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+.module-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.module-desc { font-size: 11.5px; color: var(--text3); line-height: 1.5; margin-bottom: 14px; }
+.module-stats {
+  display: flex;
+  gap: 12px;
+}
+.module-stat { display: flex; flex-direction: column; gap: 2px; }
+.module-stat-num {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+.module-stat-label { font-size: 10px; color: var(--text3); }
+
+/* FORM VIEW */
+.form-view {
+  padding: 20px 24px;
+  max-width: 860px;
+}
+.form-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.form-section-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.form-section-title {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text2);
+  text-transform: uppercase;
+}
+.form-section-body { padding: 18px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.span2 { grid-column: span 2; }
+.form-group.span3 { grid-column: span 3; }
+.form-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+.toggle-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.toggle-opt {
+  font-size: 11.5px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text3);
+  background: var(--bg3);
+  transition: all 0.12s;
+  user-select: none;
+}
+.toggle-opt:hover { border-color: var(--border2); color: var(--text2); }
+.toggle-opt.selected { border-color: var(--accent); color: var(--accent); background: rgba(79,156,249,0.08); }
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+/* NOTIFICATION dot */
+.notif {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  margin-left: 4px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* BREADCRUMB */
+.breadcrumb {
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+  height: 36px;
+  border-bottom: 1px solid var(--border);
+}
+.breadcrumb a { color: var(--text3); cursor: pointer; text-decoration: none; }
+.breadcrumb a:hover { color: var(--accent); }
+.breadcrumb span { color: var(--text2); }
+
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-badge">BMS v2.0</div>
+    <div class="logo-title">Marketing Portal</div>
+    <div class="logo-sub">Bidding Management System</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Modules</div>
+    <div class="nav-item active" onclick="showHome()">
+      <span class="nav-dot" style="background:#4a567a"></span>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="showModule('lead')" id="nav-lead">
+      <span class="nav-dot dot-lead"></span>
+      Lead Creation
+      <span class="nav-num">01</span>
+    </div>
+    <div class="nav-item" onclick="showModule('bq')" id="nav-bq">
+      <span class="nav-dot dot-bq"></span>
+      Budgetary Quotation
+      <span class="nav-num">02</span>
+    </div>
+    <div class="nav-item" onclick="showModule('tender')" id="nav-tender">
+      <span class="nav-dot dot-tend"></span>
+      Tender Management
+      <span class="nav-num">03</span>
+    </div>
+    <div class="nav-item" onclick="showModule('bidding')" id="nav-bidding">
+      <span class="nav-dot dot-bid"></span>
+      Bidding
+      <span class="nav-num">04</span>
+    </div>
+    <div class="nav-item" onclick="showModule('acquisition')" id="nav-acquisition">
+      <span class="nav-dot dot-acq"></span>
+      Order Acquisition
+      <span class="nav-num">05</span>
+    </div>
+    <div class="nav-item" onclick="showModule('order')" id="nav-order">
+      <span class="nav-dot dot-ord"></span>
+      Order Received
+      <span class="nav-num">06</span>
+    </div>
+    <div class="nav-item" onclick="showModule('future')" id="nav-future">
+      <span class="nav-dot dot-fut"></span>
+      Future Initiatives
+      <span class="nav-num">07</span>
+    </div>
+    <div class="nav-section-label" style="margin-top:8px">Quick Actions</div>
+    <div class="nav-item" onclick="showNewLead()">
+      <span class="nav-dot" style="background:#2563eb"></span>
+      + New Lead
+    </div>
+  </nav>
+  <div class="sidebar-footer">BDG-TEAM · FY 2025–26</div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-module">
+      <span class="module-tag tag-lead" id="top-tag">PORTAL</span>
+      <span class="topbar-title" id="top-title">Dashboard Overview</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-sm" onclick="showNewLead()">+ New Lead</button>
+      <button class="btn btn-sm btn-primary">Export</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ══ HOME / DASHBOARD ══ -->
+    <div class="view active" id="view-home">
+      <div style="padding:20px 24px 8px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div class="view-heading">Module Overview</div>
+          <div style="font-size:11px; color:var(--text3); margin-top:3px; font-family:var(--mono)">FY 2025–26 · Defence &amp; Civil Procurement</div>
+        </div>
+      </div>
+      <div class="modules-grid">
+        <!-- LEAD -->
+        <div class="module-card m-lead" onclick="showModule('lead')">
+          <div class="module-card-header">
+            <div class="module-icon" style="background:rgba(79,156,249,0.1)">📋</div>
+            <div class="module-num">MODULE 01</div>
+          </div>
+          <div class="module-name">Lead Creation</div>
+          <div class="module-desc">Capture enquiries — EOI, RFI, customer input. Manage go/no-go decisions and internal approvals.</div>
+          <div class="module-stats">
+            <div class="module-stat"><div class="module-stat-num" style="color:#4f9cf9">24</div><div class="module-stat-label">Total leads</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#f59e0b">8</div><div class="module-stat-label">Under review</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#22c55e">11</div><div class="module-stat-label">Go decision</div></div>
+          </div>
+        </div>
+        <!-- BQ -->
+        <div class="module-card m-bq" onclick="showModule('bq')">
+          <div class="module-card-header">
+            <div class="module-icon" style="background:rgba(167,139,250,0.1)">📊</div>
+            <div class="module-num">MODULE 02</div>
+          </div>
+          <div class="module-name">Budgetary Quotation</div>
+          <div class="module-desc">Prepare indicative cost estimates. Fetch lead data by reference ID for pre-bid budgeting.</div>
+          <div class="module-stats">
+            <div class="module-stat"><div class="module-stat-num" style="color:#a78bfa">9</div><div class="module-stat-label">Active BQs</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#f59e0b">3</div><div class="module-stat-label">Pending review</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#22c55e">6</div><div class="module-stat-label">Submitted</div></div>
+          </div>
+        </div>
+        <!-- TENDER -->
+        <div class="module-card m-tend" onclick="showModule('tender')">
+          <div class="module-card-header">
+            <div class="module-icon" style="background:rgba(34,211,238,0.1)">📄</div>
+            <div class="module-num">MODULE 03</div>
+          </div>
+          <div class="module-name">Tender Management</div>
+          <div class="module-desc">Track tender lifecycle from RFP receipt through submission. Manage corrigenda and document deadlines.</div>
+          <div class="module-stats">
+            <div class="module-stat"><div class="module-stat-num" style="color:#22d3ee">7</div><div class="module-stat-label">Active tenders</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#ef4444">2</div><div class="module-stat-label">Due this week</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#22c55e">4</div><div class="module-stat-label">Submitted</div></div>
+          </div>
+        </div>
+        <!-- BIDDING -->
+        <div class="module-card m-bid" onclick="showModule('bidding')">
+          <div class="module-card-header">
+            <div class="module-icon" style="background:rgba(245,158,11,0.1)">⚖️</div>
+            <div class="module-num">MODULE 04</div>
+          </div>
+          <div class="module-name">Bidding</div>
+          <div class="module-desc">Manage commercial bid preparation, pricing strategy, L1 analysis and negotiation tracking.</div>
+          <div class="module-stats">
+            <div class="module-stat"><div class="module-stat-num" style="color:#f59e0b">5</div><div class="module-stat-label">Active bids</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#22d3ee">2</div><div class="module-stat-label">Negotiating</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#22c55e">3</div><div class="module-stat-label">L1 position</div></div>
+          </div>
+        </div>
+        <!-- ACQUISITION -->
+        <div class="module-card m-acq" onclick="showModule('acquisition')">
+          <div class="module-card-header">
+            <div class="module-icon" style="background:rgba(34,197,94,0.1)">🎯</div>
+            <div class="module-num">MODULE 05</div>
+          </div>
+          <div class="module-name">Order Acquisition</div>
+          <div class="module-desc">Track LOI, LOA and final purchase order receipt. Manage pre-order milestones and contract closure.</div>
+          <div class="module-stats">
+            <div class="module-stat"><div class="module-stat-num" style="color:#22c55e">4</div><div class="module-stat-label">LOI received</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#f59e0b">2</div><div class="module-stat-label">Negotiation</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#22c55e">2</div><div class="module-stat-label">PO received</div></div>
+          </div>
+        </div>
+        <!-- ORDER -->
+        <div class="module-card m-ord" onclick="showModule('order')">
+          <div class="module-card-header">
+            <div class="module-icon" style="background:rgba(251,146,60,0.1)">📦</div>
+            <div class="module-num">MODULE 06</div>
+          </div>
+          <div class="module-name">Order Received</div>
+          <div class="module-desc">Post-award delivery tracking. Manage milestones, inspections, invoicing and project completion.</div>
+          <div class="module-stats">
+            <div class="module-stat"><div class="module-stat-num" style="color:#fb923c">6</div><div class="module-stat-label">Active orders</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#f59e0b">1</div><div class="module-stat-label">Delayed</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#22c55e">5</div><div class="module-stat-label">On track</div></div>
+          </div>
+        </div>
+        <!-- FUTURE (full width) -->
+        <div class="module-card m-fut" onclick="showModule('future')" style="grid-column: span 2;">
+          <div class="module-card-header">
+            <div class="module-icon" style="background:rgba(244,114,182,0.1)">🔭</div>
+            <div class="module-num">MODULE 07</div>
+          </div>
+          <div class="module-name">Future Initiatives</div>
+          <div class="module-desc">Track strategic opportunities, R&D programmes, and long-horizon defence technology initiatives. Pipeline visibility beyond current FY.</div>
+          <div class="module-stats">
+            <div class="module-stat"><div class="module-stat-num" style="color:#f472b6">12</div><div class="module-stat-label">Initiatives tracked</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#a78bfa">4</div><div class="module-stat-label">Early engagement</div></div>
+            <div class="module-stat"><div class="module-stat-num" style="color:#22d3ee">5</div><div class="module-stat-label">Watch list</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ LEAD MODULE ══ -->
+    <div class="view" id="view-lead">
+      <!-- LIST -->
+      <div id="lead-list">
+        <div class="breadcrumb">
+          <a onclick="showHome()">Dashboard</a> › <span>Lead Creation</span>
+        </div>
+        <div class="view-header">
+          <span class="view-heading">Leads</span>
+          <span class="count-badge">24 total</span>
+          <div style="margin-left:auto; display:flex; gap:8px;">
+            <button class="btn btn-sm btn-primary" onclick="showNewLead()">+ New Lead</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <input class="filter-input" placeholder="Search project, customer, ref…">
+          <select class="filter-select"><option>All Sectors</option><option>Defence</option><option>Non-Defence</option></select>
+          <select class="filter-select"><option>All Types</option><option>EOI</option><option>RFI</option><option>Customer Input</option></select>
+          <select class="filter-select"><option>All Markets</option><option>Domestic</option><option>Export</option></select>
+          <select class="filter-select"><option>All Status</option><option>New</option><option>Under Review</option><option>Go Decision</option><option>No-Go</option><option>Passed to BQ</option><option>Passed to Tender</option></select>
+          <select class="filter-select"><option>All Owners</option><option>Ravi Kumar</option><option>Sunita Menon</option><option>Amit Shah</option></select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ref #</th>
+                <th>Project Name</th>
+                <th>Customer</th>
+                <th>Type</th>
+                <th>Sector</th>
+                <th>Market</th>
+                <th>Domain</th>
+                <th>Stage</th>
+                <th>Status</th>
+                <th>Lead Owner</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr onclick="showLeadDetail()">
+                <td>L-2526-001</td>
+                <td style="color:var(--text); font-weight:500">Radar Integration System</td>
+                <td>BEL, Bengaluru</td>
+                <td><span class="chip chip-blue">EOI</span></td>
+                <td><span class="chip chip-amber">Defence</span></td>
+                <td>Domestic</td>
+                <td>Electronics</td>
+                <td><span class="chip chip-cyan">Tech Analysis</span></td>
+                <td><span class="chip chip-green">Go</span></td>
+                <td>Ravi Kumar</td>
+                <td style="font-family:var(--mono); font-size:10px">12 Apr 26</td>
+              </tr>
+              <tr onclick="showLeadDetail()">
+                <td>L-2526-002</td>
+                <td style="color:var(--text); font-weight:500">ERP Upgrade — DRDO Labs</td>
+                <td>DRDO, Delhi</td>
+                <td><span class="chip chip-purple">RFI</span></td>
+                <td><span class="chip chip-gray">Non-Def</span></td>
+                <td>Domestic</td>
+                <td>Software</td>
+                <td><span class="chip chip-amber">Exec Summary</span></td>
+                <td><span class="chip chip-amber">Reviewing</span></td>
+                <td>Sunita Menon</td>
+                <td style="font-family:var(--mono); font-size:10px">08 Apr 26</td>
+              </tr>
+              <tr>
+                <td>L-2526-003</td>
+                <td style="color:var(--text); font-weight:500">Comms System Upgrade</td>
+                <td>HAL, Bengaluru</td>
+                <td><span class="chip chip-blue">EOI</span></td>
+                <td><span class="chip chip-amber">Defence</span></td>
+                <td>Domestic</td>
+                <td>Comms</td>
+                <td><span class="chip chip-amber">Go/No-Go</span></td>
+                <td><span class="chip chip-amber">Decision Pending</span></td>
+                <td>Amit Shah</td>
+                <td style="font-family:var(--mono); font-size:10px">02 Apr 26</td>
+              </tr>
+              <tr>
+                <td>L-2526-004</td>
+                <td style="color:var(--text); font-weight:500">Naval IRST Export — UK MoD</td>
+                <td>UK MoD</td>
+                <td><span class="chip chip-cyan">Cust. Input</span></td>
+                <td><span class="chip chip-amber">Defence</span></td>
+                <td><span class="chip chip-purple">Export</span></td>
+                <td>Optronics</td>
+                <td><span class="chip chip-green">Passed to Tender</span></td>
+                <td><span class="chip chip-green">Go</span></td>
+                <td>Ravi Kumar</td>
+                <td style="font-family:var(--mono); font-size:10px">28 Mar 26</td>
+              </tr>
+              <tr>
+                <td>L-2526-005</td>
+                <td style="color:var(--text); font-weight:500">Smart City Surveillance</td>
+                <td>NMMC, Mumbai</td>
+                <td><span class="chip chip-purple">RFI</span></td>
+                <td><span class="chip chip-gray">Non-Def</span></td>
+                <td>Domestic</td>
+                <td>Security</td>
+                <td><span class="chip chip-red">No-Go</span></td>
+                <td><span class="chip chip-red">CRM Notified</span></td>
+                <td>Sunita Menon</td>
+                <td style="font-family:var(--mono); font-size:10px">21 Mar 26</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LEAD DETAIL -->
+      <div id="lead-detail" style="display:none">
+        <div class="breadcrumb">
+          <a onclick="showHome()">Dashboard</a> › <a onclick="backToList('lead')">Lead Creation</a> › <span>L-2526-001 — Radar Integration System</span>
+        </div>
+        <div class="detail-layout">
+          <!-- LEFT MAIN -->
+          <div>
+            <!-- Header card -->
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-header">
+                <span class="chip chip-blue">EOI</span>
+                <span class="chip chip-amber">Defence</span>
+                <span class="chip chip-green">Go Decision</span>
+                <span style="font-family:var(--mono); font-size:11px; color:var(--text3); margin-left:auto">L-2526-001</span>
+              </div>
+              <div class="card-body">
+                <div style="font-size:18px; font-weight:600; color:var(--text); margin-bottom:4px">Radar Integration System</div>
+                <div style="font-size:12px; color:var(--text3)">BEL, Bengaluru &nbsp;·&nbsp; Electronics &nbsp;·&nbsp; Domestic &nbsp;·&nbsp; Single Tender</div>
+              </div>
+              <!-- TABS -->
+              <div class="tabs">
+                <div class="tab active" onclick="switchTab(this,'t-overview')">Overview</div>
+                <div class="tab" onclick="switchTab(this,'t-stage')">Stage &amp; Actions</div>
+                <div class="tab" onclick="switchTab(this,'t-tech')">Tech Analysis</div>
+                <div class="tab" onclick="switchTab(this,'t-approvals')">Approvals</div>
+                <div class="tab" onclick="switchTab(this,'t-log')">Audit Log</div>
+              </div>
+
+              <!-- OVERVIEW TAB -->
+              <div class="tab-panel active" id="t-overview">
+                <div class="field-grid">
+                  <div class="field-group"><div class="field-label">Project Name</div><div class="field-value">Radar Integration System</div></div>
+                  <div class="field-group"><div class="field-label">Reference #</div><div class="field-value" style="font-family:var(--mono)">L-2526-001</div></div>
+                  <div class="field-group"><div class="field-label">Customer Name</div><div class="field-value">Bharat Electronics Limited</div></div>
+                  <div class="field-group"><div class="field-label">Contact Person</div><div class="field-value">Shri R.P. Nair, GM (Projects)</div></div>
+                  <div class="field-group"><div class="field-label">Lead Owner</div><div class="field-value">Ravi Kumar</div></div>
+                  <div class="field-group"><div class="field-label">Lead Type</div><div class="field-value">EOI (Expression of Interest)</div></div>
+                  <div class="field-group"><div class="field-label">Sector</div><div class="field-value">Defence</div></div>
+                  <div class="field-group"><div class="field-label">Market</div><div class="field-value">Domestic</div></div>
+                  <div class="field-group"><div class="field-label">Tender Type</div><div class="field-value">Single Tender</div></div>
+                  <div class="field-group"><div class="field-label">Business Domain</div><div class="field-value">Electronics &amp; Systems</div></div>
+                  <div class="field-group full"><div class="field-label">Remarks</div><div class="field-value" style="color:var(--text2); line-height:1.6">BEL has issued an EOI for integration of AESA radar with existing combat management system. Estimated project value ₹85–120 Cr. Strong alignment with our product portfolio. Technical capability confirmed by engineering team.</div></div>
+                </div>
+                <div class="divider"></div>
+                <div style="display:flex; gap:8px;">
+                  <button class="btn btn-sm" onclick="switchTab(document.querySelector('.tab:nth-child(2)'),'t-stage')">Update Stage ↗</button>
+                  <button class="btn btn-sm btn-primary">Edit Details</button>
+                  <button class="btn btn-sm" style="margin-left:auto; color:var(--green); border-color:var(--green-border)">Pass to Tender →</button>
+                </div>
+              </div>
+
+              <!-- STAGE TAB -->
+              <div class="tab-panel" id="t-stage">
+                <!-- Pipeline -->
+                <div class="stage-pipeline">
+                  <div class="stage-step done">
+                    <div class="stage-circle">✓</div>
+                    <div class="stage-label">Exec<br>Summary</div>
+                  </div>
+                  <div class="stage-step done">
+                    <div class="stage-circle">✓</div>
+                    <div class="stage-label">Go/No-Go<br>Decision</div>
+                  </div>
+                  <div class="stage-step done">
+                    <div class="stage-circle">✓</div>
+                    <div class="stage-label">Owner<br>Assigned</div>
+                  </div>
+                  <div class="stage-step current">
+                    <div class="stage-circle">4</div>
+                    <div class="stage-label">Tech<br>Analysis</div>
+                  </div>
+                  <div class="stage-step">
+                    <div class="stage-circle">5</div>
+                    <div class="stage-label">Internal<br>Approval</div>
+                  </div>
+                  <div class="stage-step">
+                    <div class="stage-circle">6</div>
+                    <div class="stage-label">Feasibility<br>Confirmed</div>
+                  </div>
+                  <div class="stage-step">
+                    <div class="stage-circle">7</div>
+                    <div class="stage-label">Pass to<br>Module</div>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="action-section">
+                  <div class="action-section-title">Current stage — Technical requirement analysis</div>
+                  <div class="field-grid">
+                    <div class="field-group">
+                      <div class="field-label">Update Stage To</div>
+                      <select class="field-select">
+                        <option>Technical Requirement Analysis (Current)</option>
+                        <option>Internal Approval — L1</option>
+                        <option>Internal Approval — L2</option>
+                        <option>Management Approval</option>
+                        <option>Feasibility Confirmed</option>
+                        <option>Pass to BQ Module</option>
+                        <option>Pass to Tender Module</option>
+                        <option>No-Go — Push to CRM</option>
+                      </select>
+                    </div>
+                    <div class="field-group">
+                      <div class="field-label">Change Lead Owner</div>
+                      <select class="field-select">
+                        <option>Ravi Kumar (Current)</option>
+                        <option>Sunita Menon</option>
+                        <option>Amit Shah</option>
+                        <option>Priya Nair</option>
+                      </select>
+                    </div>
+                    <div class="field-group full">
+                      <div class="field-label">Stage Remarks</div>
+                      <textarea class="field-textarea" placeholder="Add remarks for this stage update…"></textarea>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button class="btn btn-sm btn-primary">Update Stage</button>
+                    <button class="btn btn-sm btn-danger">Mark No-Go → CRM</button>
+                  </div>
+                </div>
+
+                <div class="action-section">
+                  <div class="action-section-title">Pass to next module</div>
+                  <div class="action-row">
+                    <span style="font-size:12px; color:var(--text2)">Lead Ref:</span>
+                    <span style="font-family:var(--mono); font-size:12px; color:var(--accent)">L-2526-001</span>
+                    <span style="font-size:12px; color:var(--text3)">will be used in downstream modules</span>
+                  </div>
+                  <div class="action-row">
+                    <button class="btn btn-sm btn-success">Pass to BQ Module</button>
+                    <button class="btn btn-sm btn-success">Pass to Tender Module</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TECH TAB -->
+              <div class="tab-panel" id="t-tech">
+                <div class="field-grid">
+                  <div class="field-group full">
+                    <div class="field-label">Technical Requirement Summary</div>
+                    <textarea class="field-textarea" style="min-height:90px">AESA Radar integration with CMS. Interface protocol: MIL-STD-1553B. Power supply: 28V DC. Environmental: MIL-STD-810G. EMI: MIL-STD-461F compliance required.</textarea>
+                  </div>
+                  <div class="field-group">
+                    <div class="field-label">Feasibility Assessment</div>
+                    <select class="field-select"><option>Feasible</option><option>Partially Feasible</option><option>Not Feasible</option><option>Under Assessment</option></select>
+                  </div>
+                  <div class="field-group">
+                    <div class="field-label">Estimated Project Value (₹ Cr)</div>
+                    <input class="field-input" value="95" type="number">
+                  </div>
+                  <div class="field-group">
+                    <div class="field-label">Development Effort (months)</div>
+                    <input class="field-input" value="18" type="number">
+                  </div>
+                  <div class="field-group">
+                    <div class="field-label">Technology Readiness Level</div>
+                    <select class="field-select"><option>TRL 7 — System prototype</option><option>TRL 8 — System complete</option><option>TRL 9 — Mission proven</option></select>
+                  </div>
+                  <div class="field-group full">
+                    <div class="field-label">Key Technical Risks</div>
+                    <textarea class="field-textarea">1. MIL-STD-1553B interface certification timeline — 4 months&#10;2. Thermal management in confined space&#10;3. Export control (ITAR) compliance for certain components</textarea>
+                  </div>
+                </div>
+                <div style="margin-top:12px; display:flex; gap:8px;">
+                  <button class="btn btn-sm btn-primary">Save Analysis</button>
+                </div>
+              </div>
+
+              <!-- APPROVALS TAB -->
+              <div class="tab-panel" id="t-approvals">
+                <div class="approval-item">
+                  <div class="approval-level">L1</div>
+                  <div class="approval-info">
+                    <div class="approval-name">Dept. Head — Electronics</div>
+                    <div class="approval-role">Shri K. Venkatraman, DGM</div>
+                  </div>
+                  <div class="approval-status">
+                    <span class="chip chip-green">Approved</span>
+                    <div class="approval-date">14 Apr 26</div>
+                  </div>
+                </div>
+                <div class="approval-item">
+                  <div class="approval-level">L2</div>
+                  <div class="approval-info">
+                    <div class="approval-name">Business Dev Head</div>
+                    <div class="approval-role">Ms. Priya Nair, VP — BD</div>
+                  </div>
+                  <div class="approval-status">
+                    <span class="chip chip-amber">Pending</span>
+                    <div class="approval-date">Awaited</div>
+                  </div>
+                </div>
+                <div class="approval-item">
+                  <div class="approval-level">L3</div>
+                  <div class="approval-info">
+                    <div class="approval-name">Management Committee</div>
+                    <div class="approval-role">Board-level sign-off</div>
+                  </div>
+                  <div class="approval-status">
+                    <span class="chip chip-gray">Not Started</span>
+                    <div class="approval-date">—</div>
+                  </div>
+                </div>
+                <div class="divider"></div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <span style="font-size:12px; color:var(--text3)">Send approval reminder to L2</span>
+                  <button class="btn btn-sm">Send Reminder</button>
+                </div>
+              </div>
+
+              <!-- AUDIT LOG TAB -->
+              <div class="tab-panel" id="t-log">
+                <div class="log-item"><div class="log-time">14 Apr 26<br>10:42</div><div class="log-text"><strong>L1 Approval</strong> received from Shri K. Venkatraman. Stage moved to <em>Internal Approval — L2</em>.</div></div>
+                <div class="log-item"><div class="log-time">12 Apr 26<br>15:10</div><div class="log-text">Technical Analysis updated by <strong>Ravi Kumar</strong>. Feasibility marked <em>Feasible</em>, TRL updated to 7.</div></div>
+                <div class="log-item"><div class="log-time">10 Apr 26<br>09:30</div><div class="log-text"><strong>Go decision</strong> recorded. Approved by VP-BD. Stage advanced to Technical Requirement Analysis.</div></div>
+                <div class="log-item"><div class="log-time">08 Apr 26<br>14:05</div><div class="log-text">Executive Summary prepared and submitted for Go/No-Go review by <strong>Ravi Kumar</strong>.</div></div>
+                <div class="log-item"><div class="log-time">08 Apr 26<br>11:15</div><div class="log-text">Lead created by <strong>Ravi Kumar</strong>. Type: EOI · Sector: Defence · Domain: Electronics.</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT SIDEBAR -->
+          <div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-header"><span class="card-title">Lead Info</span></div>
+              <div class="card-body">
+                <div class="info-row"><div class="info-key">Status</div><div class="info-val"><span class="chip chip-green">Go Decision</span></div></div>
+                <div class="info-row"><div class="info-key">Stage</div><div class="info-val" style="font-size:11px">Tech Analysis</div></div>
+                <div class="info-row"><div class="info-key">Owner</div><div class="info-val">Ravi Kumar</div></div>
+                <div class="info-row"><div class="info-key">Created</div><div class="info-val" style="font-family:var(--mono);font-size:11px">12 Apr 2026</div></div>
+                <div class="info-row"><div class="info-key">Last updated</div><div class="info-val" style="font-family:var(--mono);font-size:11px">14 Apr 2026</div></div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-header"><span class="card-title">Key Dates</span></div>
+              <div class="card-body">
+                <div class="info-row"><div class="info-key">EOI Received</div><div class="info-val" style="font-family:var(--mono);font-size:11px">08 Apr 26</div></div>
+                <div class="info-row"><div class="info-key">Response Due</div><div class="info-val" style="font-family:var(--mono);font-size:11px;color:var(--amber)">30 Apr 26</div></div>
+                <div class="info-row">
+                  <div class="info-key">Estimated Value</div>
+                  <div class="info-val" style="font-family:var(--mono);font-size:11px">₹95 Cr</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">Quick Actions</span></div>
+              <div class="card-body" style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn" style="width:100%; justify-content:center; font-size:12px;">Change Lead Owner</button>
+                <button class="btn" style="width:100%; justify-content:center; font-size:12px;">Edit Key Dates</button>
+                <button class="btn btn-success" style="width:100%; justify-content:center; font-size:12px;">→ Pass to Tender</button>
+                <button class="btn btn-danger" style="width:100%; justify-content:center; font-size:12px;">Mark No-Go</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TENDER MODULE ══ -->
+    <div class="view" id="view-tender">
+      <div class="breadcrumb"><a onclick="showHome()">Dashboard</a> › <span>Tender Management</span></div>
+      <div class="view-header">
+        <span class="view-heading">Tenders</span>
+        <span class="count-badge">7 active</span>
+      </div>
+      <div class="filter-bar">
+        <input class="filter-input" placeholder="Search tender, customer…">
+        <select class="filter-select"><option>All Stages</option><option>RFP Received</option><option>Pre-Bid Query</option><option>Bid Preparation</option><option>Submitted</option><option>Technical Eval</option><option>Commercial Eval</option><option>L1 Result</option></select>
+        <select class="filter-select"><option>All Sectors</option><option>Defence</option><option>Non-Defence</option></select>
+        <select class="filter-select"><option>All Owners</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Lead Ref</th>
+              <th>Tender Ref</th>
+              <th>Project</th>
+              <th>Customer</th>
+              <th>Stage</th>
+              <th>Submission Date</th>
+              <th>Days Left</th>
+              <th>Value (₹ Cr)</th>
+              <th>Owner</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onclick="showTenderDetail()">
+              <td>L-2526-001</td>
+              <td>T-2526-007</td>
+              <td style="color:var(--text);font-weight:500">Radar Integration</td>
+              <td>BEL</td>
+              <td><span class="chip chip-cyan">Bid Preparation</span></td>
+              <td style="font-family:var(--mono);font-size:11px;color:var(--amber)">30 Apr 26</td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--amber)">5</td>
+              <td style="font-family:var(--mono);font-size:12px">95</td>
+              <td>Ravi K.</td>
+              <td><button class="btn btn-sm" onclick="event.stopPropagation(); showTenderDetail()">Update →</button></td>
+            </tr>
+            <tr>
+              <td>L-2526-004</td>
+              <td>T-2526-006</td>
+              <td style="color:var(--text);font-weight:500">Naval IRST — UK MoD</td>
+              <td>UK MoD</td>
+              <td><span class="chip chip-purple">Pre-Bid Query</span></td>
+              <td style="font-family:var(--mono);font-size:11px">15 May 26</td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--green)">20</td>
+              <td style="font-family:var(--mono);font-size:12px">240</td>
+              <td>Ravi K.</td>
+              <td><button class="btn btn-sm">Update →</button></td>
+            </tr>
+            <tr>
+              <td>L-2526-009</td>
+              <td>T-2526-005</td>
+              <td style="color:var(--text);font-weight:500">Border Surveillance</td>
+              <td>MHA</td>
+              <td><span class="chip chip-green">Submitted</span></td>
+              <td style="font-family:var(--mono);font-size:11px">18 Mar 26</td>
+              <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">Done</td>
+              <td style="font-family:var(--mono);font-size:12px">180</td>
+              <td>Amit S.</td>
+              <td><button class="btn btn-sm">Update →</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TENDER DETAIL (hidden by default) -->
+      <div id="tender-detail" style="display:none; padding:0 24px 24px;">
+        <div class="breadcrumb" style="padding:0; margin-bottom:14px;"><a onclick="document.getElementById('tender-detail').style.display='none'">← Back to Tenders</a> › <span>T-2526-007</span></div>
+        <div class="detail-layout">
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <span class="chip chip-cyan">Bid Preparation</span>
+                <span class="chip chip-amber">Defence</span>
+                <span style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-left:auto">T-2526-007 · Lead: L-2526-001</span>
+              </div>
+              <div class="card-body" style="padding-bottom:0">
+                <div style="font-size:17px;font-weight:600;color:var(--text);margin-bottom:4px">Radar Integration System</div>
+                <div style="font-size:12px;color:var(--text3);margin-bottom:14px">BEL, Bengaluru · Electronics · Domestic · Single Tender</div>
+              </div>
+              <!-- Tender Stage Pipeline -->
+              <div style="padding:16px 18px 0;">
+                <div class="stage-pipeline">
+                  <div class="stage-step done"><div class="stage-circle">✓</div><div class="stage-label">RFP<br>Received</div></div>
+                  <div class="stage-step done"><div class="stage-circle">✓</div><div class="stage-label">Pre-Bid<br>Query</div></div>
+                  <div class="stage-step done"><div class="stage-circle">✓</div><div class="stage-label">Corrigendum<br>Tracked</div></div>
+                  <div class="stage-step current"><div class="stage-circle">4</div><div class="stage-label">Bid<br>Preparation</div></div>
+                  <div class="stage-step"><div class="stage-circle">5</div><div class="stage-label">Submitted</div></div>
+                  <div class="stage-step"><div class="stage-circle">6</div><div class="stage-label">Technical<br>Eval</div></div>
+                  <div class="stage-step"><div class="stage-circle">7</div><div class="stage-label">Commercial<br>Eval</div></div>
+                  <div class="stage-step"><div class="stage-circle">8</div><div class="stage-label">L1<br>Result</div></div>
+                </div>
+              </div>
+              <div class="tabs">
+                <div class="tab active" onclick="switchTab(this,'tt-overview')">Tender Info</div>
+                <div class="tab" onclick="switchTab(this,'tt-stage')">Update Stage</div>
+                <div class="tab" onclick="switchTab(this,'tt-dates')">Dates &amp; Deadlines</div>
+                <div class="tab" onclick="switchTab(this,'tt-corr')">Corrigenda</div>
+              </div>
+              <div class="tab-panel active" id="tt-overview">
+                <div class="field-grid">
+                  <div class="field-group"><div class="field-label">Tender Reference</div><div class="field-value" style="font-family:var(--mono)">BEL/GM/PROJ/2526/089</div></div>
+                  <div class="field-group"><div class="field-label">Lead Reference</div><div class="field-value" style="font-family:var(--mono);color:var(--accent)">L-2526-001</div></div>
+                  <div class="field-group"><div class="field-label">RFP Received Date</div><div class="field-value" style="font-family:var(--mono)">10 Apr 2026</div></div>
+                  <div class="field-group"><div class="field-label">Submission Deadline</div><div class="field-value" style="font-family:var(--mono);color:var(--amber)">30 Apr 2026</div></div>
+                  <div class="field-group"><div class="field-label">Estimated Value</div><div class="field-value" style="font-family:var(--mono)">₹95 Crore</div></div>
+                  <div class="field-group"><div class="field-label">EMD Amount</div><div class="field-value" style="font-family:var(--mono)">₹95 Lakh</div></div>
+                </div>
+              </div>
+              <div class="tab-panel" id="tt-stage">
+                <div class="action-section">
+                  <div class="action-section-title">Update tender stage</div>
+                  <div class="field-grid">
+                    <div class="field-group">
+                      <div class="field-label">Move Stage To</div>
+                      <select class="field-select">
+                        <option>Bid Preparation (Current)</option>
+                        <option>Bid Submitted</option>
+                        <option>Technical Evaluation — Awaiting</option>
+                        <option>Technical Qualified</option>
+                        <option>Commercial Evaluation</option>
+                        <option>L1 Position</option>
+                        <option>L1 Result — Won</option>
+                        <option>L1 Result — Lost</option>
+                        <option>Cancelled by Customer</option>
+                      </select>
+                    </div>
+                    <div class="field-group">
+                      <div class="field-label">Change Owner</div>
+                      <select class="field-select"><option>Ravi Kumar</option><option>Sunita Menon</option><option>Amit Shah</option></select>
+                    </div>
+                    <div class="field-group full">
+                      <div class="field-label">Remarks</div>
+                      <textarea class="field-textarea" placeholder="Stage update remarks…"></textarea>
+                    </div>
+                  </div>
+                  <button class="btn btn-sm btn-primary" style="margin-top:10px">Update Stage</button>
+                </div>
+              </div>
+              <div class="tab-panel" id="tt-dates">
+                <div class="field-grid">
+                  <div class="field-group"><div class="field-label">RFP Received</div><input class="field-input" type="date" value="2026-04-10"></div>
+                  <div class="field-group"><div class="field-label">Pre-Bid Meeting</div><input class="field-input" type="date" value="2026-04-18"></div>
+                  <div class="field-group"><div class="field-label">Query Submission Deadline</div><input class="field-input" type="date" value="2026-04-22"></div>
+                  <div class="field-group"><div class="field-label">Corrigendum Deadline</div><input class="field-input" type="date" value="2026-04-24"></div>
+                  <div class="field-group"><div class="field-label">Bid Submission Deadline</div><input class="field-input" type="date" value="2026-04-30"></div>
+                  <div class="field-group"><div class="field-label">Technical Opening</div><input class="field-input" type="date" value="2026-05-05"></div>
+                  <div class="field-group"><div class="field-label">Commercial Opening</div><input class="field-input" type="date" value="2026-05-20"></div>
+                  <div class="field-group"><div class="field-label">Expected L1 Result</div><input class="field-input" type="date" value="2026-06-10"></div>
+                </div>
+                <button class="btn btn-sm btn-primary" style="margin-top:12px">Save Dates</button>
+              </div>
+              <div class="tab-panel" id="tt-corr">
+                <div style="font-size:12px; color:var(--text3); margin-bottom:12px; font-family:var(--mono)">CORRIGENDUM TRACKER</div>
+                <div class="approval-item">
+                  <div class="approval-level">C1</div>
+                  <div class="approval-info"><div class="approval-name">Submission date extended</div><div class="approval-role">Original: 25 Apr → Revised: 30 Apr 2026</div></div>
+                  <div class="approval-status"><span class="chip chip-green">Applied</span><div class="approval-date">20 Apr 26</div></div>
+                </div>
+                <div class="divider"></div>
+                <div class="field-grid" style="margin-top:8px;">
+                  <div class="field-group"><div class="field-label">Corrigendum #</div><input class="field-input" placeholder="C2"></div>
+                  <div class="field-group"><div class="field-label">Date Issued</div><input class="field-input" type="date"></div>
+                  <div class="field-group full"><div class="field-label">Description of Change</div><textarea class="field-textarea" placeholder="Describe the amendment…"></textarea></div>
+                </div>
+                <button class="btn btn-sm btn-primary" style="margin-top:8px">+ Add Corrigendum</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:14px;">
+              <div class="card-header"><span class="card-title">Deadline Alert</span></div>
+              <div class="card-body">
+                <div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:6px;padding:12px;font-size:12px;color:var(--amber);line-height:1.6">
+                  ⚠ Submission deadline in <strong>5 days</strong><br>30 Apr 2026 · 15:00 IST
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">Quick Update</span></div>
+              <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn" style="width:100%;justify-content:center;font-size:12px;">Update Submission Date</button>
+                <button class="btn" style="width:100%;justify-content:center;font-size:12px;">+ Add Corrigendum</button>
+                <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:12px;">Mark as Submitted</button>
+                <button class="btn" style="width:100%;justify-content:center;font-size:12px;color:var(--cyan);">→ Pass to Bidding</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ BQ MODULE ══ -->
+    <div class="view" id="view-bq">
+      <div class="breadcrumb"><a onclick="showHome()">Dashboard</a> › <span>Budgetary Quotation</span></div>
+      <div class="view-header">
+        <span class="view-heading">Budgetary Quotations</span>
+        <span class="count-badge">9 active</span>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <span style="font-size:12px;color:var(--text3)">Fetch by Lead Ref:</span>
+          <input class="filter-input" style="width:140px" placeholder="L-2526-…">
+          <button class="btn btn-sm btn-primary">Fetch Lead</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <input class="filter-input" placeholder="Search BQ, project…">
+        <select class="filter-select"><option>All Stages</option><option>Draft</option><option>Under Review</option><option>Submitted</option><option>Revised</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Lead Ref</th><th>BQ Ref</th><th>Project</th><th>Customer</th><th>BQ Value (₹ Cr)</th><th>Stage</th><th>Submitted Date</th><th>Owner</th></tr></thead>
+          <tbody>
+            <tr><td>L-2526-001</td><td>BQ-2526-009</td><td style="color:var(--text);font-weight:500">Radar Integration</td><td>BEL</td><td style="font-family:var(--mono)">102.50</td><td><span class="chip chip-cyan">Under Review</span></td><td style="font-family:var(--mono);font-size:11px">15 Apr 26</td><td>Ravi K.</td></tr>
+            <tr><td>L-2526-004</td><td>BQ-2526-008</td><td style="color:var(--text);font-weight:500">Naval IRST — UK MoD</td><td>UK MoD</td><td style="font-family:var(--mono)">258.00</td><td><span class="chip chip-green">Submitted</span></td><td style="font-family:var(--mono);font-size:11px">02 Apr 26</td><td>Ravi K.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ OTHER MODULES (generic placeholder) ══ -->
+    <div class="view" id="view-bidding">
+      <div class="breadcrumb"><a onclick="showHome()">Dashboard</a> › <span>Bidding</span></div>
+      <div class="view-header"><span class="view-heading">Bidding Module</span><span class="count-badge">5 active bids</span></div>
+      <div class="filter-bar">
+        <input class="filter-input" placeholder="Search by lead ref, project…">
+        <select class="filter-select"><option>All Stages</option><option>Price Preparation</option><option>Internal Review</option><option>Bid Submitted</option><option>L1 Negotiation</option><option>L1 Won</option><option>L1 Lost</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Lead Ref</th><th>Tender Ref</th><th>Project</th><th>Customer</th><th>Our Price (₹ Cr)</th><th>Stage</th><th>L1 Status</th><th>Owner</th></tr></thead>
+          <tbody>
+            <tr><td>L-2526-009</td><td>T-2526-005</td><td style="color:var(--text);font-weight:500">Border Surveillance</td><td>MHA</td><td style="font-family:var(--mono)">178.20</td><td><span class="chip chip-amber">L1 Negotiation</span></td><td><span class="chip chip-green">L1 Position</span></td><td>Amit S.</td></tr>
+            <tr><td>L-2526-004</td><td>T-2526-006</td><td style="color:var(--text);font-weight:500">Naval IRST</td><td>UK MoD</td><td style="font-family:var(--mono)">241.00</td><td><span class="chip chip-cyan">Bid Submitted</span></td><td><span class="chip chip-gray">Awaited</span></td><td>Ravi K.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-acquisition">
+      <div class="breadcrumb"><a onclick="showHome()">Dashboard</a> › <span>Order Acquisition</span></div>
+      <div class="view-header"><span class="view-heading">Order Acquisition</span><span class="count-badge">4 LOIs received</span></div>
+      <div class="filter-bar">
+        <input class="filter-input" placeholder="Search by lead ref, project…">
+        <select class="filter-select"><option>All Stages</option><option>LOI Received</option><option>Contract Negotiation</option><option>LOA Received</option><option>PO Received</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Lead Ref</th><th>Project</th><th>Customer</th><th>Order Value (₹ Cr)</th><th>Stage</th><th>LOI Date</th><th>PO Date</th><th>Owner</th></tr></thead>
+          <tbody>
+            <tr><td>L-2526-009</td><td style="color:var(--text);font-weight:500">Border Surveillance</td><td>MHA</td><td style="font-family:var(--mono)">178.20</td><td><span class="chip chip-green">PO Received</span></td><td style="font-family:var(--mono);font-size:11px">10 Jan 26</td><td style="font-family:var(--mono);font-size:11px">15 Mar 26</td><td>Amit S.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-order">
+      <div class="breadcrumb"><a onclick="showHome()">Dashboard</a> › <span>Order Received</span></div>
+      <div class="view-header"><span class="view-heading">Orders Received</span><span class="count-badge">6 active orders</span></div>
+      <div class="filter-bar">
+        <input class="filter-input" placeholder="Search by lead ref, PO number…">
+        <select class="filter-select"><option>All Stages</option><option>Order Kick-off</option><option>Engineering</option><option>Procurement</option><option>Manufacturing</option><option>FAT</option><option>Delivery</option><option>Invoiced</option><option>Closed</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Lead Ref</th><th>PO Number</th><th>Project</th><th>Customer</th><th>PO Value (₹ Cr)</th><th>Current Stage</th><th>Delivery Date</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>L-2526-009</td><td style="font-family:var(--mono)">MHA/PO/26/1204</td><td style="color:var(--text);font-weight:500">Border Surveillance</td><td>MHA</td><td style="font-family:var(--mono)">178.20</td><td><span class="chip chip-cyan">Manufacturing</span></td><td style="font-family:var(--mono);font-size:11px;color:var(--green)">Dec 2026</td><td><span class="chip chip-green">On Track</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-future">
+      <div class="breadcrumb"><a onclick="showHome()">Dashboard</a> › <span>Future Initiatives</span></div>
+      <div class="view-header"><span class="view-heading">Future Initiatives</span><span class="count-badge">12 tracked</span></div>
+      <div class="filter-bar">
+        <input class="filter-input" placeholder="Search initiative, programme…">
+        <select class="filter-select"><option>All Horizons</option><option>FY 2026–27</option><option>FY 2027–28</option><option>FY 2028+</option></select>
+        <select class="filter-select"><option>All Categories</option><option>Early Engagement</option><option>Watch List</option><option>R&D Programme</option><option>Strategic Partnership</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Init. Ref</th><th>Programme</th><th>Customer / Agency</th><th>Domain</th><th>Est. Value (₹ Cr)</th><th>Horizon</th><th>Category</th><th>Owner</th></tr></thead>
+          <tbody>
+            <tr><td style="font-family:var(--mono)">FI-001</td><td style="color:var(--text);font-weight:500">MRFA Avionics Suite</td><td>IAF / HAL</td><td>Avionics</td><td style="font-family:var(--mono)">2,400</td><td><span class="chip chip-purple">FY 2027–28</span></td><td><span class="chip chip-cyan">Early Engagement</span></td><td>Ravi K.</td></tr>
+            <tr><td style="font-family:var(--mono)">FI-002</td><td style="color:var(--text);font-weight:500">Army Next-Gen Comms</td><td>Army HQ</td><td>Comms</td><td style="font-family:var(--mono)">800</td><td><span class="chip chip-gray">FY 2028+</span></td><td><span class="chip chip-amber">Watch List</span></td><td>Sunita M.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ NEW LEAD FORM ══ -->
+    <div class="view" id="view-newlead">
+      <div class="breadcrumb"><a onclick="showHome()">Dashboard</a> › <a onclick="showModule('lead')">Lead Creation</a> › <span>New Lead</span></div>
+      <div class="form-view">
+        <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:16px;padding-top:4px">Create New Lead</div>
+
+        <div class="form-section">
+          <div class="form-section-header"><span style="font-size:14px">📋</span><span class="form-section-title">Basic Information</span></div>
+          <div class="form-section-body">
+            <div class="form-grid">
+              <div class="form-group span2"><div class="form-label">Project Name *</div><input class="field-input" placeholder="Enter project / programme name"></div>
+              <div class="form-group"><div class="form-label">Customer / Organisation *</div><input class="field-input" placeholder="e.g. BEL, DRDO, HAL"></div>
+              <div class="form-group"><div class="form-label">Contact Person</div><input class="field-input" placeholder="Name, Designation"></div>
+              <div class="form-group"><div class="form-label">Customer Email</div><input class="field-input" type="email" placeholder="contact@customer.gov.in"></div>
+              <div class="form-group"><div class="form-label">Customer Phone</div><input class="field-input" placeholder="+91 …"></div>
+              <div class="form-group"><div class="form-label">Enquiry Reference # (if any)</div><input class="field-input" placeholder="Customer-issued ref number"></div>
+              <div class="form-group"><div class="form-label">Enquiry Date</div><input class="field-input" type="date"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header"><span style="font-size:14px">🏷</span><span class="form-section-title">Classification</span></div>
+          <div class="form-section-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <div class="form-label">Lead Type *</div>
+                <div class="toggle-group">
+                  <div class="toggle-opt selected" onclick="selectToggle(this)">EOI</div>
+                  <div class="toggle-opt" onclick="selectToggle(this)">RFI</div>
+                  <div class="toggle-opt" onclick="selectToggle(this)">Customer Input</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Sector *</div>
+                <div class="toggle-group">
+                  <div class="toggle-opt selected" onclick="selectToggle(this)">Defence</div>
+                  <div class="toggle-opt" onclick="selectToggle(this)">Non-Defence</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Market *</div>
+                <div class="toggle-group">
+                  <div class="toggle-opt selected" onclick="selectToggle(this)">Domestic</div>
+                  <div class="toggle-opt" onclick="selectToggle(this)">Export</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Tender Type</div>
+                <div class="toggle-group">
+                  <div class="toggle-opt selected" onclick="selectToggle(this)">Single</div>
+                  <div class="toggle-opt" onclick="selectToggle(this)">Multi / Open</div>
+                  <div class="toggle-opt" onclick="selectToggle(this)">Limited</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Business Domain *</div>
+                <select class="field-select">
+                  <option>Select domain…</option>
+                  <option>Electronics &amp; Systems</option>
+                  <option>Optronics</option>
+                  <option>Communications</option>
+                  <option>Software &amp; IT</option>
+                  <option>Mechanical Systems</option>
+                  <option>Security &amp; Surveillance</option>
+                  <option>Avionics</option>
+                  <option>Naval Systems</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Lead Owner *</div>
+                <select class="field-select">
+                  <option>Assign to…</option>
+                  <option>Ravi Kumar</option>
+                  <option>Sunita Menon</option>
+                  <option>Amit Shah</option>
+                  <option>Priya Nair</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-header"><span style="font-size:14px">📌</span><span class="form-section-title">Status &amp; Remarks</span></div>
+          <div class="form-section-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <div class="form-label">Initial Status</div>
+                <select class="field-select">
+                  <option>New</option>
+                  <option>Under Review</option>
+                  <option>Qualified</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Estimated Value (₹ Crore)</div>
+                <input class="field-input" type="number" placeholder="0.00">
+              </div>
+              <div class="form-group span2">
+                <div class="form-label">Remarks / Notes</div>
+                <textarea class="field-textarea" placeholder="Initial observations, context, source of enquiry…"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary">Save Lead</button>
+          <button class="btn">Save &amp; Add Another</button>
+          <button class="btn" onclick="showModule('lead')">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+// ── STATE ──
+let currentModule = null;
+
+// ── NAV ──
+function setActiveNav(id) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (id) document.getElementById(id)?.classList.add('active');
+}
+
+function showView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(viewId)?.classList.add('active');
+}
+
+function showHome() {
+  setActiveNav(null);
+  document.querySelector('.nav-item').classList.add('active');
+  showView('view-home');
+  document.getElementById('top-tag').textContent = 'PORTAL';
+  document.getElementById('top-tag').className = 'module-tag tag-lead';
+  document.getElementById('top-title').textContent = 'Dashboard Overview';
+}
+
+const MODULE_META = {
+  lead:        { tag:'LEAD',        cls:'tag-lead',   title:'Lead Creation',         view:'view-lead' },
+  bq:          { tag:'BQ',          cls:'tag-bq',     title:'Budgetary Quotation',   view:'view-bq' },
+  tender:      { tag:'TENDER',      cls:'tag-tender', title:'Tender Management',     view:'view-tender' },
+  bidding:     { tag:'BIDDING',     cls:'tag-bid',    title:'Bidding',               view:'view-bidding' },
+  acquisition: { tag:'ACQ',         cls:'tag-acq',    title:'Order Acquisition',     view:'view-acquisition' },
+  order:       { tag:'ORDER',       cls:'tag-ord',    title:'Order Received',        view:'view-order' },
+  future:      { tag:'FUTURE',      cls:'tag-fut',    title:'Future Initiatives',    view:'view-future' },
+};
+
+function showModule(mod) {
+  currentModule = mod;
+  const m = MODULE_META[mod];
+  setActiveNav('nav-' + mod);
+  showView(m.view);
+  document.getElementById('top-tag').textContent = m.tag;
+  document.getElementById('top-tag').className = 'module-tag ' + m.cls;
+  document.getElementById('top-title').textContent = m.title;
+  // reset sub-views
+  if (mod === 'lead') { document.getElementById('lead-list').style.display=''; document.getElementById('lead-detail').style.display='none'; }
+  if (mod === 'tender') { document.getElementById('tender-detail').style.display='none'; }
+}
+
+function showNewLead() {
+  setActiveNav('nav-lead');
+  showView('view-newlead');
+  document.getElementById('top-tag').textContent = 'LEAD';
+  document.getElementById('top-tag').className = 'module-tag tag-lead';
+  document.getElementById('top-title').textContent = 'New Lead';
+}
+
+function showLeadDetail() {
+  document.getElementById('lead-list').style.display = 'none';
+  document.getElementById('lead-detail').style.display = '';
+}
+
+function showTenderDetail() {
+  document.getElementById('tender-detail').style.display = '';
+  document.getElementById('tender-detail').scrollIntoView({ behavior:'smooth' });
+}
+
+function backToList(mod) {
+  if (mod === 'lead') { document.getElementById('lead-list').style.display=''; document.getElementById('lead-detail').style.display='none'; }
+}
+
+// ── TABS ──
+function switchTab(el, panelId) {
+  const card = el.closest('.card, .view');
+  card.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(panelId)?.classList.add('active');
+}
+
+// ── TOGGLE OPTIONS ──
+function selectToggle(el) {
+  const group = el.closest('.toggle-group');
+  group.querySelectorAll('.toggle-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+</script>
+</body>
+</html>
