@@ -20,6 +20,11 @@ import BQListPage   from './pages/bq/BQListPage'
 import BQCreatePage from './pages/bq/BQCreatePage'
 import BQDetailPage from './pages/bq/BQDetailPage'
 
+// Module 03 — Tender Management
+import TenderListPage   from './pages/tender/TenderListPage'
+import TenderCreatePage from './pages/tender/TenderCreatePage'
+import TenderDetailPage from './pages/tender/TenderDetailPage'
+
 function ComingSoon({ module, num, color }) {
   return (
     <AppShell topbarProps={{ title: module }}>
@@ -68,8 +73,11 @@ export default function EnquiryApp() {
           <Route path="/bq/:id"      element={<BQDetailPage />} />
 
           {/* Module 03 — Tender Management (placeholder) */}
-          <Route path="/tender"      element={<ComingSoon module="Tender Management"  num="03" color="#0e7c7b" />} />
-          <Route path="/tender/*"    element={<ComingSoon module="Tender Management"  num="03" color="#0e7c7b" />} />
+          {/* <Route path="/tender"      element={<ComingSoon module="Tender Management"  num="03" color="#0e7c7b" />} />
+          <Route path="/tender/*"    element={<ComingSoon module="Tender Management"  num="03" color="#0e7c7b" />} /> */}
+          <Route path="/tender"          element={<TenderListPage  />} />
+          <Route path="/tender/new"      element={<TenderCreatePage />} />
+          <Route path="/tender/:id"      element={<TenderDetailPage />} />
 
           {/* Module 04 — Bidding (placeholder) */}
           <Route path="/bidding"     element={<ComingSoon module="Bidding"            num="04" color="#b45309" />} />
